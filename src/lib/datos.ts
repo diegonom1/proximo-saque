@@ -33,7 +33,7 @@ const datos = validarDatos({
 export const { jugadoras, clubes, ligas, seleccion, torneos, rankings } = datos;
 export const { actualizado, partidos, estados } = datos.partidos;
 
-// Plantel visible: `propuesta` espera aprobación y `exseleccionada` ya no genera página.
+// Plantilla visible: `propuesta` espera aprobación y `exseleccionada` ya no genera página.
 export const activas = jugadoras.filter((j) => j.estado === 'activa');
 
 // Solo lo que el navegador necesita para mantener al día el hero y el botón flotante.

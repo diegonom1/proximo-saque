@@ -6,6 +6,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 
 ## Reglas de trabajo
 
+- En todo el texto visible del sitio se dice "Plantilla", no "Plantel". Los nombres internos (agente 01, variables, `#plantel`) se pueden quedar.
 - Commits sin líneas `Co-Authored-By` ni menciones a Claude.
 - Código, comentarios y textos del sitio en español de México.
 - Mobile first: la mayoría de las visitas llegan desde el celular.
@@ -87,7 +88,7 @@ Cualquier campo puede ser `null`. En pantalla, `null` se muestra como "Por confi
 }
 ```
 
-- `estado`: `activa` | `propuesta` (alta sugerida por el agente, pendiente de aprobar) | `exseleccionada` (sale del plantel y de la agenda, y el sitio deja de generar su página; los datos se quedan por si regresa).
+- `estado`: `activa` | `propuesta` (alta sugerida por el agente, pendiente de aprobar) | `exseleccionada` (sale de la plantilla y de la agenda, y el sitio deja de generar su página; los datos se quedan por si regresa).
 - `posicion`: `Acomodadora` | `Opuesta` | `Atacante` | `Central` | `Líbero` (la de su última lista con la Selección).
 - `redes`: `[{ "red": "instagram", "url": "https://...", "fuente": "https://..." }]`; solo cuentas verificadas (ver agente 02).
 - `fuentes`: URL por campo (`{ "clubId": "https://...", "fechaNacimiento": "https://..." }`).
@@ -288,7 +289,7 @@ En todo el sitio (hero, "Esta semana", perfil, agenda) un partido se escribe igu
    3. si no hay torneo confirmado: "Próximo torneo por confirmar" y abajo "Mientras, la próxima en jugar:", el texto del partido y su cuenta regresiva.
 2. **Esta semana**: los 3 próximos partidos de cualquier tipo, con enlace "Ver agenda completa".
 3. **Rankings**: FIVB y NORCECA en dos bloques grandes: lugar (número grande), puntos, fecha de actualización y flecha si subió o bajó contra el registro anterior. La FMVB solo muestra los puntos; nosotros mostramos más.
-4. **Plantel**: tarjetas con retrato (`tarjeta.jpg`), nombre, número, posición y club. Toca una y abre su perfil.
+4. **Plantilla**: tarjetas con retrato (`tarjeta.jpg`), nombre, número, posición y club. Toca una y abre su perfil.
 5. **Últimos 7 torneos**: tarjeta por torneo con medalla o lugar, sede, fechas, récord y premios individuales.
 6. **Pie**: fecha de última actualización, fuentes generales y créditos de fotos.
 
@@ -337,7 +338,7 @@ Los 7 torneos con más detalle: resultado, récord y premios.
 1. **De tarjeta a perfil**: transición de elemento compartido (`view-transition-name: foto-<slug>` en la tarjeta y en el hero del perfil); la foto crece hasta ser el fondo.
 2. **Perfil con profundidad**: apellido gigante detrás del `recorte.png`; al hacer scroll el texto se mueve más lento que la foto (2–3 capas). Sin recorte: foto con el nombre encima.
 3. **Hero de inicio**: la foto empieza a pantalla completa y con el scroll se reduce a una tarjeta redondeada; la fecha y la cuenta quedan fijas (pin) mientras tanto.
-4. **Plantel**: en escritorio, sección fijada con scroll horizontal de tarjetas; en celular, carrusel deslizable con snap.
+4. **Plantilla**: en escritorio, sección fijada con scroll horizontal de tarjetas; en celular, carrusel deslizable con snap.
 5. **Intro de carga** (solo la primera visita de la sesión, máximo 1.2 s, saltable): "PRÓXIMO SAQUE" con contador 0–100 % que se abre como máscara sobre el hero. Guiño al sitio de referencia (spidermanbrandnewday.es), que usa pantalla de carga con porcentaje, video de fondo y una fecha grande.
 6. Títulos que entran por líneas (SplitText), rankings que cuentan hacia arriba y dígitos de la cuenta regresiva que ruedan.
 
@@ -351,7 +352,7 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 |---|---|---|
 | `seleccion/hero.jpg` | Hero de inicio (escritorio) | 2400 px de ancho, horizontal |
 | `seleccion/hero-movil.jpg` | Hero de inicio (celular) | 1080 × 1920, vertical |
-| `jugadoras/<slug>/tarjeta.jpg` | Plantel | 1000 × 1250 (4:5), cara en el tercio superior |
+| `jugadoras/<slug>/tarjeta.jpg` | Plantilla | 1000 × 1250 (4:5), cara en el tercio superior |
 | `jugadoras/<slug>/fondo.jpg` | Fondo del perfil | 2000 px del lado largo, jugadora hacia un lado |
 | `jugadoras/<slug>/recorte.png` | Efecto de profundidad (opcional) | PNG transparente, 1600 px de alto |
 | `credito.txt` | Crédito visible | `Foto: autor o cuenta — URL` |
@@ -393,8 +394,8 @@ Detalles técnicos:
 - Todo dato nuevo necesita `fuente`; sin fuente se descarta.
 - Fuentes: una URL se acepta si su dominio aparece entre las fuentes de `groundingMetadata` de esa misma respuesta o si responde al abrirla (2xx/3xx; Volleybox contesta 403 a los bots y se acepta si viene en `groundingMetadata`). Los enlaces de redirección de Google en `groundingMetadata` (`vertexaisearch.cloud.google.com/grounding-api-redirect/…`) se resuelven a su URL final antes de guardarlos. Si ninguna fuente del dato pasa, se descarta.
 - Partidos: fecha válida, futura, a menos de 120 días, zona IANA válida, local y visitante presentes. La hora llega como la publica la fuente (`fecha`, `hora`, `zonaHoraria`), junto con `zonaSede`. El código calcula el instante con `hora` + `zonaHoraria` y guarda `inicio` en `zonaSede` (`relojLocalAUtc` e `isoEnZona` del v1). El desfase de `inicio` debe coincidir con `zonaSede`.
-- Plantel: un alta necesita aparecer en una lista oficial (FMVB, NORCECA, FIVB/Volleyball World, Panam Sports, Centro Caribe Sports) de los últimos 12 meses. Una baja necesita anuncio explícito o 24 meses sin aparecer en listas oficiales (se calcula con `ultimaListaOficial.fecha`; si la fecha es `null`, nunca hay baja por inactividad). Faltar a un torneo nunca es baja.
-- Nombres: el `slug` que propone el agente se acepta solo si el apellido coincide (comparado sin acentos ni mayúsculas). Si una lista trae solo apellidos, se fusiona cuando el apellido es único en el plantel; si no, va a dudas del PR.
+- Plantilla: un alta necesita aparecer en una lista oficial (FMVB, NORCECA, FIVB/Volleyball World, Panam Sports, Centro Caribe Sports) de los últimos 12 meses. Una baja necesita anuncio explícito o 24 meses sin aparecer en listas oficiales (se calcula con `ultimaListaOficial.fecha`; si la fecha es `null`, nunca hay baja por inactividad). Faltar a un torneo nunca es baja.
+- Nombres: el `slug` que propone el agente se acepta solo si el apellido coincide (comparado sin acentos ni mayúsculas). Si una lista trae solo apellidos, se fusiona cuando el apellido es único en la plantilla; si no, va a dudas del PR.
 - Torneos: máximo 7 por fecha de fin; sin duplicados por `id` (`<organizador>-<torneo>-<edicion>`).
 - Si un agente falla o su respuesta no valida, se conservan los datos anteriores y se avisa en el resumen.
 
@@ -413,7 +414,7 @@ Ambos usan Node 24: `actions/setup-node` con `node-version-file: .nvmrc`.
 
 ## Fases
 
-0. Proyecto Astro, estructura y carpetas de fotos del plantel inicial (con `.gitkeep`). Migrar los datos de `v1/data/` al formato nuevo (`equipos.json` → `clubes.json` + `ligas.json`; `partidos.json` con `tipo: "club"` y `clubId`) y agregar lo de este documento. Migrar las utilidades del v1 a `scripts/lib/` y `src/lib/` con pruebas.
+0. Proyecto Astro, estructura y carpetas de fotos de la plantilla inicial (con `.gitkeep`). Migrar los datos de `v1/data/` al formato nuevo (`equipos.json` → `clubes.json` + `ligas.json`; `partidos.json` con `tipo: "club"` y `clubId`) y agregar lo de este documento. Migrar las utilidades del v1 a `scripts/lib/` y `src/lib/` con pruebas.
 1. Inicio sin animaciones.
 2. Perfil de jugadora.
 3. Agenda (con filtros y Google Calendar).
@@ -422,7 +423,7 @@ Ambos usan Node 24: `actions/setup-node` con `node-version-file: .nvmrc`.
 6. Animaciones y pulido.
 7. Revisión: rendimiento móvil, accesibilidad, reduced motion.
 
-## Plantel inicial (carpetas de fotos)
+## Plantilla inicial (carpetas de fotos)
 
 Jugadoras que aparecen en al menos una lista oficial reciente: el Campeonato Mundial 2025 y el Final Four NORCECA 2026 (Ponce, junio). Número y posición son los del boletín oficial del Final Four 2026. La lista completa del Final Six 2026 (Zinacantepec, septiembre) no apareció publicada con nombres en las fuentes revisadas; el agente 01 la completa en su primera corrida.
 
