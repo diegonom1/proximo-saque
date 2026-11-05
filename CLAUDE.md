@@ -302,7 +302,7 @@ En todo el sitio (hero, "Esta semana", perfil, agenda) un partido se escribe igu
 4. **Un plus**: destacados (premios, MVP, equipos ideales), línea de tiempo de clubes y última lista oficial en la que apareció.
 5. **Fuentes**: enlaces de donde salió cada dato.
 
-Los partidos del perfil son los de su club y los de la Selección donde aparece en `convocadas`; el navegador decide cuál es el próximo, porque el sitio se construye una vez por semana.
+Los partidos del perfil son los de su club y los de la Selección donde aparece en `convocadas`; el navegador decide cuál es el próximo, porque el sitio se construye una vez por semana. Si hay un próximo torneo y aún no tiene lista, se muestra una línea: "Próximo torneo de la Selección: <torneo>, <fechas> · Lista por confirmar".
 
 Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin empezar, en pausa o terminada). Si no tiene club confirmado: "Club por confirmar".
 

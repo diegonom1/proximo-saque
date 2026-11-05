@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { apellido, edad, estaturaTexto, fechaLarga, fuentesDe, origenTexto } from './perfil';
+import { apellido, avisoTorneo, edad, estaturaTexto, fechaLarga, fuentesDe, origenTexto } from './perfil';
 
 describe('datos', () => {
   it('apellido toma la última palabra', () => {
@@ -20,6 +20,35 @@ describe('datos', () => {
   });
   it('estatura en metros', () => {
     expect(estaturaTexto(183)).toBe('1.83 m');
+  });
+});
+
+describe('avisoTorneo', () => {
+  const torneo = { id: 't', nombre: 'Copa Panamericana', edicion: 2027, fechaInicio: '2027-06-03', fechaFin: '2027-06-08' };
+  const hoy = '2026-11-05';
+
+  it('avisa si hay torneo y aún no hay lista', () => {
+    expect(avisoTorneo(torneo, [], hoy)?.texto).toBe('Próximo torneo de la Selección: Copa Panamericana 2027, 3–8 jun 2027 · Lista por confirmar');
+  });
+  it('los partidos sin convocadas no cuentan como lista', () => {
+    expect(avisoTorneo(torneo, [{ torneoId: 't', convocadas: null }, { torneoId: 't', convocadas: [] }], hoy)).not.toBeNull();
+  });
+  it('con lista publicada ya no avisa, aunque ella no esté', () => {
+    expect(avisoTorneo(torneo, [{ torneoId: 't', convocadas: ['otra'] }], hoy)).toBeNull();
+  });
+  it('la lista de otro torneo no cuenta', () => {
+    expect(avisoTorneo(torneo, [{ torneoId: 'otro', convocadas: ['a'] }], hoy)).not.toBeNull();
+  });
+  it('sin torneo o con torneo terminado no avisa', () => {
+    expect(avisoTorneo(null, [], hoy)).toBeNull();
+    expect(avisoTorneo(torneo, [], '2027-06-09')).toBeNull();
+  });
+  it('el último día todavía avisa', () => {
+    expect(avisoTorneo(torneo, [], '2027-06-08')).not.toBeNull();
+  });
+  it('sin fechas lo dice', () => {
+    const v = avisoTorneo({ ...torneo, fechaInicio: null, fechaFin: null }, [], hoy);
+    expect(v?.texto).toBe('Próximo torneo de la Selección: Copa Panamericana 2027, fechas por confirmar · Lista por confirmar');
   });
 });
 

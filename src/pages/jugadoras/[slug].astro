@@ -4,12 +4,13 @@ import Base from '../../components/Base.astro';
 import IconoSvg from '../../components/IconoSvg.astro';
 import PartidoPerfil from '../../components/PartidoPerfil.astro';
 import type { Jugadora } from '../../lib/datos';
-import { activas, clubes, estados, ligas, partidosDe } from '../../lib/datos';
+import { activas, clubes, estados, ligas, partidos, partidosDe, seleccion } from '../../lib/datos';
 import { anchosPara, fotosJugadora } from '../../lib/fotos';
 import { iconoRed } from '../../lib/iconos';
-import { apellido, edad, estaturaTexto, fechaLarga, fuentesDe, origenTexto } from '../../lib/perfil';
+import { apellido, avisoTorneo, edad, estaturaTexto, fechaLarga, fuentesDe, origenTexto } from '../../lib/perfil';
 import { POR_CONFIRMAR, fechaLegible, ruta } from '../../lib/presentacion';
-import { vigentes } from '../../lib/tiempo';
+import { vigentes, ymd } from '../../lib/tiempo';
+import { ZONA_SITIO } from '../../../scripts/lib/tiempo.mjs';
 
 export function getStaticPaths() {
   // `exseleccionada` y `propuesta` no generan página.
@@ -31,6 +32,8 @@ const estado = j.clubId ? estados[j.clubId] : null;
 
 // Van de más: el navegador recorre la lista cuando un partido termina antes de la siguiente construcción.
 const [proximo, ...resto] = vigentes(partidosDe(j.slug), ahora).slice(0, 8);
+
+const aviso = avisoTorneo(seleccion.proximoTorneo, partidos, ymd(ahora, ZONA_SITIO));
 
 const clubTexto = club ? [club.nombre, [liga?.nombre, club.pais].filter(Boolean).join(', ')].filter(Boolean).join(' · ') : 'Club por confirmar';
 const datos = [
@@ -124,6 +127,7 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
   <section class="seccion seccion--hueso" aria-labelledby="proximo-titulo">
     <div class="marco">
       <h2 id="proximo-titulo" class="titulo-seccion">Próximo partido</h2>
+      {aviso && <p class="aviso-torneo" data-aviso-torneo data-ultimo-dia={aviso.ultimoDia}>{aviso.texto}</p>}
       <div class="caja" data-proximo hidden={!proximo}>
         {proximo && <PartidoPerfil partido={proximo} />}
       </div>
@@ -226,7 +230,7 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
 </Base>
 
 <script>
-  import { cuentaRegresiva, diaCorto, diasHasta, enJuego, hora } from '../../lib/tiempo';
+  import { cuentaRegresiva, diaCorto, diasHasta, enJuego, hora, ymd } from '../../lib/tiempo';
   import { DURACION_MS } from '../../../scripts/lib/tiempo.mjs';
 
   const proximo = document.querySelector<HTMLElement>('[data-proximo]');
@@ -275,6 +279,10 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
       for (const nombre of ['horas', 'minutos', 'segundos']) unidad(cuenta, nombre, null);
     }
   }
+
+  // El torneo puede terminar antes de la siguiente construcción.
+  const aviso = document.querySelector<HTMLElement>('[data-aviso-torneo]');
+  if (aviso?.dataset.ultimoDia && aviso.dataset.ultimoDia < ymd(Date.now())) aviso.hidden = true;
 
   let actual: HTMLElement | null = null;
 
@@ -453,6 +461,13 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
     place-items: center;
     border: 1px solid var(--linea);
     border-radius: 50%;
+  }
+
+  .aviso-torneo {
+    margin-top: 16px;
+    padding-left: 12px;
+    border-left: 4px solid var(--rojo);
+    font-weight: 600;
   }
 
   .caja {

@@ -1,5 +1,7 @@
 // Textos del perfil de una jugadora.
 
+import { rangoFechas } from './presentacion';
+
 interface Origen {
   ciudad: string | null;
   estado: string | null;
@@ -21,6 +23,33 @@ export const fechaLarga = (fecha: string) => formatoLargo.format(Date.parse(`${f
 export const origenTexto = (o: Origen | null) => (o ? [o.ciudad, o.estado, o.pais].filter(Boolean).join(', ') || null : null);
 
 export const estaturaTexto = (cm: number) => `${(cm / 100).toFixed(2)} m`;
+
+/* ---------- Próximo torneo ---------- */
+
+interface TorneoProximo {
+  id: string;
+  nombre: string;
+  edicion: number | null;
+  fechaInicio: string | null;
+  fechaFin: string | null;
+}
+
+interface PartidoDeTorneo {
+  torneoId: string | null;
+  convocadas: string[] | null;
+}
+
+// Aviso del perfil mientras el próximo torneo no tiene lista. Con lista, los partidos de la
+// Selección salen solo a las convocadas y este aviso ya no aplica.
+export function avisoTorneo(torneo: TorneoProximo | null, partidos: PartidoDeTorneo[], hoy: string) {
+  if (!torneo) return null;
+  const ultimoDia = torneo.fechaFin ?? torneo.fechaInicio;
+  if (ultimoDia && ultimoDia < hoy) return null;
+  if (partidos.some((p) => p.torneoId === torneo.id && p.convocadas?.length)) return null;
+  const nombre = [torneo.nombre, torneo.edicion].filter(Boolean).join(' ');
+  const fechas = ultimoDia ? rangoFechas(torneo.fechaInicio, ultimoDia) : 'fechas por confirmar';
+  return { texto: `Próximo torneo de la Selección: ${nombre}, ${fechas} · Lista por confirmar`, ultimoDia };
+}
 
 /* ---------- Fuentes ---------- */
 
