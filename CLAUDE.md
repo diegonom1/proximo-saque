@@ -22,7 +22,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 | Transiciones | View Transitions nativas entre páginas (`@view-transition { navigation: auto; }`), sin `ClientRouter` | La foto de la tarjeta se convierte en el fondo del perfil. Sin router no hay que reiniciar GSAP en cada navegación; donde el navegador no lo soporta, la navegación es normal. |
 | Animación | GSAP + ScrollTrigger + SplitText, Lenis para scroll suave | GSAP y todos sus plugins son gratis. Lenis no altera el scroll táctil por defecto. |
 | Validación | Zod | Valida lo que devuelve la IA y lo que lee el sitio. |
-| Agentes | Node 22 + API de Gemini por `fetch` | Sin SDK; fácil de probar con respuestas simuladas. |
+| Agentes | Node 24 + API de Gemini por `fetch` | Sin SDK; fácil de probar con respuestas simuladas. |
 | Automatización | GitHub Actions | Gratis en repo público: actualización semanal y despliegue. |
 | Hosting | GitHub Pages (opcional: Hostinger por FTP) | Estático y gratis. |
 
@@ -395,6 +395,8 @@ Detalles técnicos:
 - Requisito: en el repo, Settings → Actions → General → *Allow GitHub Actions to create and approve pull requests*. Usar `peter-evans/create-pull-request`.
 
 ### Workflows
+
+Ambos usan Node 24: `actions/setup-node` con `node-version-file: .nvmrc`.
 
 - `actualizar.yml`: `schedule` lunes 06:17 de Tonalá (`17 12 * * 1` en UTC) y `workflow_dispatch`. Secreto `GEMINI_API_KEY`, variables `GEMINI_MODELOS` y `MAX_LLAMADAS`. Después del commit, construye y despliega en el mismo workflow: un push hecho con `GITHUB_TOKEN` no dispara otros workflows.
 - `deploy.yml`: en push a `main` (por ejemplo al aprobar el PR), `astro build` y despliegue a Pages (`actions/upload-pages-artifact` + `actions/deploy-pages`; en Settings → Pages, fuente *GitHub Actions*). Configurar `site` y `base` de Astro según el nombre del repo.
