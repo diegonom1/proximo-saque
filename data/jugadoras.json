@@ -1,0 +1,577 @@
+[
+  {
+    "slug": "uxue-guereca",
+    "nombre": "Uxue Guereca",
+    "nombreCompleto": "Uxue Amaya Guereca Parra",
+    "estado": "activa",
+    "posicion": "Atacante",
+    "numero": 1,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": {
+      "ciudad": "Guadalajara",
+      "estado": "Jalisco",
+      "pais": "México"
+    },
+    "estaturaCm": null,
+    "clubId": "lovb-miami",
+    "historialClubes": [
+      {
+        "club": "UNI Opole",
+        "pais": "Polonia",
+        "temporada": "2025-26",
+        "fuente": "https://www.tvazteca.com/aztecadeportes/uxue-guereca-mexicana-juega-polonia-equipo-ideal-temporada-2025-2026/"
+      }
+    ],
+    "redes": [],
+    "destacados": [
+      {
+        "texto": "Equipo ideal de la liga polaca 2025-26 con UNI Opole",
+        "anio": 2026,
+        "fuente": "https://www.tvazteca.com/aztecadeportes/uxue-guereca-mexicana-juega-polonia-equipo-ideal-temporada-2025-2026/"
+      }
+    ],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158653"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "samantha-bricio",
+    "nombre": "Samantha Bricio",
+    "nombreCompleto": null,
+    "estado": "activa",
+    "posicion": "Atacante",
+    "numero": 2,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": {
+      "ciudad": null,
+      "estado": "Jalisco",
+      "pais": "México"
+    },
+    "estaturaCm": null,
+    "clubId": "beijing",
+    "historialClubes": [],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "clubId": "https://www.clarosports.com/otros-deportes/la-voleibolista-mexicana-samantha-bricio-tendra-una-nueva-aventura-en-asia/"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "sofia-maldonado",
+    "nombre": "Sofía Maldonado",
+    "nombreCompleto": "Sofía Maldonado Díaz",
+    "estado": "activa",
+    "posicion": "Atacante",
+    "numero": 3,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": {
+      "ciudad": "Guadalajara",
+      "estado": "Jalisco",
+      "pais": "México"
+    },
+    "estaturaCm": null,
+    "clubId": "sesi-bauru",
+    "historialClubes": [],
+    "redes": [],
+    "destacados": [
+      {
+        "texto": "MVP del Final Four NORCECA 2026",
+        "anio": 2026,
+        "fuente": "https://norceca.info/mexicos-sofia-maldonado-named-most-valuable-player-of-the-2026-norceca-womens-final-four/"
+      },
+      {
+        "texto": "Mejor anotadora, mejor saque, mejor recepción y equipo ideal del Final Six NORCECA 2026",
+        "anio": 2026,
+        "fuente": "https://www.fivb.com/empowerment-funded-mexico-and-puerto-rico-medal-at-norceca-womens-final-six/"
+      }
+    ],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Six 2026",
+      "fecha": "2026-09-27",
+      "fuente": "https://www.fivb.com/empowerment-funded-mexico-and-puerto-rico-medal-at-norceca-womens-final-six/"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "grecia-castro",
+    "nombre": "Grecia Castro",
+    "nombreCompleto": "Grecia Esther Castro López",
+    "estado": "activa",
+    "posicion": "Atacante",
+    "numero": 6,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": null,
+    "estaturaCm": null,
+    "clubId": null,
+    "historialClubes": [
+      {
+        "club": "Avarca de Menorca",
+        "pais": "España",
+        "temporada": null,
+        "fuente": null
+      }
+    ],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158792"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "argentina-ung",
+    "nombre": "Argentina Ung",
+    "nombreCompleto": "Gloria Argentina Ung Enríquez",
+    "estado": "activa",
+    "posicion": "Acomodadora",
+    "numero": 7,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": {
+      "ciudad": "Hermosillo",
+      "estado": "Sonora",
+      "pais": "México"
+    },
+    "estaturaCm": null,
+    "clubId": "lovb-miami",
+    "historialClubes": [
+      {
+        "club": "LOVB Madison",
+        "pais": "Estados Unidos",
+        "temporada": "2026",
+        "fuente": "https://www.elimparcial.com/deporte/2026/07/26/de-hermosillo-a-miami-argentina-ung-jugara-con-la-nueva-franquicia-de-la-liga-profesional-de-voleibol-de-estados-unidos/"
+      }
+    ],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "clubId": "https://www.elimparcial.com/deporte/2026/07/26/de-hermosillo-a-miami-argentina-ung-jugara-con-la-nueva-franquicia-de-la-liga-profesional-de-voleibol-de-estados-unidos/"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "ovalle",
+    "nombre": "Ovalle",
+    "nombreCompleto": null,
+    "estado": "activa",
+    "posicion": "Opuesta",
+    "numero": 8,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": null,
+    "estaturaCm": null,
+    "clubId": null,
+    "historialClubes": [],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "arleth-marquez",
+    "nombre": "Arleth Márquez",
+    "nombreCompleto": null,
+    "estado": "activa",
+    "posicion": "Central",
+    "numero": 10,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": null,
+    "estaturaCm": null,
+    "clubId": null,
+    "historialClubes": [
+      {
+        "club": "Juanio's Guasave",
+        "pais": "México",
+        "temporada": null,
+        "fuente": null
+      }
+    ],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "jocelyn-urias",
+    "nombre": "Jocelyn Urías",
+    "nombreCompleto": null,
+    "estado": "activa",
+    "posicion": "Central",
+    "numero": 11,
+    "capitana": true,
+    "fechaNacimiento": null,
+    "origen": null,
+    "estaturaCm": null,
+    "clubId": "mackenzie",
+    "historialClubes": [],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "clubId": "https://www.clarosports.com/otros-deportes/la-capitana-de-mexico-da-el-salto-a-brasil-jocelyn-urias-firma-con-batavo-mackenzie/",
+      "capitana": "https://www.clarosports.com/otros-deportes/la-capitana-de-mexico-da-el-salto-a-brasil-jocelyn-urias-firma-con-batavo-mackenzie/"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "joseline-landeros",
+    "nombre": "Joseline Landeros",
+    "nombreCompleto": "Joseline Landeros Palacios",
+    "estado": "activa",
+    "posicion": "Líbero",
+    "numero": 12,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": null,
+    "estaturaCm": null,
+    "clubId": null,
+    "historialClubes": [
+      {
+        "club": "Turan",
+        "pais": "Azerbaiyán",
+        "temporada": null,
+        "fuente": null
+      }
+    ],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158795"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "tanguma",
+    "nombre": "Tanguma",
+    "nombreCompleto": null,
+    "estado": "activa",
+    "posicion": "Central",
+    "numero": 13,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": null,
+    "estaturaCm": null,
+    "clubId": null,
+    "historialClubes": [],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "paola-rivera",
+    "nombre": "Paola Rivera",
+    "nombreCompleto": null,
+    "estado": "activa",
+    "posicion": "Acomodadora",
+    "numero": 15,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": {
+      "ciudad": null,
+      "estado": "Chihuahua",
+      "pais": "México"
+    },
+    "estaturaCm": null,
+    "clubId": "usmp",
+    "historialClubes": [],
+    "redes": [],
+    "destacados": [
+      {
+        "texto": "Mejor armadora de la Liga Peruana dos temporadas seguidas",
+        "anio": 2026,
+        "fuente": "https://larepublica.pe/deportes/2026/05/06/paola-rivera-revela-que-tiene-ofertas-tras-perder-ante-alianza-lima-la-final-de-la-liga-peruana-de-voley-aqui-y-en-el-extranjero-560634"
+      }
+    ],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "paulett-munoz",
+    "nombre": "Paulett Muñoz",
+    "nombreCompleto": null,
+    "estado": "activa",
+    "posicion": "Atacante",
+    "numero": 16,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": null,
+    "estaturaCm": null,
+    "clubId": null,
+    "historialClubes": [
+      {
+        "club": "Tigres UANL",
+        "pais": "México",
+        "temporada": null,
+        "fuente": null
+      }
+    ],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "aime-topete",
+    "nombre": "Aime Topete",
+    "nombreCompleto": null,
+    "estado": "activa",
+    "posicion": "Atacante",
+    "numero": 20,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": null,
+    "estaturaCm": null,
+    "clubId": "nancy",
+    "historialClubes": [],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "karina-flores",
+    "nombre": "Karina Flores",
+    "nombreCompleto": "Karina Angélica Flores Gámez",
+    "estado": "activa",
+    "posicion": "Central",
+    "numero": 33,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": {
+      "ciudad": "Nogales",
+      "estado": "Sonora",
+      "pais": "México"
+    },
+    "estaturaCm": null,
+    "clubId": null,
+    "historialClubes": [
+      {
+        "club": "CSM București",
+        "pais": "Rumania",
+        "temporada": null,
+        "fuente": null
+      }
+    ],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "NORCECA Final Four 2026",
+      "fecha": "2026-06-08",
+      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+    },
+    "fuentes": {
+      "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "perfil": "https://en.volleyballworld.com/volleyball/competitions/challenger-cup/2023/players/144330"
+    },
+    "revisado": null
+  },
+  {
+    "slug": "melanie-parra",
+    "nombre": "Melanie Parra",
+    "nombreCompleto": null,
+    "estado": "activa",
+    "posicion": "Atacante",
+    "numero": null,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": null,
+    "estaturaCm": null,
+    "clubId": "uyba",
+    "historialClubes": [],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "Campeonato Mundial 2025",
+      "fecha": null,
+      "fuente": null
+    },
+    "fuentes": {},
+    "revisado": null
+  },
+  {
+    "slug": "ximena-solar",
+    "nombre": "Ximena Solar",
+    "nombreCompleto": null,
+    "estado": "activa",
+    "posicion": "Central",
+    "numero": null,
+    "capitana": false,
+    "fechaNacimiento": null,
+    "origen": null,
+    "estaturaCm": null,
+    "clubId": null,
+    "historialClubes": [
+      {
+        "club": "Tec de Monterrey",
+        "pais": "México",
+        "temporada": null,
+        "fuente": null
+      }
+    ],
+    "redes": [],
+    "destacados": [],
+    "fotos": {
+      "foco": "50% 30%"
+    },
+    "ultimaListaOficial": {
+      "torneo": "Campeonato Mundial 2025",
+      "fecha": null,
+      "fuente": null
+    },
+    "fuentes": {},
+    "revisado": null
+  }
+]

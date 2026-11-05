@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Próximo Saque</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Próximos partidos de las seleccionadas mexicanas de voleibol con sus clubes, en hora de Tonalá, Jalisco.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: un marcador de arena (cuenta regresiva sobre una cancha vista desde arriba) abre la página;
+   debajo va la agenda agrupada por día en hora de Tonalá y luego el plantel en rejilla. */
+:root{
+  --bg:#EDF1ED;
+  --surface:#FFFFFF;
+  --ink:#12211A;
+  --muted:#53665C;
+  --line:#D1DBD4;
+  --verde:#0A6A45;
+  --verde-tinte:#DCEBE2;
+  --sobre-verde:#FFFFFF;
+  --naranja:#D35F1C;
+  --rojo:#C8102E;
+  --sobre-rojo:#FFFFFF;
+  --board:#0D2A1F;
+  --board-2:#14402E;
+  --board-ink:#F3F8F4;
+  --board-dim:#A3C4B3;
+  --board-line:rgba(243,248,244,.17);
+  --board-borde:rgba(243,248,244,.34);
+  --velo:rgba(6,16,11,.56);
+  --sombra:0 1px 0 rgba(18,33,26,.04),0 18px 40px -24px rgba(18,33,26,.45);
+  --font-display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",Impact,sans-serif;
+  --font-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-data:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A120E; --surface:#111C17; --ink:#E5EEE8; --muted:#95A99E; --line:#23362C;
+    --verde:#4FCB92; --verde-tinte:#15291F; --sobre-verde:#062014; --naranja:#F08A4B;
+    --rojo:#FF5B6E; --sobre-rojo:#2A0309;
+    --board:#0F2D22; --board-2:#17473A; --board-ink:#F3F8F4; --board-dim:#A3C4B3;
+    --board-line:rgba(243,248,244,.15); --board-borde:rgba(243,248,244,.3);
+    --velo:rgba(0,0,0,.62); --sombra:0 1px 0 rgba(0,0,0,.3),0 18px 40px -22px rgba(0,0,0,.95);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A120E; --surface:#111C17; --ink:#E5EEE8; --muted:#95A99E; --line:#23362C;
+  --verde:#4FCB92; --verde-tinte:#15291F; --sobre-verde:#062014; --naranja:#F08A4B;
+  --rojo:#FF5B6E; --sobre-rojo:#2A0309;
+  --board:#0F2D22; --board-2:#17473A; --board-ink:#F3F8F4; --board-dim:#A3C4B3;
+  --board-line:rgba(243,248,244,.15); --board-borde:rgba(243,248,244,.3);
+  --velo:rgba(0,0,0,.62); --sombra:0 1px 0 rgba(0,0,0,.3),0 18px 40px -22px rgba(0,0,0,.95);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-underline-offset:3px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--verde);outline-offset:2px}
+.envoltura{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 56px;display:grid;gap:36px}
+.principal{display:grid;gap:44px;min-width:0}
+
+/* Barra superior */
+.barra{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 24px}
+.marca{display:grid;gap:2px;min-width:0}
+.marca-nombre{margin:0;font-family:var(--font-display);font-weight:900;font-size:32px;line-height:.95;letter-spacing:.01em;text-transform:uppercase;color:var(--verde)}
+.marca-sub{margin:0;font-size:13px;color:var(--muted)}
+.reloj{display:flex;align-items:baseline;gap:8px;font-family:var(--font-data);font-size:12px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.reloj-hora{font-size:15px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:0}
+
+/* Marcador */
+.marcador{position:relative;isolation:isolate;overflow:hidden;border-radius:18px;background:radial-gradient(130% 150% at 88% 0%,var(--board-2) 0%,var(--board) 62%);color:var(--board-ink);box-shadow:var(--sombra)}
+.cancha{position:absolute;inset:0;width:100%;height:100%;z-index:-1;color:var(--board-line)}
+.cancha .linea{fill:none;stroke:currentColor;stroke-width:.55}
+.cancha .red{stroke:currentColor;stroke-width:1.1}
+.cancha .ataque{stroke:var(--naranja);stroke-width:.6;opacity:.34}
+.cancha .ataque-ext{stroke:var(--naranja);stroke-width:.6;stroke-dasharray:1.4 1.4;opacity:.34}
+.cancha .texto{fill:var(--board-dim);opacity:.5;font-family:var(--font-data);font-size:3px;letter-spacing:.2px}
+.cancha--v{display:none;opacity:.55}
+@media (max-width:700px){.cancha--h{display:none}.cancha--v{display:block}}
+.marcador-contenido{display:grid;gap:26px;padding:clamp(20px,4.2vw,42px)}
+@media (min-width:880px){.marcador-contenido{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:end;gap:40px}}
+.m-izq,.m-der{min-width:0}
+.ojo{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 12px;font-family:var(--font-data);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--board-dim)}
+.pill-vivo{display:inline-flex;align-items:center;gap:7px;padding:3px 10px;border-radius:999px;background:var(--rojo);color:var(--sobre-rojo);font-weight:600;letter-spacing:.1em}
+.pill-vivo::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;animation:latido 1.4s ease-in-out infinite}
+@keyframes latido{50%{opacity:.25}}
+.protagonista{margin:0;font-family:var(--font-display);font-weight:900;text-transform:uppercase;font-size:clamp(46px,9.4vw,96px);line-height:.86;letter-spacing:.005em;text-wrap:balance;overflow-wrap:anywhere}
+.protagonista .y{color:var(--board-dim);font-weight:700}
+.nombre-btn{all:unset;cursor:pointer;border-radius:6px}
+.nombre-btn:hover{color:var(--board-dim)}
+.nombre-btn:focus-visible{outline:3px solid var(--board-ink);outline-offset:3px}
+.duelo{margin:16px 0 0;font-size:clamp(17px,2.3vw,22px);font-weight:600;line-height:1.3}
+.vs{font-family:var(--font-data);font-size:.7em;font-weight:500;text-transform:uppercase;margin:0 .45em;opacity:.7}
+.nuestro{text-decoration:underline;text-decoration-color:var(--naranja);text-decoration-thickness:3px;text-underline-offset:5px}
+.meta{margin:6px 0 0;color:var(--board-dim);font-size:14px}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.boton{display:inline-flex;align-items:center;min-height:40px;padding:8px 15px;border-radius:999px;border:1px solid var(--board-borde);color:var(--board-ink);text-decoration:none;font-weight:600;font-size:14px;line-height:1.2}
+.boton:hover{border-color:var(--board-ink)}
+.boton--lleno{background:var(--board-ink);color:var(--board);border-color:var(--board-ink)}
+.boton--lleno:hover{background:transparent;color:var(--board-ink)}
+.boton:focus-visible{outline-color:var(--board-ink)}
+.cuenta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.cuenta>div{display:grid;gap:4px;padding-top:10px;border-top:2px solid var(--board-borde);min-width:0}
+.dig{font-family:var(--font-display);font-weight:800;font-size:clamp(42px,7.4vw,78px);line-height:.9;font-variant-numeric:tabular-nums}
+.et{font-family:var(--font-data);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--board-dim)}
+.en-vivo-texto{margin:0;font-family:var(--font-display);font-weight:800;font-size:clamp(34px,5vw,52px);line-height:1;text-transform:uppercase}
+.cuando{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;margin-top:18px}
+.cuando-dia{font-weight:600;font-size:17px}
+.cuando-hora{font-family:var(--font-display);font-weight:800;font-size:36px;line-height:1;font-variant-numeric:tabular-nums}
+.cuando-nota{flex-basis:100%;color:var(--board-dim);font-size:13px}
+
+/* Bloques */
+.bloque{display:grid;gap:14px;min-width:0}
+.bloque-cabeza{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+.bloque-cabeza h2{margin:0;font-family:var(--font-display);font-weight:900;font-size:clamp(30px,4.2vw,40px);line-height:1;text-transform:uppercase;letter-spacing:.01em}
+.bloque-nota{margin:0;color:var(--muted);font-size:13px}
+.filtros{display:flex;flex-wrap:wrap;gap:8px}
+.filtro{font-size:13px;font-weight:600;padding:6px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.filtro:hover{border-color:var(--verde)}
+.filtro[aria-pressed="true"]{background:var(--verde);border-color:var(--verde);color:var(--sobre-verde)}
+.dia{display:grid;gap:8px}
+.dia-titulo{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:14px 0 0;font-family:var(--font-data);font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dia-titulo .rel{color:var(--verde);font-weight:600}
+.partidos{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.partido{display:grid;grid-template-columns:72px minmax(0,1fr);gap:8px 16px;align-items:start;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+@media (min-width:760px){.partido{grid-template-columns:84px minmax(0,1fr) minmax(0,auto);align-items:center}}
+.partido--vivo{border-color:var(--rojo)}
+.p-hora{margin:0;font-family:var(--font-display);font-weight:800;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.p-hora .vivo{display:block;margin-top:4px;font-family:var(--font-data);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--rojo)}
+.p-hora--tbd{font-size:20px;line-height:1.05}
+.p-cuerpo{min-width:0}
+.p-duelo{margin:0;font-weight:600;font-size:16px;line-height:1.35}
+.p-duelo .nuestro{text-decoration-thickness:2px;text-underline-offset:4px}
+.p-meta{margin:3px 0 0;font-size:13px;color:var(--muted)}
+.p-meta a{color:var(--verde);font-weight:600}
+.etq-ia{display:inline-block;margin-left:8px;padding:0 6px;border:1px solid var(--line);border-radius:4px;font-family:var(--font-data);font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--muted);vertical-align:2px}
+.p-jugadoras{display:flex;flex-wrap:wrap;gap:6px;grid-column:2}
+@media (min-width:760px){.p-jugadoras{grid-column:auto;justify-content:flex-end}}
+.chip-j{font-size:13px;font-weight:600;padding:5px 11px;border-radius:999px;border:0;background:var(--verde-tinte);color:var(--verde);cursor:pointer;white-space:nowrap}
+.chip-j:hover{background:var(--verde);color:var(--sobre-verde)}
+.vacio{margin:8px 0 0;color:var(--muted)}
+.pendientes{display:grid;gap:8px}
+@media (min-width:760px){.pendientes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pendiente{display:grid;gap:8px;align-content:start;padding:14px 16px;border:1px dashed var(--line);border-radius:12px}
+.pend-nombres{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.pend-texto{margin:0;font-size:14px;color:var(--muted)}
+.pend-texto b{color:var(--ink)}
+.pend-texto a{color:var(--verde);font-weight:600}
+.sin-club{margin:6px 0 0;font-size:14px;color:var(--muted)}
+.enlace-j{all:unset;cursor:pointer;color:var(--ink);font-weight:600;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.enlace-j:hover{text-decoration-color:var(--verde)}
+.enlace-j:focus-visible{outline:3px solid var(--verde);outline-offset:2px;border-radius:3px}
+
+/* Plantel */
+.plantel{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:10px}
+.jugadora{all:unset;box-sizing:border-box;display:grid;grid-template-columns:44px minmax(0,1fr);gap:2px 12px;align-content:start;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer}
+.jugadora:hover{border-color:var(--verde)}
+.jugadora:focus-visible{outline:3px solid var(--verde);outline-offset:2px}
+.j-ini{grid-row:1 / span 2;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--verde);color:var(--sobre-verde);font-family:var(--font-display);font-weight:800;font-size:18px;letter-spacing:.02em}
+.j-ini--libero{background:var(--naranja);color:var(--sobre-verde)}
+.j-nombre{font-weight:700;font-size:16px;line-height:1.25}
+.j-sub{font-size:13px;line-height:1.4;color:var(--muted)}
+.j-estado{grid-column:1 / -1;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-family:var(--font-data);font-size:12px;font-weight:600;color:var(--verde)}
+.j-estado--sin{color:var(--muted);font-weight:500}
+
+/* Ficha */
+dialog.ficha{border:0;padding:0;width:min(560px,calc(100vw - 32px));max-height:min(86vh,780px);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:var(--sombra)}
+dialog.ficha::backdrop{background:var(--velo)}
+.ficha-interior{display:grid;gap:14px;padding:22px}
+.ficha-contenido{display:grid;gap:14px;min-width:0}
+.ficha-cerrar{display:flex;justify-content:flex-end;margin:-6px -6px 0 0}
+.ficha-cerrar button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.ficha-cerrar button:hover{border-color:var(--ink)}
+.f-ojo{margin:0;font-family:var(--font-data);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.f-nombre{margin:-6px 0 0;font-family:var(--font-display);font-weight:900;font-size:clamp(38px,9vw,54px);line-height:.9;text-transform:uppercase;text-wrap:balance}
+.f-datos{display:grid;gap:6px;margin:0}
+.f-datos div{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px}
+.f-datos dt{font-family:var(--font-data);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.f-datos dd{margin:0;font-weight:600}
+.f-tenue{color:var(--muted);font-weight:400}
+.f-dato{margin:0;padding:12px 14px;border-radius:10px;background:var(--verde-tinte);font-size:14px}
+.f-dato a{color:var(--verde);font-weight:600}
+.f-sub{margin:4px 0 0;font-family:var(--font-data);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.f-lista{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.f-lista li{display:grid;gap:1px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.f-cuando{font-family:var(--font-data);font-size:12px;font-weight:600;color:var(--verde)}
+.f-lista .nuestro{text-decoration-thickness:2px;text-underline-offset:4px}
+.f-widget iframe{display:block;width:100%;height:210px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.f-enlaces{display:flex;flex-wrap:wrap;gap:8px}
+.enl{display:inline-flex;align-items:center;min-height:36px;padding:6px 13px;border:1px solid var(--line);border-radius:999px;text-decoration:none;font-size:13px;font-weight:600}
+.enl:hover{border-color:var(--verde);color:var(--verde)}
+
+/* Pie */
+.pie{display:grid;gap:6px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+.pie p{margin:0;max-width:72ch}
+
+@media (prefers-reduced-motion:reduce){.pill-vivo::before{animation:none}}
+</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}</style>
+</head>
+<body>
+<div class="envoltura">
+  <header class="barra">
+    <div class="marca">
+      <p class="marca-nombre">Próximo Saque</p>
+      <p class="marca-sub">Las seleccionadas de México con sus clubes</p>
+    </div>
+    <p class="reloj" aria-label="Hora actual en Tonalá"><span class="reloj-hora" id="reloj-hora">--:--</span><span id="reloj-zona">Tonalá</span></p>
+  </header>
+
+  <main class="principal">
+    <section class="marcador" aria-labelledby="m-nombres">
+      <svg class="cancha cancha--h" viewBox="0 0 200 110" preserveAspectRatio="xMaxYMid meet" aria-hidden="true" focusable="false">
+        <rect class="linea" x="10" y="10" width="180" height="90"/>
+        <line class="ataque" x1="70" y1="10" x2="70" y2="100"/>
+        <line class="ataque" x1="130" y1="10" x2="130" y2="100"/>
+        <line class="ataque-ext" x1="70" y1="1.5" x2="70" y2="8.5"/>
+        <line class="ataque-ext" x1="130" y1="1.5" x2="130" y2="8.5"/>
+        <line class="ataque-ext" x1="70" y1="101.5" x2="70" y2="108.5"/>
+        <line class="ataque-ext" x1="130" y1="101.5" x2="130" y2="108.5"/>
+        <line class="red" x1="100" y1="5" x2="100" y2="105"/>
+        <text class="texto" x="101.5" y="8">RED</text>
+        <text class="texto" x="71.5" y="14.5">3 M</text>
+        <text class="texto" x="131.5" y="14.5">3 M</text>
+        <text class="texto" x="190" y="7.5" text-anchor="end">9 × 18 M</text>
+      </svg>
+      <svg class="cancha cancha--v" viewBox="0 0 110 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+        <rect class="linea" x="10" y="10" width="90" height="180"/>
+        <line class="ataque" x1="10" y1="70" x2="100" y2="70"/>
+        <line class="ataque" x1="10" y1="130" x2="100" y2="130"/>
+        <line class="red" x1="5" y1="100" x2="105" y2="100"/>
+        <text class="texto" x="12" y="98">RED</text>
+        <text class="texto" x="12" y="68">3 M</text>
+      </svg>
+      <div class="marcador-contenido">
+        <div class="m-izq">
+          <p class="ojo"><span class="pill-vivo" id="m-pill" hidden>En juego</span><span id="m-ojo">La siguiente en jugar</span></p>
+          <h1 class="protagonista" id="m-nombres">Cargando</h1>
+          <p class="duelo" id="m-duelo"></p>
+          <p class="meta" id="m-meta"></p>
+          <div class="acciones" id="m-acciones"></div>
+        </div>
+        <div class="m-der">
+          <div class="cuenta" id="m-cuenta" role="timer" aria-label="Tiempo que falta para el partido">
+            <div><span class="dig" id="c-d">0</span><span class="et">días</span></div>
+            <div><span class="dig" id="c-h">00</span><span class="et">horas</span></div>
+            <div><span class="dig" id="c-m">00</span><span class="et">min</span></div>
+            <div><span class="dig" id="c-s">00</span><span class="et">seg</span></div>
+          </div>
+          <p class="en-vivo-texto" id="m-envivo" hidden>Se está jugando</p>
+          <div class="cuando">
+            <span class="cuando-dia" id="m-dia"></span>
+            <span class="cuando-hora" id="m-hora"></span>
+            <span class="cuando-nota" id="m-nota"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bloque" aria-labelledby="agenda-titulo">
+      <div class="bloque-cabeza">
+        <h2 id="agenda-titulo">Agenda</h2>
+        <p class="bloque-nota" id="agenda-nota">En hora de Tonalá, Jalisco</p>
+      </div>
+      <div class="filtros" id="filtros" role="group" aria-label="Filtrar la agenda por jugadora"></div>
+      <div id="agenda"></div>
+      <div id="pendientes"></div>
+    </section>
+
+    <section class="bloque" aria-labelledby="plantel-titulo">
+      <div class="bloque-cabeza">
+        <h2 id="plantel-titulo">Las seleccionadas</h2>
+        <p class="bloque-nota">Toca una jugadora para ver su ficha</p>
+      </div>
+      <div class="plantel" id="plantel"></div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <p>Datos revisados el <span id="pie-actualizado">—</span> (hora de Tonalá). Los horarios cambian seguido: confirma en la fuente antes del partido.</p>
+    <p id="pie-modo"></p>
+    <p>Widgets de partidos: Volleybox. Calendarios: ligas, clubes y prensa deportiva de cada país.</p>
+  </footer>
+</div>
+
+<dialog class="ficha" id="ficha" aria-labelledby="ficha-nombre">
+  <div class="ficha-interior">
+    <form method="dialog" class="ficha-cerrar"><button type="submit">Cerrar</button></form>
+    <div class="ficha-contenido" id="ficha-contenido"></div>
+  </div>
+</dialog>
+
+<script type="application/json" id="datos-embebidos">{"equipos":{"uyba":{"nombre":"UYBA Volley Busto Arsizio","corto":"UYBA Busto Arsizio","alias":["Eurotek UYBA","Busto Arsizio"],"liga":"Serie A1 femenil","pais":"Italia","codigo":"ITA","zona":"Europe/Rome","volleyboxId":2048,"verificar":"https://www.legavolleyfemminile.it/","calendario":null,"estado":null},"sesi-bauru":{"nombre":"Sesi Vôlei Bauru","corto":"Sesi Bauru","alias":["SESI Bauru","Bauru"],"liga":"Superliga Feminina","pais":"Brasil","codigo":"BRA","zona":"America/Sao_Paulo","volleyboxId":6185,"verificar":"https://cbv.com.br/","calendario":null,"estado":null},"mackenzie":{"nombre":"Batavo Mackenzie","corto":"Mackenzie","alias":["Mackenzie Esporte Clube","Batavo/Mackenzie"],"liga":"Superliga Feminina","pais":"Brasil","codigo":"BRA","zona":"America/Sao_Paulo","volleyboxId":null,"verificar":"https://cbv.com.br/","calendario":null,"estado":null},"beijing":{"nombre":"Beijing Arctic Ocean","corto":"Beijing Arctic Ocean","alias":["北京北冰洋","Beijing"],"liga":"Superliga china (CVL)","pais":"China","codigo":"CHN","zona":"Asia/Shanghai","volleyboxId":2037,"verificar":null,"calendario":null,"estado":null},"nancy":{"nombre":"Vandœuvre Nancy Volley-Ball","corto":"Vandœuvre Nancy","alias":["VNVB","Vandoeuvre Nancy"],"liga":"Ligue A Féminine","pais":"Francia","codigo":"FRA","zona":"Europe/Paris","volleyboxId":2630,"verificar":"https://spikelive.fr/ligue/laf/calendrier","calendario":"https://spikelive.fr/ligue/laf/calendrier","estado":null},"lovb-miami":{"nombre":"LOVB Miami","corto":"LOVB Miami","alias":["LOVB Miami Volleyball"],"liga":"LOVB Pro","pais":"Estados Unidos","codigo":"USA","zona":"America/New_York","volleyboxId":null,"verificar":"https://www.lovb.com/teams/lovb-miami-volleyball","calendario":"https://www.lovb.com/schedule","estado":"Debuta en enero de 2027. LOVB todavía no publica su calendario.","estadoCorto":"Debuta en enero de 2027"},"usmp":{"nombre":"Universidad San Martín de Porres","corto":"San Martín","alias":["USMP","San Martín"],"liga":"Liga Peruana de Vóley","pais":"Perú","codigo":"PER","zona":"America/Lima","volleyboxId":null,"verificar":null,"calendario":null,"estado":"La liga arrancó el 17 de octubre; su siguiente partido aún no tiene horario confirmado.","estadoCorto":"Horario por confirmar"}},"jugadoras":[{"id":"jocelyn-urias","nombre":"Jocelyn Urías","posicion":"Central","capitana":true,"equipo":"mackenzie","dato":"Capitana de la Selección. Es su primera temporada en la liga de Brasil.","fuenteDato":"https://www.clarosports.com/otros-deportes/la-capitana-de-mexico-da-el-salto-a-brasil-jocelyn-urias-firma-con-batavo-mackenzie/"},{"id":"samantha-bricio","nombre":"Samantha Bricio","posicion":"Atacante","origen":"Jalisco","equipo":"beijing","dato":"Regresó a China con Beijing Arctic Ocean; es su séptimo club en el extranjero.","fuenteDato":"https://www.clarosports.com/otros-deportes/la-voleibolista-mexicana-samantha-bricio-tendra-una-nueva-aventura-en-asia/"},{"id":"sofia-maldonado","nombre":"Sofía Maldonado","posicion":"Opuesta","origen":"Guadalajara, Jalisco","equipo":"sesi-bauru","dato":"MVP del Final Four NORCECA 2026; anotó 37 puntos en la final contra Puerto Rico.","fuenteDato":"https://norceca.net/2026%20Competition%20&%20Activities/Final%20Fours/Women%20Final%20Four/Bulletins/SUMMARY%20OF%20STATS%202026%20NORCECA%20Women's%20Final%20Four.pdf"},{"id":"aime-topete","nombre":"Aime Topete","posicion":"Atacante","equipo":"nancy"},{"id":"melanie-parra","nombre":"Melanie Parra","posicion":"Atacante","equipo":"uyba"},{"id":"argentina-ung","nombre":"Argentina Ung","posicion":"Acomodadora","origen":"Hermosillo, Sonora","equipo":"lovb-miami","dato":"Llega a Miami después de jugar la temporada 2026 con LOVB Madison.","fuenteDato":"https://www.elimparcial.com/deporte/2026/07/26/de-hermosillo-a-miami-argentina-ung-jugara-con-la-nueva-franquicia-de-la-liga-profesional-de-voleibol-de-estados-unidos/"},{"id":"uxue-guereca","nombre":"Uxue Guereca","posicion":"Atacante","origen":"Guadalajara, Jalisco","equipo":"lovb-miami","dato":"Estuvo en el equipo ideal de la liga polaca 2025-26 con UNI Opole.","fuenteDato":"https://www.tvazteca.com/aztecadeportes/uxue-guereca-mexicana-juega-polonia-equipo-ideal-temporada-2025-2026/","perfil":"https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158653"},{"id":"paola-rivera","nombre":"Paola Rivera","posicion":"Acomodadora","origen":"Chihuahua","equipo":"usmp","dato":"Elegida mejor armadora de la Liga Peruana dos temporadas seguidas.","fuenteDato":"https://larepublica.pe/deportes/2026/05/06/paola-rivera-revela-que-tiene-ofertas-tras-perder-ante-alianza-lima-la-final-de-la-liga-peruana-de-voley-aqui-y-en-el-extranjero-560634"},{"id":"grecia-castro","nombre":"Grecia Castro","posicion":"Atacante","equipo":null,"ultimoClub":"Avarca de Menorca (España)","perfil":"https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158792"},{"id":"karina-flores","nombre":"Karina Flores","posicion":"Central","origen":"Nogales, Sonora","equipo":null,"ultimoClub":"CSM București (Rumania)","perfil":"https://en.volleyballworld.com/volleyball/competitions/challenger-cup/2023/players/144330"},{"id":"joseline-landeros","nombre":"Joseline Landeros","posicion":"Líbero","equipo":null,"ultimoClub":"Turan (Azerbaiyán)","perfil":"https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158795"},{"id":"arleth-marquez","nombre":"Arleth Márquez","posicion":"Central","equipo":null,"ultimoClub":"Juanio's Guasave (México)"},{"id":"ximena-solar","nombre":"Ximena Solar","posicion":"Central","equipo":null,"ultimoClub":"Tec de Monterrey (México)"},{"id":"paulett-munoz","nombre":"Paulett Muñoz","posicion":"Líbero","equipo":null,"ultimoClub":"Tigres UANL (México)"}],"partidos":{"actualizado":"2026-11-04T19:40:00-06:00","partidos":[{"id":"mackenzie-2026-11-05","equipo":"mackenzie","inicio":"2026-11-05T18:30:00-03:00","local":"Batavo Mackenzie","visitante":"Gerdau Minas","nuestro":"local","competencia":"Superliga Feminina · Rodada 4","sede":"Belo Horizonte","fuente":"https://agorarn.com.br/?p=2408078","origen":"inicial"},{"id":"beijing-2026-11-07","equipo":"beijing","inicio":"2026-11-07T15:00:00+08:00","local":"Beijing Arctic Ocean","visitante":"Tianjin Bohai Bank","nuestro":"local","competencia":"Superliga china · Jornada 1","sede":"Pekín","fuente":"https://k.sina.com.cn/article_7879995911_1d5af320706802ygrw.html","origen":"inicial"},{"id":"nancy-2026-11-07","equipo":"nancy","inicio":"2026-11-07T19:30:00+01:00","local":"Vandœuvre Nancy","visitante":"VBC Chamalières","nuestro":"local","competencia":"Ligue A Féminine · Jornada 7","sede":"Vandœuvre-lès-Nancy","fuente":"https://spikelive.fr/ligue/laf/calendrier","origen":"inicial"},{"id":"sesi-bauru-2026-11-07","equipo":"sesi-bauru","inicio":"2026-11-07T21:00:00-03:00","local":"Sesi Vôlei Bauru","visitante":"E.C. Pinheiros","nuestro":"local","competencia":"Superliga Feminina · Rodada 4","sede":"Bauru","fuente":null,"origen":"inicial"},{"id":"uyba-2026-11-08","equipo":"uyba","inicio":"2026-11-08T17:00:00+01:00","local":"Consolini Volley","visitante":"UYBA Busto Arsizio","nuestro":"visita","competencia":"Serie A1 · Jornada 7","sede":"San Giovanni in Marignano","fuente":null,"origen":"inicial"},{"id":"nancy-2026-11-11","equipo":"nancy","inicio":"2026-11-11T18:00:00+01:00","local":"Vandœuvre Nancy","visitante":"Volley Mulhouse Alsace","nuestro":"local","competencia":"Supercopa de Francia · Final","sede":"Nancy","fuente":"https://www.info-lux.com/supercoupe-de-france-volley-2026-nancy-jean-weille/pays/france/grand-est/meurthe-et-moselle/nancy-grand-est/","origen":"inicial"},{"id":"uyba-2026-11-11","equipo":"uyba","inicio":"2026-11-11T20:30:00+01:00","local":"UYBA Busto Arsizio","visitante":"Megabox Vallefoglia","nuestro":"local","competencia":"Serie A1 · Jornada 8","sede":"Busto Arsizio","fuente":null,"origen":"inicial"},{"id":"mackenzie-2026-11-13","equipo":"mackenzie","inicio":"2026-11-13T18:30:00-03:00","local":"Dentil Praia Clube","visitante":"Batavo Mackenzie","nuestro":"visita","competencia":"Superliga Feminina · Rodada 5","sede":"Uberlândia","fuente":null,"origen":"inicial"},{"id":"sesi-bauru-2026-11-13","equipo":"sesi-bauru","inicio":"2026-11-13T21:00:00-03:00","local":"Osasco","visitante":"Sesi Vôlei Bauru","nuestro":"visita","competencia":"Superliga Feminina · Rodada 5","sede":"Osasco","fuente":null,"origen":"inicial"},{"id":"nancy-2026-11-14","equipo":"nancy","inicio":"2026-11-14T20:00:00+01:00","local":"Volley-Ball Nantes","visitante":"Vandœuvre Nancy","nuestro":"visita","competencia":"Ligue A Féminine · Jornada 8","sede":"Nantes","fuente":"https://spikelive.fr/ligue/laf/calendrier","origen":"inicial"},{"id":"uyba-2026-11-15","equipo":"uyba","inicio":"2026-11-15T17:00:00+01:00","local":"Savino Del Bene Scandicci","visitante":"UYBA Busto Arsizio","nuestro":"visita","competencia":"Serie A1 · Jornada 9","sede":"Scandicci","fuente":null,"origen":"inicial"},{"id":"sesi-bauru-2026-11-17","equipo":"sesi-bauru","inicio":"2026-11-17T21:00:00-03:00","local":"Sesi Vôlei Bauru","visitante":"Sesc RJ Flamengo","nuestro":"local","competencia":"Superliga Feminina · Rodada 6","sede":"Bauru","fuente":null,"origen":"inicial"},{"id":"mackenzie-2026-11-19","equipo":"mackenzie","inicio":"2026-11-19T18:30:00-03:00","local":"Batavo Mackenzie","visitante":"Abel Moda Brusque","nuestro":"local","competencia":"Superliga Feminina · Rodada 6","sede":"Belo Horizonte","fuente":null,"origen":"inicial"}]}}</script>
+<script>
+(() => {
+  'use strict';
+
+  /* Ajustes. En tu propio hosting puedes apuntar `datos` a la copia "raw" de GitHub
+     (https://raw.githubusercontent.com/USUARIO/REPO/main/data/) para leer siempre lo más nuevo. */
+  const CONFIG = {
+    zona: 'America/Mexico_City',
+    lugar: 'Tonalá',
+    datos: 'data/',
+    widgetsIncrustados: true,
+    duracionMin: 150,
+    modo: 'repo'
+  };
+
+  const DUR = CONFIG.duracionMin * 60000;
+  const DIA = 864e5;
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+  const dos = (n) => String(n).padStart(2, '0');
+
+  const F = {
+    hora: new Intl.DateTimeFormat('es-MX', { timeZone: CONFIG.zona, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }),
+    diaLargo: new Intl.DateTimeFormat('es-MX', { timeZone: CONFIG.zona, weekday: 'long', day: 'numeric', month: 'long' }),
+    diaCorto: new Intl.DateTimeFormat('es-MX', { timeZone: CONFIG.zona, weekday: 'short', day: 'numeric', month: 'short' }),
+    fechaHora: new Intl.DateTimeFormat('es-MX', { timeZone: CONFIG.zona, day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }),
+    ymd: new Intl.DateTimeFormat('en-CA', { timeZone: CONFIG.zona, year: 'numeric', month: '2-digit', day: '2-digit' }),
+    desfase: new Intl.DateTimeFormat('en-US', { timeZone: CONFIG.zona, timeZoneName: 'shortOffset' })
+  };
+  const limpiarFecha = (s) => s.replace(',', '').replace(/\./g, '');
+  const diaLargo = (ms) => cap(limpiarFecha(F.diaLargo.format(ms)));
+  const diaCorto = (ms) => cap(limpiarFecha(F.diaCorto.format(ms)));
+  const ymd = (ms) => F.ymd.format(ms);
+  const zonaTexto = (ms) => (F.desfase.formatToParts(ms).find((p) => p.type === 'timeZoneName')?.value || '').replace('GMT', 'UTC').replace('-', '−');
+  const diasHasta = (ms, ahora) => {
+    const a = ymd(ms).split('-').map(Number);
+    const b = ymd(ahora).split('-').map(Number);
+    return Math.round((Date.UTC(a[0], a[1] - 1, a[2]) - Date.UTC(b[0], b[1] - 1, b[2])) / DIA);
+  };
+  const relativo = (d) => (d <= 0 ? 'hoy' : d === 1 ? 'mañana' : `en ${d} días`);
+  const horaDelLugar = (p) => p.inicio.slice(11, 16);
+  const iniciales = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
+
+  const st = { equipos: {}, jugadoras: [], partidos: [], actualizado: null, filtro: new Set(), heroe: null, firma: '' };
+
+  function aplicar(equipos, jugadoras, doc) {
+    st.equipos = equipos && typeof equipos === 'object' ? equipos : {};
+    st.jugadoras = Array.isArray(jugadoras) ? jugadoras : [];
+    st.actualizado = doc && doc.actualizado ? doc.actualizado : null;
+    st.partidos = ((doc && doc.partidos) || [])
+      .map((p) => ({ ...p, ms: Date.parse(p.inicio) }))
+      .filter((p) => Number.isFinite(p.ms))
+      .sort((a, b) => a.ms - b.ms);
+  }
+
+  const jugadorasDe = (p) => st.jugadoras.filter((j) => j.equipo && j.equipo === p.equipo);
+  const vigentes = (ahora) => st.partidos.filter((p) => p.ms + DUR > ahora);
+  const sinHora = (p) => p.horaConfirmada === false;
+
+  function duelo(p) {
+    const l = p.nuestro === 'local' ? ' class="nuestro"' : '';
+    const v = p.nuestro === 'visita' ? ' class="nuestro"' : '';
+    return `<span${l}>${esc(p.local)}</span><span class="vs">vs</span><span${v}>${esc(p.visitante)}</span>`;
+  }
+
+  function enlaceGoogleCalendar(p) {
+    const f = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const nombres = jugadorasDe(p).map((j) => j.nombre).join(', ');
+    const texto = `${p.local} vs ${p.visitante}${nombres ? ` (${nombres})` : ''}`;
+    const detalles = [p.competencia, nombres && `Seleccionada: ${nombres}`, p.fuente].filter(Boolean).join('\n');
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + `&text=${encodeURIComponent(texto)}&dates=${f(p.ms)}/${f(p.ms + 2 * 36e5)}`
+      + `&details=${encodeURIComponent(detalles)}&location=${encodeURIComponent(p.sede || '')}`;
+  }
+
+  const widgetUrl = (id) => `https://volleybox.net/widget/soonest_match/${id}`;
+
+  /* ---------- Marcador ---------- */
+  function pintarMarcador(ahora) {
+    const p = vigentes(ahora)[0] || null;
+    st.heroe = p;
+    if (!p) {
+      $('#m-nombres').textContent = 'Sin partidos próximos';
+      $('#m-duelo').textContent = '';
+      $('#m-meta').textContent = 'Cuando haya partidos programados aparecerán aquí.';
+      $('#m-acciones').innerHTML = '';
+      $('#m-cuenta').hidden = true;
+      $('#m-envivo').hidden = true;
+      $('#m-pill').hidden = true;
+      $('#m-ojo').textContent = 'Agenda vacía';
+      $('#m-dia').textContent = '';
+      $('#m-hora').textContent = '';
+      $('#m-nota').textContent = '';
+      return;
+    }
+    const eq = st.equipos[p.equipo] || {};
+    const js = jugadorasDe(p);
+    $('#m-nombres').innerHTML = js.length
+      ? js.map((j) => `<button type="button" class="nombre-btn" data-jugadora="${esc(j.id)}">${esc(j.nombre)}</button>`).join('<span class="y"> · </span>')
+      : esc(eq.corto || eq.nombre || '');
+    $('#m-duelo').innerHTML = duelo(p);
+    $('#m-meta').textContent = [p.competencia, [p.sede, eq.pais].filter(Boolean).join(', ')].filter(Boolean).join(' · ');
+    $('#m-dia').textContent = diaLargo(p.ms);
+    $('#m-hora').textContent = sinHora(p) ? 'Hora por confirmar' : F.hora.format(p.ms);
+    $('#m-nota').textContent = sinHora(p)
+      ? 'El club todavía no publica la hora.'
+      : `Hora de ${CONFIG.lugar} (${zonaTexto(ahora)}) · allá serán las ${horaDelLugar(p)} en ${p.sede || eq.pais || 'la sede'}`;
+    const acciones = [`<a class="boton boton--lleno" href="${esc(enlaceGoogleCalendar(p))}" target="_blank" rel="noopener">Agregar a Google Calendar</a>`];
+    const url = p.fuente || eq.verificar;
+    if (url) acciones.push(`<a class="boton" href="${esc(url)}" target="_blank" rel="noopener">${p.fuente ? 'Ver fuente' : 'Verificar horario'}</a>`);
+    if (eq.volleyboxId) acciones.push(`<a class="boton" href="${esc(widgetUrl(eq.volleyboxId))}" target="_blank" rel="noopener">Widget de Volleybox</a>`);
+    $('#m-acciones').innerHTML = acciones.join('');
+    contar(ahora);
+  }
+
+  function contar(ahora) {
+    const p = st.heroe;
+    if (!p) return;
+    const falta = p.ms - ahora;
+    const enJuego = falta <= 0;
+    $('#m-pill').hidden = !enJuego;
+    $('#m-ojo').textContent = enJuego ? `Empezó a las ${F.hora.format(p.ms)}` : 'La siguiente en jugar';
+    $('#m-envivo').hidden = !enJuego;
+    $('#m-cuenta').hidden = enJuego;
+    if (enJuego) return;
+    const d = Math.floor(falta / DIA);
+    const h = Math.floor((falta % DIA) / 36e5);
+    const m = Math.floor((falta % 36e5) / 6e4);
+    const s = Math.floor((falta % 6e4) / 1e3);
+    $('#c-d').textContent = d;
+    $('#c-h').textContent = sinHora(p) ? '--' : dos(h);
+    $('#c-m').textContent = sinHora(p) ? '--' : dos(m);
+    $('#c-s').textContent = sinHora(p) ? '--' : dos(s);
+  }
+
+  /* ---------- Agenda ---------- */
+  function pintarFiltros(ahora) {
+    const ids = new Set(vigentes(ahora).flatMap((p) => jugadorasDe(p).map((j) => j.id)));
+    for (const id of [...st.filtro]) if (!ids.has(id)) st.filtro.delete(id);
+    const js = st.jugadoras.filter((j) => ids.has(j.id));
+    $('#filtros').innerHTML = `<button type="button" class="filtro" data-filtro="" aria-pressed="${st.filtro.size === 0}">Todas</button>`
+      + js.map((j) => `<button type="button" class="filtro" data-filtro="${esc(j.id)}" aria-pressed="${st.filtro.has(j.id)}">${esc(j.nombre)}</button>`).join('');
+  }
+
+  function fila(p, ahora) {
+    const eq = st.equipos[p.equipo] || {};
+    const vivo = p.ms <= ahora;
+    const url = p.fuente || eq.verificar;
+    const meta = [p.competencia, eq.codigo, sinHora(p) ? null : `${horaDelLugar(p)} allá`].filter(Boolean).map(esc).join(' · ');
+    const fuente = url ? ` · <a href="${esc(url)}" target="_blank" rel="noopener">${p.fuente ? 'Fuente' : 'Verificar'}</a>` : '';
+    const ia = p.origen === 'ia' ? '<span class="etq-ia" title="Lo encontró el agente de IA. Confírmalo en la fuente.">IA</span>' : '';
+    const hora = sinHora(p) ? '<p class="p-hora p-hora--tbd">Hora por confirmar</p>'
+      : `<p class="p-hora">${esc(F.hora.format(p.ms))}${vivo ? '<span class="vivo">En juego</span>' : ''}</p>`;
+    return `<li class="partido${vivo ? ' partido--vivo' : ''}">${hora}`
+      + `<div class="p-cuerpo"><p class="p-duelo">${duelo(p)}${ia}</p><p class="p-meta">${meta}${fuente}</p></div>`
+      + `<div class="p-jugadoras">${jugadorasDe(p).map((j) => `<button type="button" class="chip-j" data-jugadora="${esc(j.id)}">${esc(j.nombre)}</button>`).join('')}</div></li>`;
+  }
+
+  function pintarAgenda(ahora) {
+    const lista = vigentes(ahora).filter((p) => !st.filtro.size || jugadorasDe(p).some((j) => st.filtro.has(j.id)));
+    if (!lista.length) {
+      $('#agenda').innerHTML = `<p class="vacio">${st.filtro.size ? 'No hay partidos programados para esa selección.' : 'No hay partidos programados por ahora.'}</p>`;
+      return;
+    }
+    const grupos = new Map();
+    for (const p of lista) {
+      const k = ymd(p.ms);
+      if (!grupos.has(k)) grupos.set(k, []);
+      grupos.get(k).push(p);
+    }
+    $('#agenda').innerHTML = [...grupos.values()].map((ps) => `<div class="dia"><h3 class="dia-titulo"><span>${esc(diaLargo(ps[0].ms))}</span><span class="rel">${relativo(diasHasta(ps[0].ms, ahora))}</span></h3><ol class="partidos">${ps.map((p) => fila(p, ahora)).join('')}</ol></div>`).join('');
+  }
+
+  function pintarPendientes(ahora) {
+    const conPartido = new Set(vigentes(ahora).map((p) => p.equipo));
+    const equipos = Object.entries(st.equipos).filter(([id]) => !conPartido.has(id) && st.jugadoras.some((j) => j.equipo === id));
+    const sinClub = st.jugadoras.filter((j) => !j.equipo);
+    let html = '';
+    if (equipos.length) {
+      html += '<h3 class="dia-titulo"><span>Sin fecha todavía</span></h3><div class="pendientes">'
+        + equipos.map(([id, eq]) => {
+          const js = st.jugadoras.filter((j) => j.equipo === id);
+          const ver = eq.verificar ? ` <a href="${esc(eq.verificar)}" target="_blank" rel="noopener">Ver equipo</a>` : '';
+          return `<div class="pendiente"><p class="pend-nombres">${js.map((j) => `<button type="button" class="chip-j" data-jugadora="${esc(j.id)}">${esc(j.nombre)}</button>`).join('')}</p>`
+            + `<p class="pend-texto"><b>${esc(eq.nombre)}</b> · ${esc(eq.liga)}. ${esc(eq.estado || 'Sin partidos programados por ahora.')}${ver}</p></div>`;
+        }).join('') + '</div>';
+    }
+    if (sinClub.length) {
+      html += `<p class="sin-club">Club 2026-27 por confirmar: ${sinClub.map((j) => `<button type="button" class="enlace-j" data-jugadora="${esc(j.id)}">${esc(j.nombre)}</button>`).join(', ')}.</p>`;
+    }
+    $('#pendientes').innerHTML = html;
+  }
+
+  /* ---------- Plantel ---------- */
+  function pintarPlantel(ahora) {
+    const proximo = new Map();
+    for (const p of vigentes(ahora)) if (!proximo.has(p.equipo)) proximo.set(p.equipo, p);
+    const orden = [...st.jugadoras].sort((a, b) => {
+      const pa = proximo.get(a.equipo)?.ms ?? (a.equipo ? 9e15 : 9.5e15);
+      const pb = proximo.get(b.equipo)?.ms ?? (b.equipo ? 9e15 : 9.5e15);
+      return pa - pb || a.nombre.localeCompare(b.nombre, 'es');
+    });
+    $('#plantel').innerHTML = orden.map((j) => {
+      const eq = st.equipos[j.equipo];
+      const p = proximo.get(j.equipo);
+      let estado;
+      if (p) estado = p.ms <= ahora ? 'Jugando ahora' : `Próximo: ${diaCorto(p.ms)} · ${sinHora(p) ? 'hora por confirmar' : F.hora.format(p.ms)}`;
+      else estado = eq ? eq.estadoCorto || 'Sin partido programado' : 'Club 2026-27 por confirmar';
+      const club = eq ? `${eq.corto || eq.nombre} · ${eq.codigo || eq.pais}` : j.ultimoClub ? `Último club: ${j.ultimoClub}` : '';
+      return `<button type="button" class="jugadora" data-jugadora="${esc(j.id)}">`
+        + `<span class="j-ini${j.posicion === 'Líbero' ? ' j-ini--libero' : ''}" aria-hidden="true">${esc(iniciales(j.nombre))}</span>`
+        + `<span class="j-nombre">${esc(j.nombre)}</span>`
+        + `<span class="j-sub">${esc(j.posicion)}${j.capitana ? ' · Capitana' : ''}<br>${esc(club)}</span>`
+        + `<span class="j-estado${p ? '' : ' j-estado--sin'}">${esc(estado)}</span></button>`;
+    }).join('');
+  }
+
+  /* ---------- Ficha ---------- */
+  function abrirFicha(id) {
+    const j = st.jugadoras.find((x) => x.id === id);
+    if (!j) return;
+    const ahora = Date.now();
+    const eq = st.equipos[j.equipo];
+    const prox = eq ? vigentes(ahora).filter((p) => p.equipo === j.equipo).slice(0, 4) : [];
+    const enlaces = [];
+    if (j.perfil) enlaces.push(`<a class="enl" href="${esc(j.perfil)}" target="_blank" rel="noopener">Perfil en Volleyball World</a>`);
+    enlaces.push(`<a class="enl" href="https://www.google.com/search?q=${encodeURIComponent(`site:volleybox.net "${j.nombre}"`)}" target="_blank" rel="noopener">Buscar en Volleybox</a>`);
+    if (eq && eq.volleyboxId) enlaces.push(`<a class="enl" href="${esc(widgetUrl(eq.volleyboxId))}" target="_blank" rel="noopener">Widget de ${esc(eq.corto || eq.nombre)}</a>`);
+    if (eq && eq.verificar) enlaces.push(`<a class="enl" href="${esc(eq.verificar)}" target="_blank" rel="noopener">Calendario oficial</a>`);
+    const widget = CONFIG.widgetsIncrustados && eq && eq.volleyboxId
+      ? `<div class="f-widget"><iframe src="${esc(widgetUrl(eq.volleyboxId))}" title="Próximo partido de ${esc(eq.nombre)} en Volleybox" loading="lazy"></iframe></div>` : '';
+    const proximos = prox.length
+      ? `<ol class="f-lista">${prox.map((p) => `<li><span class="f-cuando">${esc(diaCorto(p.ms))} · ${sinHora(p) ? 'hora por confirmar' : esc(F.hora.format(p.ms))}</span><span>${duelo(p)}</span></li>`).join('')}</ol>`
+      : `<p class="f-tenue" style="margin:0">${esc(eq ? eq.estado || 'Sin partidos programados por ahora.' : 'Cuando se confirme su club para 2026-27 aparecerán aquí sus partidos.')}</p>`;
+    $('#ficha-contenido').innerHTML = `<p class="f-ojo">${esc([j.posicion, j.capitana && 'Capitana', j.origen].filter(Boolean).join(' · '))}</p>`
+      + `<h2 class="f-nombre" id="ficha-nombre">${esc(j.nombre)}</h2>`
+      + '<dl class="f-datos">'
+      + `<div><dt>Club</dt><dd>${eq ? esc(eq.nombre) : `Por confirmar${j.ultimoClub ? ` <span class="f-tenue">(último: ${esc(j.ultimoClub)})</span>` : ''}`}</dd></div>`
+      + (eq ? `<div><dt>Liga</dt><dd>${esc(eq.liga)} · ${esc(eq.pais)}</dd></div>` : '')
+      + '</dl>'
+      + (j.dato ? `<p class="f-dato">${esc(j.dato)}${j.fuenteDato ? ` <a href="${esc(j.fuenteDato)}" target="_blank" rel="noopener">Fuente</a>` : ''}</p>` : '')
+      + `<p class="f-sub">Próximos partidos · hora de ${esc(CONFIG.lugar)}</p>${proximos}${widget}`
+      + `<div class="f-enlaces">${enlaces.join('')}</div>`;
+    const d = $('#ficha');
+    if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', '');
+  }
+
+  /* ---------- Ciclo ---------- */
+  function firma(ahora) {
+    return ymd(ahora) + '|' + st.partidos.length + '|' + vigentes(ahora).map((p) => p.id + (p.ms <= ahora ? '*' : '')).join(',') + '|' + st.jugadoras.length + '|' + [...st.filtro].join(',');
+  }
+
+  function pintarTodo() {
+    const ahora = Date.now();
+    st.firma = firma(ahora);
+    pintarMarcador(ahora);
+    pintarFiltros(ahora);
+    pintarAgenda(ahora);
+    pintarPendientes(ahora);
+    pintarPlantel(ahora);
+    $('#pie-actualizado').textContent = st.actualizado ? F.fechaHora.format(Date.parse(st.actualizado)) : '—';
+    $('#pie-modo').textContent = CONFIG.modo === 'artifact'
+      ? 'Esta es la vista previa con los datos revisados hoy. La copia que suban a GitHub se actualiza sola cada lunes.'
+      : 'Se actualiza cada lunes con GitHub Actions y un agente de IA que busca los calendarios oficiales. Lo que fijen a mano en data/manual.json siempre gana.';
+  }
+
+  function cadaSegundo() {
+    const ahora = Date.now();
+    $('#reloj-hora').textContent = F.hora.format(ahora);
+    $('#reloj-zona').textContent = `${CONFIG.lugar} · ${zonaTexto(ahora)}`;
+    if (firma(ahora) !== st.firma) pintarTodo();
+    else contar(ahora);
+  }
+
+  function leerFiltroGuardado() {
+    try { return JSON.parse(localStorage.getItem('proximo-saque-filtro') || '[]'); } catch (e) { return []; }
+  }
+  function guardarFiltro() {
+    try { localStorage.setItem('proximo-saque-filtro', JSON.stringify([...st.filtro])); } catch (e) { /* sin almacenamiento */ }
+  }
+
+  document.addEventListener('click', (ev) => {
+    const j = ev.target.closest('[data-jugadora]');
+    if (j) { abrirFicha(j.dataset.jugadora); return; }
+    const f = ev.target.closest('[data-filtro]');
+    if (f) {
+      const id = f.dataset.filtro;
+      if (!id) st.filtro.clear();
+      else if (st.filtro.has(id)) st.filtro.delete(id);
+      else st.filtro.add(id);
+      guardarFiltro();
+      pintarTodo();
+    }
+  });
+  $('#ficha').addEventListener('click', (ev) => { if (ev.target === ev.currentTarget) ev.currentTarget.close(); });
+
+  async function leerJSON(nombre) {
+    const r = await fetch(CONFIG.datos + nombre, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`${nombre}: ${r.status}`);
+    return r.json();
+  }
+
+  async function cargarDatosFrescos() {
+    const [eq, ju, pa] = await Promise.allSettled([leerJSON('equipos.json'), leerJSON('jugadoras.json'), leerJSON('partidos.json')]);
+    if ([eq, ju, pa].every((r) => r.status === 'rejected')) return;
+    aplicar(
+      eq.status === 'fulfilled' ? eq.value : st.equipos,
+      ju.status === 'fulfilled' ? ju.value : st.jugadoras,
+      pa.status === 'fulfilled' ? pa.value : { actualizado: st.actualizado, partidos: st.partidos }
+    );
+    pintarTodo();
+  }
+
+  let embebidos = { equipos: {}, jugadoras: [], partidos: { partidos: [] } };
+  try { embebidos = JSON.parse($('#datos-embebidos').textContent); } catch (e) { /* sin datos embebidos */ }
+  aplicar(embebidos.equipos, embebidos.jugadoras, embebidos.partidos);
+  for (const id of leerFiltroGuardado()) st.filtro.add(id);
+  pintarTodo();
+  cadaSegundo();
+  setInterval(cadaSegundo, 1000);
+  cargarDatosFrescos().catch(() => { /* se quedan los datos embebidos */ });
+})();
+</script>
+</body>
+</html>

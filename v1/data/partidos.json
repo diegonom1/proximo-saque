@@ -1,0 +1,161 @@
+{
+  "actualizado": "2026-11-04T19:40:00-06:00",
+  "partidos": [
+    {
+      "id": "mackenzie-2026-11-05",
+      "equipo": "mackenzie",
+      "inicio": "2026-11-05T18:30:00-03:00",
+      "local": "Batavo Mackenzie",
+      "visitante": "Gerdau Minas",
+      "nuestro": "local",
+      "competencia": "Superliga Feminina · Rodada 4",
+      "sede": "Belo Horizonte",
+      "fuente": "https://agorarn.com.br/?p=2408078",
+      "origen": "inicial"
+    },
+    {
+      "id": "beijing-2026-11-07",
+      "equipo": "beijing",
+      "inicio": "2026-11-07T15:00:00+08:00",
+      "local": "Beijing Arctic Ocean",
+      "visitante": "Tianjin Bohai Bank",
+      "nuestro": "local",
+      "competencia": "Superliga china · Jornada 1",
+      "sede": "Pekín",
+      "fuente": "https://k.sina.com.cn/article_7879995911_1d5af320706802ygrw.html",
+      "origen": "inicial"
+    },
+    {
+      "id": "nancy-2026-11-07",
+      "equipo": "nancy",
+      "inicio": "2026-11-07T19:30:00+01:00",
+      "local": "Vandœuvre Nancy",
+      "visitante": "VBC Chamalières",
+      "nuestro": "local",
+      "competencia": "Ligue A Féminine · Jornada 7",
+      "sede": "Vandœuvre-lès-Nancy",
+      "fuente": "https://spikelive.fr/ligue/laf/calendrier",
+      "origen": "inicial"
+    },
+    {
+      "id": "sesi-bauru-2026-11-07",
+      "equipo": "sesi-bauru",
+      "inicio": "2026-11-07T21:00:00-03:00",
+      "local": "Sesi Vôlei Bauru",
+      "visitante": "E.C. Pinheiros",
+      "nuestro": "local",
+      "competencia": "Superliga Feminina · Rodada 4",
+      "sede": "Bauru",
+      "fuente": null,
+      "origen": "inicial"
+    },
+    {
+      "id": "uyba-2026-11-08",
+      "equipo": "uyba",
+      "inicio": "2026-11-08T17:00:00+01:00",
+      "local": "Consolini Volley",
+      "visitante": "UYBA Busto Arsizio",
+      "nuestro": "visita",
+      "competencia": "Serie A1 · Jornada 7",
+      "sede": "San Giovanni in Marignano",
+      "fuente": null,
+      "origen": "inicial"
+    },
+    {
+      "id": "nancy-2026-11-11",
+      "equipo": "nancy",
+      "inicio": "2026-11-11T18:00:00+01:00",
+      "local": "Vandœuvre Nancy",
+      "visitante": "Volley Mulhouse Alsace",
+      "nuestro": "local",
+      "competencia": "Supercopa de Francia · Final",
+      "sede": "Nancy",
+      "fuente": "https://www.info-lux.com/supercoupe-de-france-volley-2026-nancy-jean-weille/pays/france/grand-est/meurthe-et-moselle/nancy-grand-est/",
+      "origen": "inicial"
+    },
+    {
+      "id": "uyba-2026-11-11",
+      "equipo": "uyba",
+      "inicio": "2026-11-11T20:30:00+01:00",
+      "local": "UYBA Busto Arsizio",
+      "visitante": "Megabox Vallefoglia",
+      "nuestro": "local",
+      "competencia": "Serie A1 · Jornada 8",
+      "sede": "Busto Arsizio",
+      "fuente": null,
+      "origen": "inicial"
+    },
+    {
+      "id": "mackenzie-2026-11-13",
+      "equipo": "mackenzie",
+      "inicio": "2026-11-13T18:30:00-03:00",
+      "local": "Dentil Praia Clube",
+      "visitante": "Batavo Mackenzie",
+      "nuestro": "visita",
+      "competencia": "Superliga Feminina · Rodada 5",
+      "sede": "Uberlândia",
+      "fuente": null,
+      "origen": "inicial"
+    },
+    {
+      "id": "sesi-bauru-2026-11-13",
+      "equipo": "sesi-bauru",
+      "inicio": "2026-11-13T21:00:00-03:00",
+      "local": "Osasco",
+      "visitante": "Sesi Vôlei Bauru",
+      "nuestro": "visita",
+      "competencia": "Superliga Feminina · Rodada 5",
+      "sede": "Osasco",
+      "fuente": null,
+      "origen": "inicial"
+    },
+    {
+      "id": "nancy-2026-11-14",
+      "equipo": "nancy",
+      "inicio": "2026-11-14T20:00:00+01:00",
+      "local": "Volley-Ball Nantes",
+      "visitante": "Vandœuvre Nancy",
+      "nuestro": "visita",
+      "competencia": "Ligue A Féminine · Jornada 8",
+      "sede": "Nantes",
+      "fuente": "https://spikelive.fr/ligue/laf/calendrier",
+      "origen": "inicial"
+    },
+    {
+      "id": "uyba-2026-11-15",
+      "equipo": "uyba",
+      "inicio": "2026-11-15T17:00:00+01:00",
+      "local": "Savino Del Bene Scandicci",
+      "visitante": "UYBA Busto Arsizio",
+      "nuestro": "visita",
+      "competencia": "Serie A1 · Jornada 9",
+      "sede": "Scandicci",
+      "fuente": null,
+      "origen": "inicial"
+    },
+    {
+      "id": "sesi-bauru-2026-11-17",
+      "equipo": "sesi-bauru",
+      "inicio": "2026-11-17T21:00:00-03:00",
+      "local": "Sesi Vôlei Bauru",
+      "visitante": "Sesc RJ Flamengo",
+      "nuestro": "local",
+      "competencia": "Superliga Feminina · Rodada 6",
+      "sede": "Bauru",
+      "fuente": null,
+      "origen": "inicial"
+    },
+    {
+      "id": "mackenzie-2026-11-19",
+      "equipo": "mackenzie",
+      "inicio": "2026-11-19T18:30:00-03:00",
+      "local": "Batavo Mackenzie",
+      "visitante": "Abel Moda Brusque",
+      "nuestro": "local",
+      "competencia": "Superliga Feminina · Rodada 6",
+      "sede": "Belo Horizonte",
+      "fuente": null,
+      "origen": "inicial"
+    }
+  ]
+}
