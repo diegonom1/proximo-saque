@@ -5,7 +5,7 @@ import { FEDERACIONES, planProximo, planTorneo } from './busquedas.mjs';
 import { confianza, consultar, fechaN, proponer, sumarDias, textoN, validos } from './comun.mjs';
 import { decidirPartidos, revisarEvidencia, textosDe } from './partidos.mjs';
 import { resolverJugadora } from '../lib/nombres.mjs';
-import { delCatalogo, idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
+import { delCatalogo, fechasDeCatalogo, idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
 import { convertirSeleccion, esquemaPartido, esquemaTorneo } from '../lib/validar.mjs';
 
 export const AGENTE = '04-seleccion-torneos';
@@ -56,7 +56,7 @@ async function proximoTorneo(ctx, crudo, verificar) {
   const yaTermino = guardado && (guardado.fechaFin ?? guardado.fechaInicio ?? ctx.hoy) < ctx.hoy;
   if (yaTermino) {
     seleccion.proximoTorneo = null;
-    if (guardado.edicion) ctx.torneosDetectados.push({ nombre: guardado.nombre, edicion: guardado.edicion });
+    if (guardado.edicion) ctx.torneosDetectados.push({ nombre: guardado.nombre, edicion: guardado.edicion, fechaInicio: guardado.fechaInicio, fechaFin: guardado.fechaFin });
   }
   if (!crudo) return;
 
@@ -122,9 +122,17 @@ async function partidos(ctx, respuesta, verificar, resultados) {
   return decidirPartidos(ctx, AGENTE, 'Selección', nuevos, previos, 'America/Mexico_City', [...FEDERACIONES, 'volleybox.net'], revisiones);
 }
 
-async function torneos(ctx, lista, verificar) {
+// Si Gemini no trae las fechas de un torneo que ya conocemos, se usan las que tenemos.
+function conFechas(t, conocidos) {
+  if (!t?.nombre || (t.fechaInicio && t.fechaFin)) return t;
+  const f = conocidos.find((c) => mismoTorneo({ nombre: t.nombre, edicion: t.edicion }, c)) ?? fechasDeCatalogo(t.nombre, t.edicion);
+  return f ? { ...t, fechaInicio: t.fechaInicio ?? f.fechaInicio ?? null, fechaFin: t.fechaFin ?? f.fechaFin ?? null } : t;
+}
+
+async function torneos(ctx, lista, verificar, conocidos = []) {
   const { torneos: doc } = ctx.datos;
-  const terminados = validos(lista, esquemaTerminado, (x, motivo) => ctx.reporte.descarto(AGENTE, `${x?.nombre ?? 'torneo'} ${x?.edicion ?? ''}`.trim(), `formato inválido (${motivo})`));
+  const completos = (lista ?? []).map((t) => conFechas(t, [...conocidos, ...doc.torneos]));
+  const terminados = validos(completos, esquemaTerminado, (x, motivo) => ctx.reporte.descarto(AGENTE, `${x?.nombre ?? 'torneo'} ${x?.edicion ?? ''}`.trim(), `formato inválido (${motivo})`));
   for (const t of terminados) {
     if (t.fechaFin >= ctx.hoy) {
       ctx.reporte.descarto(AGENTE, t.nombre, 'todavía no termina');
@@ -172,15 +180,20 @@ export function torneosPorRevisar(ctx) {
   const anio = Number(ctx.hoy.slice(0, 4));
   const masViejo = doc.torneos.length >= doc.maximo ? Number(doc.torneos.at(-1).fechaFin.slice(0, 4)) : 0;
   const reciente = (id) => estado.revisado[`torneo:${id}`] && sumarDias(estado.revisado[`torneo:${id}`], DIAS_ENTRE_REVISIONES) > ctx.hoy;
-  const claves = ctx.torneosDetectados
-    .filter((t) => delCatalogo(t.nombre) && t.edicion <= anio && t.edicion >= masViejo)
-    .filter((t) => !doc.torneos.some((g) => mismoTorneo(g, t)) && !reciente(idTorneo(t.nombre, t.edicion)))
-    .map((t) => `${nombreCanonico(t.nombre)}|${t.edicion}`);
-  return [...new Set(claves)].slice(0, MAX_TORNEOS);
+  const porId = new Map();
+  for (const t of ctx.torneosDetectados) {
+    if (!delCatalogo(t.nombre) || t.edicion > anio || t.edicion < masViejo) continue;
+    const id = idTorneo(t.nombre, t.edicion);
+    if (doc.torneos.some((g) => mismoTorneo(g, t)) || reciente(id)) continue;
+    const previo = porId.get(id);
+    porId.set(id, { ...t, fechaInicio: t.fechaInicio ?? previo?.fechaInicio, fechaFin: t.fechaFin ?? previo?.fechaFin });
+  }
+  // Las fechas conocidas viajan en la clave: una tarea pendiente se puede correr hasta la semana siguiente.
+  return [...porId.values()].slice(0, MAX_TORNEOS).map((t) => [nombreCanonico(t.nombre), t.edicion, ...(t.fechaFin ? [t.fechaInicio ?? '', t.fechaFin] : [])].join('|'));
 }
 
 async function revisarTorneo(ctx, clave) {
-  const [nombre, edicion] = clave.split('|');
+  const [nombre, edicion, fechaInicio, fechaFin] = clave.split('|');
   const torneo = { nombre, edicion: Number(edicion) };
   const entrada = { tarea: 'torneo', torneo, plantel: ctx.datos.jugadoras.filter((j) => j.estado !== 'exseleccionada').map((j) => j.nombre) };
   const { respuesta, verificar } = await consultar(ctx, AGENTE, clave, entrada, esquema, planTorneo(ctx, torneo));
@@ -190,7 +203,7 @@ async function revisarTorneo(ctx, clave) {
     return es;
   });
   if (lista.length === 0) ctx.reporte.noConfirmado(AGENTE, `${nombre} ${edicion}: ${respuesta.motivo ?? 'sin resultado en las fuentes'}`);
-  await torneos(ctx, lista, verificar);
+  await torneos(ctx, lista, verificar, fechaFin ? [{ ...torneo, fechaInicio: fechaInicio || null, fechaFin }] : []);
   ctx.datos.estado.revisado[`torneo:${idTorneo(nombre, torneo.edicion)}`] = ctx.hoy;
 }
 
@@ -207,9 +220,10 @@ export async function correr(ctx, clave = null) {
     plantel: datos.jugadoras.filter((j) => j.estado !== 'exseleccionada').map((j) => j.nombre),
   };
   const { respuesta, verificar, resultados } = await consultar(ctx, AGENTE, null, entrada, esquema, planProximo(ctx));
+  const conocido = datos.seleccion.proximoTorneo;
   await proximoTorneo(ctx, respuesta.proximoTorneo, verificar);
   const nuevos = await partidos(ctx, respuesta, verificar, resultados);
-  await torneos(ctx, respuesta.torneosTerminados, verificar);
+  await torneos(ctx, respuesta.torneosTerminados, verificar, conocido ? [conocido] : []);
   ctx.torneosDetectados.push(...validos(respuesta.torneosMencionados, esquemaMencion, () => {}));
   datos.seleccion.revisado = ctx.hoy;
   ctx.nuevos.seleccion = nuevos;

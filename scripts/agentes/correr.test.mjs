@@ -708,7 +708,44 @@ describe('tareas chicas', () => {
     await cambiar('seleccion.json', (s) => { s.proximoTorneo = { id: 'copa-challenger-2026', nombre: 'Copa Challenger', edicion: 2026, ciudad: null, pais: null, fechaInicio: '2026-10-01', fechaFin: '2026-10-08', fuente: OFICIAL }; });
     const llamar = llamarCon();
     await corre(llamar);
-    expect(claves(llamar, '04-seleccion-torneos')).toEqual([null, 'Copa Challenger|2026']);
+    expect(claves(llamar, '04-seleccion-torneos')).toEqual([null, 'Copa Challenger|2026|2026-10-01|2026-10-08']);
+  });
+
+  describe('fechas conocidas', () => {
+    const sinFechas = { nombre: 'Copa Challenger', edicion: 2026, ciudad: null, pais: null, fechaInicio: null, fechaFin: null, posicion: 4, medalla: null, record: null, premios: [], fuente: OFICIAL };
+    const responde = (cambios) => ({ '04-seleccion-torneos': (clave) => (clave ? { ...VACIAS['04-seleccion-torneos'], torneosTerminados: [{ ...sinFechas, ...cambios }] } : undefined) });
+    const proximoTerminado = () => cambiar('seleccion.json', (s) => { s.proximoTorneo = { id: 'copa-challenger-2026', nombre: 'Copa Challenger', edicion: 2026, ciudad: null, pais: null, fechaInicio: '2026-10-01', fechaFin: '2026-10-08', fuente: OFICIAL }; });
+    const guardado = async (id) => (await leer('torneos.json')).torneos.find((t) => t.id === id);
+
+    it('sin fecha de fin usa las del próximo torneo que ya terminó', async () => {
+      await proximoTerminado();
+      const llamar = llamarCon(responde({}));
+      await corre(llamar);
+      expect(claves(llamar, '04-seleccion-torneos')).toEqual([null, 'Copa Challenger|2026|2026-10-01|2026-10-08']);
+      expect(await guardado('copa-challenger-2026')).toMatchObject({ fechaInicio: '2026-10-01', fechaFin: '2026-10-08', posicion: 4 });
+    });
+    it('la fecha que trae la fuente gana sobre la conocida', async () => {
+      await proximoTerminado();
+      await corre(llamarCon(responde({ fechaFin: '2026-10-09' })));
+      expect(await guardado('copa-challenger-2026')).toMatchObject({ fechaInicio: '2026-10-01', fechaFin: '2026-10-09' });
+    });
+    it('sin fechas de ningún lado se descarta', async () => {
+      const llamar = llamarCon({ '04-seleccion-torneos': (clave) => (clave ? { ...VACIAS['04-seleccion-torneos'], torneosTerminados: [sinFechas] } : { ...VACIAS['04-seleccion-torneos'], torneosMencionados: [{ nombre: 'Copa Challenger', edicion: 2026 }] }) });
+      const r = await corre(llamar);
+      expect(await guardado('copa-challenger-2026')).toBeFalsy();
+      expect(r.resumen).toContain('formato inválido');
+    });
+    it('usa las del catálogo', async () => {
+      const panam = { ...sinFechas, nombre: 'Pan American Games', edicion: 2027 };
+      const r = await corre(llamarCon({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], torneosTerminados: [panam] } }), { ahora: Date.parse('2027-08-20T12:00:00Z') });
+      expect(await guardado('juegos-panamericanos-2027')).toMatchObject({ fechaInicio: '2027-07-23', fechaFin: '2027-08-08' });
+      expect(r.resumen).not.toContain('formato inválido');
+    });
+    it('sirve también para un torneo ya guardado al que le falta un dato', async () => {
+      const llamar = llamarCon({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], torneosTerminados: [{ ...sinFechas, nombre: 'NORCECA Final Four', edicion: 2026, posicion: 1, record: '3-0' }] } });
+      await corre(llamar);
+      expect(await guardado('norceca-final-four-2026')).toMatchObject({ record: '3-0' });
+    });
   });
 
   it('el agente 01 solo busca anuncios si no hay torneos nuevos', async () => {
@@ -788,6 +825,44 @@ describe('evidencia en el texto de la fuente', () => {
     const p = { fecha: '2026-12-01', hora: '19:00', zonaHoraria: 'America/Lima', zonaSede: 'America/Lima', local: 'México', visitante: 'Perú', mexico: 'local', torneo: 'Copa', fuente: URL_LIGA };
     await corre({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], partidos: [p] } }, 'México vs Perú, 1 de diciembre');
     expect((await leer('partidos.json')).partidos.find((x) => x.tipo === 'seleccion')).toMatchObject({ horaConfirmada: false });
+  });
+});
+
+describe('manual.json: próximo torneo', () => {
+  const mano = (t) => cambiar('manual.json', (m) => { m.seleccion = { proximoTorneo: t }; });
+  const base = { nombre: 'Pan American Games', edicion: 2027, fechaInicio: '2027-07-23', fechaFin: '2027-08-08', fuente: OFICIAL };
+  const proximo = async () => (await leer('seleccion.json')).proximoTorneo;
+  const llamaProximo = { '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], proximoTorneo: { nombre: 'Copa Challenger', edicion: 2027, fechaInicio: '2027-05-01', fechaFin: '2027-05-08', fuente: OFICIAL, confianza: 'alta' } } };
+
+  it('con nombre, edición y fuente basta: el id se calcula', async () => {
+    await mano(base);
+    await ejecutar({});
+    expect(await proximo()).toEqual({ id: 'juegos-panamericanos-2027', nombre: 'Juegos Panamericanos', edicion: 2027, ciudad: null, pais: null, fechaInicio: '2027-07-23', fechaFin: '2027-08-08', fuente: OFICIAL });
+  });
+  it('gana sobre lo que encuentre el agente', async () => {
+    await mano(base);
+    await ejecutar(llamaProximo);
+    expect((await proximo()).nombre).toBe('Juegos Panamericanos');
+  });
+  it('sin IA también se aplica', async () => {
+    await mano(base);
+    await correr({ dirDatos: dir, dirFotos: fotos, llamar: null, verificar: crearVerificador({ red: false }), ahora: AHORA });
+    expect((await proximo()).id).toBe('juegos-panamericanos-2027');
+  });
+  it('en null decide el agente', async () => {
+    await mano(null);
+    await ejecutar(llamaProximo);
+    expect((await proximo()).nombre).toBe('Copa Challenger');
+  });
+  it('si ya terminó no se aplica y avisa', async () => {
+    await mano({ ...base, fechaInicio: '2026-01-01', fechaFin: '2026-01-08' });
+    const r = await ejecutar(llamaProximo);
+    expect((await proximo()).nombre).toBe('Copa Challenger');
+    expect(r.resumen).toContain('ya terminó');
+  });
+  it('sin fuente no pasa la validación', async () => {
+    await mano({ nombre: 'Copa', edicion: 2027 });
+    await expect(ejecutar({})).rejects.toThrow();
   });
 });
 

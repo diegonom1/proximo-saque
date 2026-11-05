@@ -1,4 +1,7 @@
 {
   "partidos": [],
-  "jugadoras": {}
+  "jugadoras": {},
+  "seleccion": {
+    "proximoTorneo": null
+  }
 }

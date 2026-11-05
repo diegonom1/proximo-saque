@@ -268,11 +268,12 @@ Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los ree
 ```json
 {
   "partidos": [],
-  "jugadoras": {}
+  "jugadoras": {},
+  "seleccion": { "proximoTorneo": null }
 }
 ```
 
-`partidos` funciona como en el v1 (agregar, corregir o `"eliminar": true`). `jugadoras` fija campos por slug (`{ "jocelyn-urias": { "capitana": true } }`) y gana sobre la IA.
+`partidos` funciona como en el v1 (agregar, corregir o `"eliminar": true`). `jugadoras` fija campos por slug (`{ "jocelyn-urias": { "capitana": true } }`) y gana sobre la IA. `seleccion.proximoTorneo` fija el próximo torneo y gana sobre el agente 04 mientras no termine; pide `nombre`, `edicion` y `fuente`, y lo demás es opcional (`ciudad`, `pais`, `fechaInicio`, `fechaFin`; el `id` se calcula). Con `null` decide el agente. Se aplica en la siguiente corrida.
 
 ## Páginas
 
@@ -413,13 +414,14 @@ Detalles técnicos:
 - Perfiles: la página debe mencionar a la jugadora en el título, la URL o el texto que vino en los resultados, y no puede ser un listado (búsquedas, filtros por país, listas de jugadoras; `esListado`).
 - Fuentes con `BUSQUEDA=google`: una URL se acepta si su dominio aparece entre las fuentes de `groundingMetadata` de esa misma respuesta o si responde al abrirla (2xx/3xx; Volleybox contesta 403 a los bots y se acepta si viene en `groundingMetadata`). Los enlaces de redirección de Google en `groundingMetadata` (`vertexaisearch.cloud.google.com/grounding-api-redirect/…`) se resuelven a su URL final antes de guardarlos. Si ninguna fuente del dato pasa, se descarta.
 - Partidos: fecha válida, futura, a menos de 120 días, zona IANA válida, local y visitante presentes. La hora llega como la publica la fuente (`fecha`, `hora`, `zonaHoraria`), junto con `zonaSede`. El código calcula el instante con `hora` + `zonaHoraria` y guarda `inicio` en `zonaSede` (`relojLocalAUtc` e `isoEnZona` del v1). El desfase de `inicio` debe coincidir con `zonaSede`.
-- Evidencia (`scripts/lib/evidencia.mjs`): un partido nuevo o un cambio solo se acepta si en el texto de la fuente aparecen el rival y la fecha en la misma fila o bloque; si no, se descarta (o queda "Por revisar" si ya existía). Si la hora no aparece junto al rival, entra con hora por confirmar. "6 matchs à partir de 14:00" no cuenta como hora de un partido. Sin texto de la fuente (modo simulado) no se coteja.
+- Evidencia (`scripts/lib/evidencia.mjs`): la fila puede traer todo junto, o la fecha y la hora pueden ir en el encabezado del bloque (Lega Volley: fecha, hora, sede y al final los equipos). Un partido nuevo o un cambio solo se acepta si en el texto de la fuente aparecen el rival y la fecha en la misma fila o bloque; si no, se descarta (o queda "Por revisar" si ya existía). Si la hora no aparece junto al rival, entra con hora por confirmar. "6 matchs à partir de 14:00" no cuenta como hora de un partido. Sin texto de la fuente (modo simulado) no se coteja.
 - Un cambio de fecha, hora o rival a un partido que ya existe solo se aplica si la fuente es la liga, el club o Volleybox (en la Selección, la federación). Si no, queda como está y sale en el resumen como "Por revisar". Un partido nuevo entra con cualquier fuente válida. Lo que el agente no confirma se conserva.
 - Plantilla: un alta necesita aparecer en una lista oficial (FMVB, NORCECA, FIVB/Volleyball World, Panam Sports, Centro Caribe Sports) de los últimos 12 meses. Una baja necesita anuncio explícito o 24 meses sin aparecer en listas oficiales (se calcula con `ultimaListaOficial.fecha`; si la fecha es `null`, nunca hay baja por inactividad). Faltar a un torneo nunca es baja.
 - Nombres: el `slug` que propone el agente se acepta solo si el apellido coincide (comparado sin acentos ni mayúsculas). Si una lista trae solo apellidos, se fusiona cuando el apellido es único en la plantilla; si no, va a dudas del PR.
 - Torneos: máximo 7 por fecha de fin. El `id` sale del nombre canónico y la edición (`norceca-final-six-2026`, `campeonato-mundial-2025`). `scripts/lib/torneos.mjs` tiene el catálogo: "Mundial" y "World Championship" son el mismo torneo. También lo son dos con la misma edición y fechas traslapadas.
 - Si un agente falla o su respuesta no valida, se conservan los datos anteriores y se avisa en el resumen.
 - Fuentes oficiales para un alta: `fmvb.org`, `norceca.net`, `norceca.info`, `fivb.com`, `fivb.org`, `volleyballworld.com`, `panamsports.org`, `centrocaribesports.org`.
+- Un torneo terminado sin fechas toma las que ya se conocen: el `proximoTorneo` que acaba de terminar, lo guardado en `torneos.json` o las `ediciones` del catálogo. Sin ninguna de esas, se descarta.
 - Un torneo ya guardado no se pisa: el agente solo completa los campos vacíos. Un cambio de club con confianza baja va a dudas.
 - Un partido de la Selección sin `zonaSede` la deja en `null`, aunque México juegue de local.
 

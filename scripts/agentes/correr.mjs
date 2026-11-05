@@ -29,6 +29,7 @@ import { crearBuscadorTavily } from '../lib/busqueda.mjs';
 import { crearVerificador, textoDePagina } from '../lib/fuentes.mjs';
 import { conMs, fusionar } from '../lib/fusion.mjs';
 import { crearClienteGemini, crearClienteSimulado } from '../lib/gemini.mjs';
+import { idTorneo, nombreCanonico } from '../lib/torneos.mjs';
 import { DURACION_MS, ZONA_SITIO, fechaEnZona, isoEnZona } from '../lib/tiempo.mjs';
 import { convertir, convertirSeleccion, esquemaEstadoAgentes, esquemaManual, esquemaPartido, validarDatos } from '../lib/validar.mjs';
 
@@ -160,6 +161,27 @@ function aplicarManualJugadoras(ctx, manual) {
   }
 }
 
+// El próximo torneo escrito a mano gana sobre el agente mientras no haya terminado.
+function aplicarManualSeleccion(ctx, manual) {
+  const t = manual.seleccion.proximoTorneo;
+  if (!t) return;
+  const fin = t.fechaFin ?? t.fechaInicio ?? ctx.hoy;
+  if (fin < ctx.hoy) {
+    ctx.reporte.descarto('manual.json', t.nombre, 'ya terminó: quítalo de seleccion.proximoTorneo');
+    return;
+  }
+  ctx.datos.seleccion.proximoTorneo = {
+    id: t.id ?? idTorneo(t.nombre, t.edicion),
+    nombre: nombreCanonico(t.nombre),
+    edicion: t.edicion,
+    ciudad: t.ciudad ?? null,
+    pais: t.pais ?? null,
+    fechaInicio: t.fechaInicio ?? null,
+    fechaFin: t.fechaFin ?? null,
+    fuente: t.fuente,
+  };
+}
+
 async function escribir(dir, datos, crudos, seco) {
   const cambiados = [];
   for (const [clave, archivo] of Object.entries(ARCHIVOS)) {
@@ -212,6 +234,7 @@ export async function correr({
 
   reconstruirPartidos(ctx, manual);
   aplicarManualJugadoras(ctx, manual);
+  aplicarManualSeleccion(ctx, manual);
 
   const { estado: _, ...resto } = ctx.datos;
   validarDatos(resto);

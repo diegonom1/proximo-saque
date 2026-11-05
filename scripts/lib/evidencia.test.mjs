@@ -55,6 +55,13 @@ describe('evidenciaPartido', () => {
   it('hora en la línea de abajo, sola', () => {
     expect(ver('Samedi 7 novembre\nNancy Nantes\n19:30', '2026-11-07', '19:30', 'Nantes', ['Nancy'])).toBe('completa');
   });
+  describe('bloque de Lega Volley: fecha, hora, sede y al final los equipos', () => {
+    const UYBA = ['UYBA Volley Busto Arsizio', 'Laica Cioccolato Uyba'];
+    const bloque = '13 Dicembre 2026\n#3095\n13/12/2026\n17:00\nLVF A1 Fineco\n1\na\nGiornata - Ritorno\nPala Igor - Novara\nMATCH CENTER\nIgor Gorgonzola Novara\nLaica Cioccolato Uyba\n20 Dicembre 2026\n#3102\n20/12/2026\n17:30\nLVF A1 Fineco\nE-Work Biella Forum - Biella\nMATCH CENTER\nLaica Cioccolato Uyba\nProsecco Doc A.Carraro Imoco Conegliano';
+    it('la hora junto a la fecha es la del partido', () => expect(ver(bloque, '2026-12-13', '17:00', 'Igor Gorgonzola Novara', UYBA)).toBe('completa'));
+    it('la hora del bloque de al lado no cuenta', () => expect(ver(bloque, '2026-12-20', '17:00', 'Imoco Conegliano', UYBA)).toBe('sinHora'));
+    it('la fecha del bloque de al lado tampoco', () => expect(ver(bloque, '2026-12-20', '17:30', 'Igor Gorgonzola Novara', UYBA)).toBe('nada'));
+  });
   it('en un párrafo sin saltos busca alrededor del rival', () => {
     const relleno = 'palabras sin datos '.repeat(40);
     expect(ver(`${relleno}el 21 de noviembre a las 20:00 juega Nancy ante Béziers. ${relleno}`, '2026-11-21', '20:00', 'Béziers', ['Nancy'])).toBe('completa');

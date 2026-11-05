@@ -85,26 +85,35 @@ function filasDe(lineas, palabras) {
   });
 }
 
-// La fecha de la fila, o la del encabezado más cercano arriba de ella.
+// La fecha de la fila, o la del encabezado más cercano arriba de ella, con la línea donde está.
 function fechasDeFila(lineas, fila) {
-  const propias = fechasEn(fila.texto);
-  if (propias.size || !fila.corta) return propias;
+  const fechas = fechasEn(fila.texto);
+  if (fechas.size || !fila.corta) return { fechas, encabezado: null };
   for (let i = fila.i - 1; i >= Math.max(0, fila.i - ARRIBA); i -= 1) {
     if (lineas[i].length > LARGO_FILA) continue;
-    const fechas = fechasEn(lineas[i]);
-    if (fechas.size) return fechas;
+    const delBloque = fechasEn(lineas[i]);
+    if (delBloque.size) return { fechas: delBloque, encabezado: i };
   }
-  return propias;
+  return { fechas, encabezado: null };
 }
 
-// La hora va en la fila, o sola en la línea de junto ("19:00" debajo de los equipos).
-function tieneHora(lineas, fila, patron) {
-  if (patron.test(fila.texto)) {
-    const hallada = fila.texto.match(patron);
-    return !HORA_GENERAL.test(fila.texto.slice(0, hallada.index));
-  }
+const horaPropia = (texto, patron) => {
+  const hallada = texto.match(patron);
+  return Boolean(hallada) && !HORA_GENERAL.test(texto.slice(0, hallada.index));
+};
+const soloHora = (linea, patron) => Boolean(linea) && linea.length <= 12 && patron.test(linea);
+
+// La hora va en la fila, sola en la línea de junto ("19:00" debajo de los equipos) o junto a la fecha
+// del bloque (Lega Volley: fecha, hora, sede y al final los equipos).
+function tieneHora(lineas, fila, encabezado, patron) {
+  if (horaPropia(fila.texto, patron)) return true;
   if (!fila.corta) return false;
-  return [lineas[fila.i - 1], lineas[fila.i + 1]].some((l) => l && l.length <= 12 && patron.test(l));
+  const junto = [lineas[fila.i - 1], lineas[fila.i + 1]];
+  if (encabezado !== null) {
+    if (horaPropia(lineas[encabezado], patron)) return true;
+    junto.push(lineas[encabezado - 1], lineas[encabezado + 1]);
+  }
+  return junto.some((l) => soloHora(l, patron));
 }
 
 // 'completa': rival, fecha y hora juntos. 'sinHora': rival y fecha, pero la hora no está junto al rival.
@@ -124,8 +133,9 @@ export function evidenciaPartido(texto, { fecha, hora, rival, propio }) {
   let resultado = 'nada';
   for (const fila of filas) {
     if (exigePropio && !conAmbos(fila)) continue;
-    if (!fechasDeFila(lineas, fila).has(dia)) continue;
-    if (patron && tieneHora(lineas, fila, patron)) return 'completa';
+    const { fechas, encabezado } = fechasDeFila(lineas, fila);
+    if (!fechas.has(dia)) continue;
+    if (patron && tieneHora(lineas, fila, encabezado, patron)) return 'completa';
     resultado = 'sinHora';
   }
   return resultado;
