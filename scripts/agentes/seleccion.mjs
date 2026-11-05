@@ -153,7 +153,7 @@ async function torneos(ctx, lista, verificar) {
     }
     const nuevo = {
       id, nombre: nombreCanonico(t.nombre), edicion: t.edicion, ciudad: t.ciudad ?? null, pais: t.pais ?? null, fechaInicio: t.fechaInicio ?? null, fechaFin: t.fechaFin,
-      posicion: t.posicion ?? null, medalla: t.medalla ?? null, fase: t.fase ?? null, record: t.record ?? null, premios, fuente,
+      posicion: t.posicion ?? null, medalla: t.medalla ?? null, record: t.record ?? null, premios, fase: t.fase ?? null, fuente,
     };
     if (!esquemaTorneo.safeParse(nuevo).success) {
       ctx.reporte.descarto(AGENTE, t.nombre, 'no cumple el contrato');
