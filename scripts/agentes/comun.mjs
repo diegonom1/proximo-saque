@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import { extraerJSON } from '../lib/gemini.mjs';
-import { slugDe } from '../lib/nombres.mjs';
 
 export const textoN = z.string().nullable().optional();
 export const fechaN = z.iso.date().nullable().optional();
@@ -24,8 +23,6 @@ export function validos(lista, esquema, alDescartar) {
     return [];
   });
 }
-
-export const idTorneo = (nombre, edicion) => slugDe(`${nombre} ${edicion ?? ''}`);
 
 export function restarMeses(fecha, meses) {
   const [a, m, d] = fecha.split('-').map(Number);

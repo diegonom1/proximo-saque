@@ -133,6 +133,25 @@ describe('Selección y torneos', () => {
     expect(lista2).toHaveLength(1);
     expect(lista2[0]).toMatchObject({ record: '5-0', posicion: 1, medalla: 'oro' });
   });
+  it('el mismo torneo con otro nombre no se duplica', async () => {
+    const mundial = (nombre) => torneo({ nombre, edicion: 2025, fechaInicio: '2025-08-22', fechaFin: '2025-09-07', medalla: null, posicion: 25 });
+    await ejecutar(seleccion({ torneosTerminados: [mundial('Mundial'), mundial('World Championship'), mundial('Campeonato Mundial')] }));
+    const iguales = (await leer('torneos.json')).torneos.filter((x) => x.edicion === 2025);
+    expect(iguales).toHaveLength(1);
+    expect(iguales[0]).toMatchObject({ id: 'campeonato-mundial-2025', nombre: 'Campeonato Mundial' });
+  });
+  it('dos nombres desconocidos con fechas traslapadas son el mismo torneo', async () => {
+    await ejecutar(seleccion({ torneosTerminados: [torneo({ nombre: 'Copa Tailandia', edicion: 2025 }), torneo({ nombre: 'Thailand Cup', edicion: 2025, fechaInicio: '2025-06-03', fechaFin: '2025-06-05' })] }));
+    expect((await leer('torneos.json')).torneos.filter((x) => x.edicion === 2025)).toHaveLength(1);
+  });
+  it('un partido se liga al próximo torneo aunque lo nombren distinto', async () => {
+    await ejecutar(seleccion({
+      proximoTorneo: { nombre: 'Pan American Cup', edicion: 2027, fechaInicio: '2027-01-01', fechaFin: '2027-01-08', fuente: OFICIAL },
+      partidos: [partido({ torneo: 'Copa Panamericana' })],
+    }));
+    expect((await leer('seleccion.json')).proximoTorneo).toMatchObject({ id: 'copa-panamericana-2027', nombre: 'Copa Panamericana' });
+    expect((await leer('partidos.json')).partidos.find((x) => x.tipo === 'seleccion').torneoId).toBe('copa-panamericana-2027');
+  });
   it('se queda con los 7 más recientes por fecha de fin', async () => {
     const muchos = Array.from({ length: 8 }, (_, i) => torneo({ nombre: `Copa ${i}`, edicion: 2020 + i - 2, fechaFin: `${2018 + i}-06-08` }));
     await ejecutar(seleccion({ torneosTerminados: muchos }));

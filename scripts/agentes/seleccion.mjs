@@ -1,8 +1,9 @@
 // Agente 04: próximo compromiso de la Selección y torneos terminados.
 
 import { z } from 'zod';
-import { confianza, consultar, fechaN, idTorneo, textoN, validos } from './comun.mjs';
+import { confianza, consultar, fechaN, textoN, validos } from './comun.mjs';
 import { resolverJugadora } from '../lib/nombres.mjs';
+import { idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
 import { convertirSeleccion, esquemaPartido, esquemaTorneo } from '../lib/validar.mjs';
 
 export const AGENTE = '04-seleccion-torneos';
@@ -62,7 +63,7 @@ async function proximoTorneo(ctx, crudo, verificar) {
   }
   seleccion.proximoTorneo = {
     id: idTorneo(t.nombre, t.edicion),
-    nombre: t.nombre,
+    nombre: nombreCanonico(t.nombre),
     edicion: t.edicion ?? null,
     ciudad: t.ciudad ?? null,
     pais: t.pais ?? null,
@@ -70,7 +71,7 @@ async function proximoTorneo(ctx, crudo, verificar) {
     fechaFin: t.fechaFin ?? null,
     fuente,
   };
-  ctx.reporte.encontro(AGENTE, `próximo torneo: ${t.nombre} ${t.edicion ?? ''}`.trim());
+  ctx.reporte.encontro(AGENTE, `próximo torneo: ${nombreCanonico(t.nombre)} ${t.edicion ?? ''}`.trim());
 }
 
 async function partidos(ctx, respuesta, verificar) {
@@ -92,7 +93,7 @@ async function partidos(ctx, respuesta, verificar) {
       ctx.reporte.descarto(AGENTE, etiqueta, p?.fuente ? `no se pudo verificar ${p.fuente}` : 'sin fuente');
       continue;
     }
-    const torneoId = torneo && p.torneo === torneo.nombre ? torneo.id : idTorneo(p.torneo ?? 'amistoso', p.fecha?.slice(0, 4));
+    const torneoId = torneo && nombreCanonico(p.torneo ?? '') === torneo.nombre ? torneo.id : idTorneo(p.torneo ?? 'amistoso', p.fecha?.slice(0, 4));
     const partido = convertirSeleccion({ ...p, fuente, convocadas }, torneoId, 'ia', ctx.ahora);
     if (!partido || !esquemaPartido.safeParse({ ...partido }).success) {
       ctx.reporte.descarto(AGENTE, etiqueta, 'fecha, zona horaria o equipos inválidos');
@@ -119,7 +120,7 @@ async function torneos(ctx, lista, verificar) {
     }
     const premios = t.premios.flatMap(({ jugadora, premio }) => resolverNombres(ctx, [jugadora], `Premio de ${t.nombre}`).map((slug) => ({ jugadora: slug, premio })));
     const id = idTorneo(t.nombre, t.edicion);
-    const guardado = doc.torneos.find((x) => x.id === id);
+    const guardado = doc.torneos.find((x) => mismoTorneo(x, t));
     if (guardado) {
       // Solo completa lo que faltaba; lo que ya estaba aprobado no se pisa.
       guardado.record ??= t.record ?? null;
@@ -129,7 +130,7 @@ async function torneos(ctx, lista, verificar) {
       continue;
     }
     const nuevo = {
-      id, nombre: t.nombre, edicion: t.edicion, ciudad: t.ciudad ?? null, pais: t.pais ?? null, fechaInicio: t.fechaInicio ?? null, fechaFin: t.fechaFin,
+      id, nombre: nombreCanonico(t.nombre), edicion: t.edicion, ciudad: t.ciudad ?? null, pais: t.pais ?? null, fechaInicio: t.fechaInicio ?? null, fechaFin: t.fechaFin,
       posicion: t.posicion ?? null, medalla: t.medalla ?? null, record: t.record ?? null, premios, fuente,
     };
     if (!esquemaTorneo.safeParse(nuevo).success) {

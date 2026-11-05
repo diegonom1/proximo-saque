@@ -42,7 +42,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  └─ manual.json           correcciones humanas; siempre ganan
 ├─ scripts/
 │  ├─ agentes/              correr.mjs (orquestador) + un módulo por agente
-│  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, nombres.mjs, fotos-sin-credito.mjs
+│  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, nombres.mjs, torneos.mjs, fotos-sin-credito.mjs
 │  ├─ pruebas/              respuestas simuladas por agente (IA_SIMULADA)
 │  └─ fotos/                procesar.py (npm run fotos): prepara las fotos, solo en local
 ├─ src/
@@ -406,7 +406,7 @@ Detalles técnicos:
 - Partidos: fecha válida, futura, a menos de 120 días, zona IANA válida, local y visitante presentes. La hora llega como la publica la fuente (`fecha`, `hora`, `zonaHoraria`), junto con `zonaSede`. El código calcula el instante con `hora` + `zonaHoraria` y guarda `inicio` en `zonaSede` (`relojLocalAUtc` e `isoEnZona` del v1). El desfase de `inicio` debe coincidir con `zonaSede`.
 - Plantilla: un alta necesita aparecer en una lista oficial (FMVB, NORCECA, FIVB/Volleyball World, Panam Sports, Centro Caribe Sports) de los últimos 12 meses. Una baja necesita anuncio explícito o 24 meses sin aparecer en listas oficiales (se calcula con `ultimaListaOficial.fecha`; si la fecha es `null`, nunca hay baja por inactividad). Faltar a un torneo nunca es baja.
 - Nombres: el `slug` que propone el agente se acepta solo si el apellido coincide (comparado sin acentos ni mayúsculas). Si una lista trae solo apellidos, se fusiona cuando el apellido es único en la plantilla; si no, va a dudas del PR.
-- Torneos: máximo 7 por fecha de fin; sin duplicados por `id` (`<organizador>-<torneo>-<edicion>`).
+- Torneos: máximo 7 por fecha de fin. El `id` sale del nombre canónico y la edición (`norceca-final-six-2026`, `campeonato-mundial-2025`). `scripts/lib/torneos.mjs` tiene el catálogo: "Mundial" y "World Championship" son el mismo torneo. También lo son dos con la misma edición y fechas traslapadas.
 - Si un agente falla o su respuesta no valida, se conservan los datos anteriores y se avisa en el resumen.
 - Fuentes oficiales para un alta: `fmvb.org`, `norceca.net`, `norceca.info`, `fivb.com`, `fivb.org`, `volleyballworld.com`, `panamsports.org`, `centrocaribesports.org`.
 - Un torneo ya guardado no se pisa: el agente solo completa los campos vacíos. Un cambio de club con confianza baja va a dudas.
