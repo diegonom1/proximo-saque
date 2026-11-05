@@ -1,0 +1,50 @@
+{
+  "serie-a1-it": {
+    "nombre": "Serie A1 femminile",
+    "pais": "Italia",
+    "temporada": null,
+    "calendarioOficialUrl": "https://www.legavolleyfemminile.it/",
+    "plataformas": [],
+    "revisado": null
+  },
+  "superliga-br": {
+    "nombre": "Superliga Feminina",
+    "pais": "Brasil",
+    "temporada": "2026-27",
+    "calendarioOficialUrl": "https://cbv.com.br/",
+    "plataformas": [],
+    "revisado": null
+  },
+  "superliga-cn": {
+    "nombre": "Superliga china (CVL)",
+    "pais": "China",
+    "temporada": null,
+    "calendarioOficialUrl": null,
+    "plataformas": [],
+    "revisado": null
+  },
+  "ligue-a-fr": {
+    "nombre": "Ligue A Féminine",
+    "pais": "Francia",
+    "temporada": "2026-27",
+    "calendarioOficialUrl": "https://spikelive.fr/ligue/laf/calendrier",
+    "plataformas": [],
+    "revisado": null
+  },
+  "lovb-pro-us": {
+    "nombre": "LOVB Pro",
+    "pais": "Estados Unidos",
+    "temporada": null,
+    "calendarioOficialUrl": "https://www.lovb.com/schedule",
+    "plataformas": [],
+    "revisado": null
+  },
+  "lpv-pe": {
+    "nombre": "Liga Peruana de Vóley",
+    "pais": "Perú",
+    "temporada": null,
+    "calendarioOficialUrl": null,
+    "plataformas": [],
+    "revisado": null
+  }
+}

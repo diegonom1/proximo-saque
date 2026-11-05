@@ -44,7 +44,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 ├─ scripts/
 │  ├─ agentes/              correr.mjs (orquestador) + un módulo por agente
 │  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, busqueda.mjs, evidencia.mjs, nombres.mjs, torneos.mjs, fotos-sin-credito.mjs
-│  ├─ pruebas/              respuestas simuladas por agente (IA_SIMULADA)
+│  ├─ pruebas/              respuestas simuladas por agente (IA_SIMULADA), páginas reales y datos-base/ (data/ fijo para las pruebas)
 │  └─ fotos/                procesar.py (npm run fotos): prepara las fotos, solo en local
 ├─ src/
 │  ├─ assets/fotos/

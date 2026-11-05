@@ -27,9 +27,8 @@ let fotos;
 beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), 'datos-'));
   fotos = join(dir, 'fotos');
-  await cp(new URL('../../data/', import.meta.url), dir, { recursive: true });
-  // Base fija: las pruebas no dependen de qué torneos estén cargados en data/.
-  await cp(new URL('../pruebas/torneos-base.json', import.meta.url), join(dir, 'torneos.json'));
+  // Base fija: data/ cambia con cada corrida y las pruebas no pueden depender de eso.
+  await cp(new URL('../pruebas/datos-base/', import.meta.url), dir, { recursive: true });
 });
 afterEach(() => rm(dir, { recursive: true, force: true }));
 

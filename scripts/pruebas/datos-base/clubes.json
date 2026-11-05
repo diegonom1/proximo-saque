@@ -1,0 +1,125 @@
+{
+  "uyba": {
+    "nombre": "UYBA Volley Busto Arsizio",
+    "alias": [
+      "UYBA Busto Arsizio",
+      "Eurotek UYBA",
+      "Busto Arsizio",
+      "Laica Cioccolato Uyba"
+    ],
+    "ligaId": "serie-a1-it",
+    "pais": "Italia",
+    "ciudad": "Busto Arsizio",
+    "zona": "Europe/Rome",
+    "volleybox": {
+      "url": null,
+      "widgetId": 2048
+    },
+    "sitio": null,
+    "calendarioUrl": "https://www.legavolleyfemminile.it/club/uyba-busto-arsizio/710946/calendario"
+  },
+  "sesi-bauru": {
+    "nombre": "Sesi Vôlei Bauru",
+    "alias": [
+      "Sesi Bauru",
+      "SESI Bauru",
+      "Bauru"
+    ],
+    "ligaId": "superliga-br",
+    "pais": "Brasil",
+    "ciudad": "Bauru",
+    "zona": "America/Sao_Paulo",
+    "volleybox": {
+      "url": null,
+      "widgetId": 6185
+    },
+    "sitio": null,
+    "calendarioUrl": null
+  },
+  "mackenzie": {
+    "nombre": "Batavo Mackenzie",
+    "alias": [
+      "Mackenzie",
+      "Mackenzie Esporte Clube",
+      "Batavo/Mackenzie"
+    ],
+    "ligaId": "superliga-br",
+    "pais": "Brasil",
+    "ciudad": "Belo Horizonte",
+    "zona": "America/Sao_Paulo",
+    "volleybox": {
+      "url": null,
+      "widgetId": null
+    },
+    "sitio": null,
+    "calendarioUrl": null
+  },
+  "beijing": {
+    "nombre": "Beijing Arctic Ocean",
+    "alias": [
+      "北京北冰洋",
+      "Beijing"
+    ],
+    "ligaId": "superliga-cn",
+    "pais": "China",
+    "ciudad": "Pekín",
+    "zona": "Asia/Shanghai",
+    "volleybox": {
+      "url": null,
+      "widgetId": 2037
+    },
+    "sitio": null,
+    "calendarioUrl": null
+  },
+  "nancy": {
+    "nombre": "Vandœuvre Nancy Volley-Ball",
+    "alias": [
+      "Vandœuvre Nancy",
+      "VNVB",
+      "Vandoeuvre Nancy"
+    ],
+    "ligaId": "ligue-a-fr",
+    "pais": "Francia",
+    "ciudad": "Vandœuvre-lès-Nancy",
+    "zona": "Europe/Paris",
+    "volleybox": {
+      "url": null,
+      "widgetId": 2630
+    },
+    "sitio": null,
+    "calendarioUrl": "https://spikelive.fr/ligue/laf/calendrier"
+  },
+  "lovb-miami": {
+    "nombre": "LOVB Miami",
+    "alias": [
+      "LOVB Miami Volleyball"
+    ],
+    "ligaId": "lovb-pro-us",
+    "pais": "Estados Unidos",
+    "ciudad": "Miami",
+    "zona": "America/New_York",
+    "volleybox": {
+      "url": null,
+      "widgetId": null
+    },
+    "sitio": "https://www.lovb.com/teams/lovb-miami-volleyball",
+    "calendarioUrl": "https://www.lovb.com/schedule"
+  },
+  "usmp": {
+    "nombre": "Universidad San Martín de Porres",
+    "alias": [
+      "San Martín",
+      "USMP"
+    ],
+    "ligaId": "lpv-pe",
+    "pais": "Perú",
+    "ciudad": null,
+    "zona": "America/Lima",
+    "volleybox": {
+      "url": null,
+      "widgetId": null
+    },
+    "sitio": null,
+    "calendarioUrl": null
+  }
+}
