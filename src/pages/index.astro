@@ -1,18 +1,16 @@
 ---
-// Página provisional de la fase 0: confirma que los datos cargan y validan. El inicio real llega en la fase 1.
-import { activas, partidos, torneos } from '../lib/datos';
+import Base from '../components/Base.astro';
+import Hero from '../components/Hero.astro';
+import EstaSemana from '../components/EstaSemana.astro';
+import Rankings from '../components/Rankings.astro';
+import Plantel from '../components/Plantel.astro';
+import Torneos from '../components/Torneos.astro';
 ---
 
-<!doctype html>
-<html lang="es-MX">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Próximo Saque</title>
-  </head>
-  <body>
-    <h1>Próximo Saque</h1>
-    <p>Sitio en construcción.</p>
-    <p>{activas.length} jugadoras · {partidos.length} partidos · {torneos.torneos.length} torneos</p>
-  </body>
-</html>
+<Base>
+  <Hero />
+  <EstaSemana />
+  <Rankings />
+  <Plantel />
+  <Torneos />
+</Base>

@@ -48,7 +48,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  │  └─ jugadoras/<slug>/  tarjeta.jpg, fondo.jpg, recorte.png (opcional), credito.txt
 │  ├─ pages/                index.astro, agenda.astro, jugadoras/[slug].astro, torneos.astro
 │  ├─ components/
-│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts
+│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, compromiso.ts, presentacion.ts
 ├─ v1/                      sitio anterior (referencia)
 └─ .github/workflows/       actualizar.yml (semanal), deploy.yml (push a main)
 ```
@@ -243,7 +243,7 @@ Regla en código, no en la IA: se ordenan por `fechaFin` descendente y se guarda
 }
 ```
 
-Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los reemplaza. `historial` guarda cada cambio para mostrar si subió o bajó.
+Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los reemplaza. `historial` guarda cada cambio, del más viejo al más nuevo, para mostrar si subió o bajó: `{ "ranking": "fivb", "posicion": 25, "puntos": 150.5, "fecha": "2026-09-28" }`.
 
 ### `data/estado-agentes.json`
 
@@ -311,14 +311,14 @@ Los 7 torneos con más detalle: resultado, récord y premios.
 
 - Un partido se considera "en juego" durante 150 minutos desde su inicio; después desaparece de las listas.
 - `horaConfirmada: false` → "Hora por confirmar" y la cuenta regresiva solo en días.
-- La cuenta regresiva corre en el cliente; el resto de la página es estático.
+- La cuenta regresiva corre en el cliente; el resto de la página es estático. Lo que depende de la hora (qué cuenta el hero, los partidos de "Esta semana", el botón flotante y las horas del visitante) se recalcula en el navegador con las mismas funciones del build (`src/lib/compromiso.ts`), porque el sitio se construye una vez por semana.
 - Google Calendar: enlace de plantilla (`calendar.google.com/calendar/render?action=TEMPLATE…`) con título, 2 horas de duración, competencia, dónde verlo y fuente en los detalles.
 
 ## Diseño
 
 - Tema claro fijo, base blanca. Las fotos y las animaciones ponen el color.
 - Tokens sugeridos: `--papel #FFFFFF`, `--hueso #F4F3EF` (secciones alternas), `--tinta #0E0E10`, `--gris #6B6B70`, `--linea #E4E2DC`, `--rojo #D1202F` (acento: Selección, "en juego", botones primarios). El verde queda solo como detalle mínimo.
-- Tipografía: display condensada para nombres y números (Big Shoulders Display 800–900, la del v1), texto en Instrument Sans y etiquetas de datos en IBM Plex Mono.
+- Tipografía: display condensada para nombres y números (Big Shoulders 800–900, la del v1; Google ya la publica sin "Display" en el nombre), texto en Instrument Sans y etiquetas de datos en IBM Plex Mono.
 - Números de camiseta en contorno gigante como recurso gráfico detrás de las jugadoras.
 - Las fotos vienen de fuentes distintas: un duotono tinta/rojo opcional las unifica y disimula la baja resolución.
 

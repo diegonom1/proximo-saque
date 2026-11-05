@@ -1,0 +1,160 @@
+---
+import { jugadoras, torneos } from '../lib/datos';
+import { POR_CONFIRMAR, lugarTexto, rangoFechas, ruta } from '../lib/presentacion';
+
+const lista = [...torneos.torneos].sort((a, b) => b.fechaFin.localeCompare(a.fechaFin)).slice(0, torneos.maximo);
+const nombreDe = (slug: string) => jugadoras.find((j) => j.slug === slug)?.nombre ?? slug;
+
+// Un renglón por jugadora con todos sus premios.
+const premiosDe = (t: (typeof lista)[number]) => {
+  const porJugadora = new Map<string, string[]>();
+  for (const { jugadora, premio } of t.premios) porJugadora.set(jugadora, [...(porJugadora.get(jugadora) ?? []), premio]);
+  return [...porJugadora];
+};
+---
+
+<section id="torneos" class="seccion seccion--hueso" aria-labelledby="torneos-titulo">
+  <div class="marco">
+    <div class="seccion__cabeza">
+      <h2 id="torneos-titulo" class="titulo-seccion">Últimos torneos</h2>
+    </div>
+    <ol class="torneos">
+      {
+        lista.map((t) => (
+          <li class="torneo">
+            <p class="torneo__resultado">
+              {t.medalla && <span class:list={['medalla', `medalla--${t.medalla}`]} aria-hidden="true" />}
+              <span class="torneo__medalla">{t.medalla ?? lugarTexto(t.posicion)}</span>
+              {t.medalla && <span class="dato torneo__lugar">{lugarTexto(t.posicion)}</span>}
+            </p>
+            <h3 class="torneo__nombre">{t.nombre} {t.edicion}</h3>
+            <p class="torneo__sede">{[t.ciudad, t.pais].filter(Boolean).join(', ') || `Sede ${POR_CONFIRMAR.toLowerCase()}`}</p>
+            <dl>
+              <div>
+                <dt class="dato">Fechas</dt>
+                <dd>{rangoFechas(t.fechaInicio, t.fechaFin)}</dd>
+              </div>
+              <div>
+                <dt class="dato">Récord</dt>
+                <dd>{t.record ?? POR_CONFIRMAR}</dd>
+              </div>
+            </dl>
+            {
+              t.premios.length > 0 && (
+                <ul class="premios">
+                  {premiosDe(t).map(([slug, premios]) => (
+                    <li>
+                      <a href={ruta(`jugadoras/${slug}`)}>{nombreDe(slug)}</a>: {premios.join(', ')}
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
+            <a class="enlace" href={t.fuente} target="_blank" rel="noopener">Fuente</a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .torneos {
+    display: grid;
+    gap: 16px;
+  }
+
+  .torneo {
+    padding: clamp(20px, 4vw, 32px);
+    background: var(--papel);
+  }
+
+  .torneo__resultado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin-bottom: 16px;
+  }
+
+  .medalla {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+  }
+
+  .medalla--oro {
+    background: #d4a72c;
+  }
+
+  .medalla--plata {
+    background: #a9adb3;
+  }
+
+  .medalla--bronce {
+    background: #b0713c;
+  }
+
+  .torneo__medalla {
+    font-family: var(--fuente-display);
+    font-size: 2.25rem;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .torneo__lugar {
+    color: var(--gris);
+  }
+
+  .torneo__nombre {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .torneo__sede {
+    color: var(--gris);
+  }
+
+  dl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 32px;
+    margin: 16px 0;
+  }
+
+  dt {
+    color: var(--gris);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .premios {
+    margin-bottom: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--linea);
+    font-size: 0.9375rem;
+  }
+
+  .premios a {
+    font-weight: 600;
+    text-underline-offset: 3px;
+  }
+
+  @media (min-width: 768px) {
+    .torneos {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .torneos {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

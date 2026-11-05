@@ -1,0 +1,97 @@
+---
+import { actualizado } from '../lib/datos';
+import { todosLosCreditos } from '../lib/fotos';
+import { POR_CONFIRMAR } from '../lib/presentacion';
+import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
+
+const fecha = actualizado
+  ? new Intl.DateTimeFormat('es-MX', { timeZone: ZONA_SITIO, dateStyle: 'long' }).format(Date.parse(actualizado))
+  : POR_CONFIRMAR;
+const creditos = todosLosCreditos();
+const fuentes = [
+  { nombre: 'FMVB', url: 'https://www.fmvb.org/femenil-mayor' },
+  { nombre: 'NORCECA', url: 'https://norceca.net/' },
+  { nombre: 'FIVB', url: 'https://www.fivb.com/' },
+  { nombre: 'Volleyball World', url: 'https://en.volleyballworld.com/' },
+  { nombre: 'Volleybox', url: 'https://volleybox.net/' },
+];
+---
+
+<footer class="pie">
+  <div class="marco pie__rejilla">
+    <div>
+      <p class="pie__marca">Próximo Saque</p>
+      <p class="pie__nota">Sitio de aficionados. No tiene relación oficial con la Selección ni con las federaciones.</p>
+      <p class="dato pie__fecha">Última actualización: {fecha}</p>
+    </div>
+    <div>
+      <h2 class="dato">Fuentes</h2>
+      <ul>
+        {fuentes.map((f) => <li><a href={f.url} target="_blank" rel="noopener">{f.nombre}</a></li>)}
+      </ul>
+    </div>
+    {
+      creditos.length > 0 && (
+        <div>
+          <h2 class="dato">Créditos de fotos</h2>
+          <ul>
+            {creditos.map((c) => <li>{c.url ? <a href={c.url} target="_blank" rel="noopener">{c.texto}</a> : c.texto}</li>)}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+</footer>
+
+<style>
+  .pie {
+    padding-block: 48px 96px;
+    background: var(--tinta);
+    color: var(--papel);
+  }
+
+  .pie__rejilla {
+    display: grid;
+    gap: 32px;
+  }
+
+  .pie__marca {
+    font-family: var(--fuente-display);
+    font-size: 2.5rem;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .pie__nota {
+    max-width: 44ch;
+    margin-top: 12px;
+    color: rgb(255 255 255 / 75%);
+    font-size: 0.875rem;
+  }
+
+  .pie__fecha {
+    margin-top: 16px;
+  }
+
+  h2 {
+    margin-bottom: 8px;
+    color: rgb(255 255 255 / 75%);
+  }
+
+  li a {
+    display: inline-block;
+    padding-block: 6px;
+    text-underline-offset: 3px;
+  }
+
+  @media (min-width: 768px) {
+    .pie {
+      padding-block: 64px;
+    }
+
+    .pie__rejilla {
+      grid-template-columns: 2fr 1fr 1fr;
+    }
+  }
+</style>

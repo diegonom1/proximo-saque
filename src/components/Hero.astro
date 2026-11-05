@@ -1,0 +1,256 @@
+---
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { partidos, paraCliente, seleccion } from '../lib/datos';
+import { elegirCompromiso, vistaHero } from '../lib/compromiso';
+import { fotosHero } from '../lib/fotos';
+import { vigentes } from '../lib/tiempo';
+import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
+
+const ahora = Date.now();
+const lista = vigentes(partidos, ahora).slice(0, 30).map(paraCliente);
+const torneo = seleccion.proximoTorneo;
+const v = vistaHero(elegirCompromiso(lista, torneo, ahora, ZONA_SITIO), ahora, ZONA_SITIO);
+const datosCliente = JSON.stringify({ lista, torneo }).replace(/</g, '\\u003c');
+
+// <Picture> no admite un archivo distinto por pantalla: aquí hay uno vertical para celular.
+const { escritorio, movil } = fotosHero();
+const anchosDe = (foto: ImageMetadata, anchos: number[]) => {
+  const utiles = anchos.filter((a) => a < foto.width);
+  return [...utiles, foto.width];
+};
+const fuentes = async (foto: ImageMetadata, anchos: number[], media: string) => Promise.all(
+  (['avif', 'webp'] as const).map(async (format) => {
+    const imagen = await getImage({ src: foto, format, widths: anchosDe(foto, anchos) });
+    return { media, type: `image/${format}`, srcset: imagen.srcSet.attribute };
+  }),
+);
+const sources = escritorio && movil
+  ? [
+    ...(await fuentes(movil, [640, 828, 1080], '(max-width: 767px)')),
+    ...(await fuentes(escritorio, [1280, 1920, 2400], '(min-width: 768px)')),
+  ]
+  : [];
+const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', width: Math.min(1600, escritorio.width) }) : null;
+---
+
+<section class="hero" data-modo={v.modo} aria-labelledby="hero-titulo">
+  {
+    respaldo ? (
+      <picture class="hero__foto">
+        {sources.map((s) => <source media={s.media} type={s.type} srcset={s.srcset} sizes="100vw" />)}
+        <img src={respaldo.src} alt="Selección Mexicana femenil de voleibol" fetchpriority="high" decoding="async" />
+      </picture>
+    ) : (
+      <div class="hero__sin-foto" aria-hidden="true">MÉXICO</div>
+    )
+  }
+  <div class="marco hero__contenido">
+    <p class="dato hero__etiqueta" data-h="etiqueta">{v.etiqueta}</p>
+    <p class="hero__fecha" data-h="fecha" hidden={!v.fecha}>{v.fecha}</p>
+    <h1 id="hero-titulo" class="hero__titulo" data-h="titulo">{v.titulo}</h1>
+    <p class="hero__mientras" data-h="mientras" hidden={!v.mientras}>{v.mientras}</p>
+    <p class="hero__detalle" data-h="detalle" hidden={!v.detalle}>{v.detalle}</p>
+    <p class="dato hero__horas">
+      <span data-h="hora" hidden={!v.hora}>{v.hora}</span>
+      <span data-h="alla" hidden={!v.alla}>{v.alla}</span>
+    </p>
+    <div class="cuenta" role="timer" aria-label="Cuenta regresiva" data-cuenta hidden>
+      <p data-unidad="dias"><span>--</span> días</p>
+      <p data-unidad="horas"><span>--</span> horas</p>
+      <p data-unidad="minutos"><span>--</span> min</p>
+      <p data-unidad="segundos"><span>--</span> seg</p>
+    </div>
+    <p class="hero__envivo dato" data-envivo hidden>En juego</p>
+  </div>
+</section>
+
+<script type="application/json" id="datos-hero" set:html={datosCliente} />
+
+<script>
+  import { elegirCompromiso, vistaHero, type VistaHero } from '../lib/compromiso';
+  import { cuentaRegresiva } from '../lib/tiempo';
+
+  const hero = document.querySelector<HTMLElement>('.hero');
+  const { lista, torneo } = JSON.parse(document.getElementById('datos-hero')?.textContent ?? '{"lista":[],"torneo":null}');
+  const cuenta = document.querySelector<HTMLElement>('[data-cuenta]');
+  const envivo = document.querySelector<HTMLElement>('[data-envivo]');
+  const dos = (n: number) => String(n).padStart(2, '0');
+
+  function escribir(campo: keyof VistaHero, valor: string | null) {
+    const el = document.querySelector<HTMLElement>(`[data-h="${campo}"]`);
+    if (!el) return;
+    el.hidden = !valor;
+    if (valor && el.textContent !== valor) el.textContent = valor;
+  }
+
+  function unidad(nombre: string, valor: string | null) {
+    const el = cuenta?.querySelector<HTMLElement>(`[data-unidad="${nombre}"]`);
+    if (!el) return;
+    el.hidden = valor === null;
+    const numero = el.querySelector('span');
+    if (numero && valor !== null && numero.textContent !== valor) numero.textContent = valor;
+  }
+
+  function pintar() {
+    const ahora = Date.now();
+    const v = vistaHero(elegirCompromiso(lista, torneo, ahora), ahora);
+    if (hero) hero.dataset.modo = v.modo;
+    for (const campo of ['etiqueta', 'fecha', 'titulo', 'mientras', 'detalle', 'hora', 'alla'] as const) escribir(campo, v[campo]);
+
+    const c = v.cuenta;
+    if (envivo) envivo.hidden = c.modo !== 'envivo';
+    if (cuenta) cuenta.hidden = c.modo !== 'completa' && c.modo !== 'dias';
+    if (c.modo === 'completa') {
+      const r = cuentaRegresiva(c.ms, ahora);
+      unidad('dias', String(r.dias));
+      unidad('horas', dos(r.horas));
+      unidad('minutos', dos(r.minutos));
+      unidad('segundos', dos(r.segundos));
+    } else if (c.modo === 'dias') {
+      unidad('dias', String(c.dias));
+      for (const nombre of ['horas', 'minutos', 'segundos']) unidad(nombre, null);
+    }
+  }
+
+  pintar();
+  setInterval(pintar, 1000);
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: 100svh;
+    overflow: hidden;
+    background: var(--tinta);
+    color: var(--papel);
+  }
+
+  .hero__foto,
+  .hero__foto img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero:has(.hero__foto)::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(14 14 16 / 88%) 0%, rgb(14 14 16 / 45%) 50%, rgb(14 14 16 / 35%) 100%);
+    content: '';
+  }
+
+  .hero__sin-foto {
+    position: absolute;
+    top: 72px;
+    left: 50%;
+    color: transparent;
+    font-family: var(--fuente-display);
+    font-size: clamp(9rem, 44vw, 42rem);
+    font-weight: 900;
+    line-height: 0.85;
+    transform: translateX(-50%);
+    -webkit-text-stroke: 2px rgb(255 255 255 / 14%);
+    white-space: nowrap;
+  }
+
+  .hero__contenido {
+    position: relative;
+    z-index: 1;
+    padding-block: 96px 88px;
+  }
+
+  .hero__etiqueta {
+    margin-bottom: 12px;
+    color: var(--papel);
+  }
+
+  .hero__etiqueta::before {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 8px;
+    background: var(--rojo);
+    border-radius: 50%;
+    content: '';
+  }
+
+  .hero__fecha {
+    font-family: var(--fuente-display);
+    font-size: clamp(5.5rem, 27vw, 17rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    line-height: 0.85;
+  }
+
+  .hero__titulo {
+    max-width: 18ch;
+    margin-top: 12px;
+    font-family: var(--fuente-display);
+    font-size: clamp(2rem, 8vw, 4rem);
+    font-weight: 800;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .hero[data-modo='espera'] .hero__titulo {
+    max-width: 12ch;
+    margin-top: 0;
+    font-size: clamp(3.75rem, 17vw, 10rem);
+    font-weight: 900;
+    line-height: 0.9;
+  }
+
+  .hero__mientras {
+    max-width: 34ch;
+    margin-top: 20px;
+    font-size: clamp(1.0625rem, 3vw, 1.375rem);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .hero__detalle {
+    margin-top: 8px;
+    color: rgb(255 255 255 / 82%);
+  }
+
+  .hero__horas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 16px;
+    margin-top: 8px;
+    color: rgb(255 255 255 / 82%);
+  }
+
+  .cuenta {
+    display: flex;
+    gap: clamp(16px, 4vw, 36px);
+    margin-top: 20px;
+    font-family: var(--fuente-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .cuenta span {
+    display: block;
+    font-family: var(--fuente-display);
+    font-size: clamp(2.5rem, 10vw, 4.5rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+
+  .hero__envivo {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 6px 12px;
+    background: var(--rojo);
+    border-radius: 999px;
+  }
+</style>

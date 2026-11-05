@@ -1,0 +1,177 @@
+---
+import { Font } from 'astro:assets';
+import Encabezado from './Encabezado.astro';
+import Pie from './Pie.astro';
+import BotonProximo from './BotonProximo.astro';
+import { ruta } from '../lib/presentacion';
+
+interface Props {
+  titulo?: string;
+  descripcion?: string;
+}
+
+const {
+  titulo = 'Próximo Saque',
+  descripcion = 'Sigue a la Selección Mexicana femenil de voleibol y a cada seleccionada con su club: próximo partido, dónde verlo, agenda y rankings.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0E0E10" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    <link rel="icon" href={ruta('favicon.svg')} type="image/svg+xml" />
+    <Font cssVariable="--fuente-display" preload />
+    <Font cssVariable="--fuente-texto" preload={[{ weight: '400' }]} />
+    <Font cssVariable="--fuente-mono" />
+  </head>
+  <body>
+    <a class="saltar" href="#contenido">Saltar al contenido</a>
+    <Encabezado />
+    <main id="contenido">
+      <slot />
+    </main>
+    <Pie />
+    <BotonProximo />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --papel: #ffffff;
+    --hueso: #f4f3ef;
+    --tinta: #0e0e10;
+    --gris: #6b6b70;
+    --linea: #e4e2dc;
+    --rojo: #d1202f;
+    --verde: #1f7a4d;
+    --gutter: clamp(16px, 4vw, 48px);
+    color-scheme: light;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: var(--fuente-texto);
+    font-size: 1rem;
+    line-height: 1.5;
+    overflow-x: clip;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  h1,
+  h2,
+  h3,
+  p,
+  ul,
+  ol {
+    margin: 0;
+  }
+
+  ul,
+  ol {
+    padding: 0;
+    list-style: none;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--rojo);
+    outline-offset: 2px;
+  }
+
+  .marco {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .seccion {
+    padding-block: clamp(56px, 9vw, 112px);
+    scroll-margin-top: 16px;
+  }
+
+  .seccion--hueso {
+    background: var(--hueso);
+  }
+
+  .seccion__cabeza {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-bottom: clamp(24px, 4vw, 40px);
+  }
+
+  .titulo-seccion {
+    font-family: var(--fuente-display);
+    font-size: clamp(2.75rem, 9vw, 5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .dato {
+    font-family: var(--fuente-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .enlace {
+    font-weight: 600;
+    text-underline-offset: 3px;
+  }
+
+  .oculto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .saltar {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    z-index: 30;
+    padding: 8px 16px;
+    background: var(--papel);
+    color: var(--tinta);
+  }
+
+  .saltar:focus {
+    top: 8px;
+  }
+</style>

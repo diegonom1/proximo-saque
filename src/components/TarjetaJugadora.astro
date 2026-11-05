@@ -1,0 +1,126 @@
+---
+import { Picture } from 'astro:assets';
+import type { Jugadora } from '../lib/datos';
+import { clubes } from '../lib/datos';
+import { fotosJugadora } from '../lib/fotos';
+import { iniciales } from '../lib/tiempo';
+import { POR_CONFIRMAR, ruta } from '../lib/presentacion';
+
+interface Props {
+  jugadora: Jugadora;
+}
+
+const { jugadora: j } = Astro.props;
+const { tarjeta, fondo } = fotosJugadora(j.slug);
+const foto = tarjeta ?? fondo; // sin retrato, un recorte de la foto de fondo
+const club = j.clubId ? clubes[j.clubId]?.nombre : null;
+---
+
+<a class="tarjeta" href={ruta(`jugadoras/${j.slug}`)}>
+  <div class="tarjeta__foto">
+    {
+      foto ? (
+        <Picture
+          src={foto}
+          alt=""
+          formats={['avif', 'webp']}
+          widths={[320, 480, 640, 800].filter((a) => a <= foto.width)}
+          sizes="(min-width: 1024px) 23vw, (min-width: 640px) 40vw, 72vw"
+          style={j.fotos.foco ? `object-position: ${j.fotos.foco}` : undefined}
+        />
+      ) : (
+        <div class="tarjeta__sin-foto" aria-hidden="true">
+          {j.numero !== null && <span class="tarjeta__numero">{j.numero}</span>}
+          <span class="tarjeta__iniciales">{iniciales(j.nombre)}</span>
+        </div>
+      )
+    }
+    {j.capitana && <span class="tarjeta__capitana dato">Capitana</span>}
+  </div>
+  <h3 class="tarjeta__nombre">{j.nombre}</h3>
+  <p class="dato tarjeta__datos">{j.numero === null ? `# ${POR_CONFIRMAR.toLowerCase()}` : `#${j.numero}`} · {j.posicion ?? `Posición ${POR_CONFIRMAR.toLowerCase()}`}</p>
+  <p class="tarjeta__club">{club ?? 'Club por confirmar'}</p>
+</a>
+
+<style>
+  .tarjeta {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .tarjeta__foto {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--tinta);
+  }
+
+  .tarjeta__foto :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .tarjeta__sin-foto {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--papel);
+    font-family: var(--fuente-display);
+    font-weight: 900;
+  }
+
+  .tarjeta__numero {
+    position: absolute;
+    right: -0.04em;
+    bottom: -0.12em;
+    color: transparent;
+    font-size: clamp(9rem, 15vw, 12rem);
+    line-height: 1;
+    -webkit-text-stroke: 2px var(--rojo);
+  }
+
+  .tarjeta__iniciales {
+    position: relative;
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    line-height: 1;
+  }
+
+  .tarjeta__capitana {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 2px 10px;
+    background: var(--rojo);
+    border-radius: 999px;
+    color: var(--papel);
+  }
+
+  .tarjeta__nombre {
+    margin-top: 12px;
+    font-family: var(--fuente-display);
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.05;
+    text-transform: uppercase;
+  }
+
+  .tarjeta:hover .tarjeta__nombre {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+
+  .tarjeta__datos {
+    margin-top: 4px;
+  }
+
+  .tarjeta__club {
+    margin-top: 2px;
+    color: var(--gris);
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+</style>

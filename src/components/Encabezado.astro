@@ -1,0 +1,75 @@
+---
+import { ruta } from '../lib/presentacion';
+---
+
+<header class="encabezado">
+  <div class="marco encabezado__fila">
+    <a class="marca" href={ruta()}>Próximo Saque</a>
+    <nav aria-label="Principal">
+      <ul>
+        <li class="opcional"><a href={`${ruta()}#plantel`}>Plantel</a></li>
+        <li class="opcional"><a href={`${ruta()}#torneos`}>Torneos</a></li>
+        <li><a class="agenda" href={ruta('agenda')}>Agenda</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .encabezado {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 10;
+    color: var(--papel);
+  }
+
+  .encabezado__fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 64px;
+  }
+
+  .marca {
+    font-family: var(--fuente-display);
+    font-size: 1.5rem;
+    font-weight: 900;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  ul {
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 3vw, 28px);
+  }
+
+  nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .agenda {
+    padding-inline: 14px;
+    background: var(--rojo);
+    border-radius: 999px;
+  }
+
+  @media (max-width: 459px) {
+    .opcional {
+      display: none;
+    }
+  }
+</style>

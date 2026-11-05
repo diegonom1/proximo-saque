@@ -1,0 +1,131 @@
+---
+import { rankings } from '../lib/datos';
+import { POR_CONFIRMAR, fechaLegible, tendencia } from '../lib/presentacion';
+
+const bloques = [
+  { id: 'fivb', nombre: 'Ranking FIVB', alcance: 'Mundial', datos: rankings.fivb },
+  { id: 'norceca', nombre: 'Ranking NORCECA', alcance: 'Norte, Centroamérica y Caribe', datos: rankings.norceca },
+].map((b) => ({ ...b, cambio: tendencia(b.datos, rankings.historial, b.id) }));
+
+const puntos = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 2 });
+---
+
+<section class="seccion seccion--hueso" aria-labelledby="rankings-titulo">
+  <div class="marco">
+    <div class="seccion__cabeza">
+      <h2 id="rankings-titulo" class="titulo-seccion">Rankings</h2>
+    </div>
+    <div class="bloques">
+      {
+        bloques.map(({ nombre, alcance, datos, cambio }) => (
+          <article class="bloque">
+            <h3 class="bloque__nombre">{nombre}</h3>
+            <p class="dato bloque__alcance">{alcance}</p>
+            <p class="bloque__lugar" class:list={{ 'bloque__lugar--vacio': datos.posicion === null }}>
+              <span class="oculto">Lugar: </span>
+              {datos.posicion ?? `Lugar ${POR_CONFIRMAR.toLowerCase()}`}
+              {cambio && (
+                <span class:list={['flecha', `flecha--${cambio}`]}>
+                  <span aria-hidden="true">{cambio === 'sube' ? '▲' : '▼'}</span>
+                  <span class="oculto">{cambio === 'sube' ? 'Subió' : 'Bajó'}</span>
+                </span>
+              )}
+            </p>
+            <dl>
+              <div>
+                <dt class="dato">Puntos</dt>
+                <dd>{datos.puntos === null ? POR_CONFIRMAR : puntos.format(datos.puntos)}</dd>
+              </div>
+              <div>
+                <dt class="dato">Actualizado</dt>
+                <dd>{datos.fecha ? fechaLegible(datos.fecha) : POR_CONFIRMAR}</dd>
+              </div>
+            </dl>
+            {datos.fuente && <a class="enlace" href={datos.fuente} target="_blank" rel="noopener">Fuente</a>}
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .bloques {
+    display: grid;
+    gap: 16px;
+  }
+
+  .bloque {
+    padding: clamp(20px, 4vw, 36px);
+    background: var(--papel);
+    border-top: 4px solid var(--tinta);
+  }
+
+  .bloque__nombre {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .bloque__alcance {
+    margin-top: 2px;
+    color: var(--gris);
+  }
+
+  .bloque__lugar {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-block: 20px;
+    font-family: var(--fuente-display);
+    font-size: clamp(6rem, 24vw, 10rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    line-height: 0.85;
+  }
+
+  .bloque__lugar--vacio {
+    font-size: clamp(2.5rem, 10vw, 3.75rem);
+    font-weight: 800;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .flecha {
+    font-family: var(--fuente-texto);
+    font-size: 1.5rem;
+    line-height: 1.4;
+  }
+
+  .flecha--sube {
+    color: var(--verde);
+  }
+
+  .flecha--baja {
+    color: var(--rojo);
+  }
+
+  dl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 40px;
+    margin: 0 0 16px;
+  }
+
+  dt {
+    color: var(--gris);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  @media (min-width: 768px) {
+    .bloques {
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+  }
+</style>

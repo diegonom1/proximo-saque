@@ -1,0 +1,60 @@
+---
+import { activas } from '../lib/datos';
+import TarjetaJugadora from './TarjetaJugadora.astro';
+---
+
+<section id="plantel" class="seccion" aria-labelledby="plantel-titulo">
+  <div class="marco">
+    <div class="seccion__cabeza">
+      <h2 id="plantel-titulo" class="titulo-seccion">Plantel</h2>
+      <p class="dato">{activas.length} seleccionadas</p>
+    </div>
+  </div>
+  <ul class="carrusel" tabindex="0" aria-label="Seleccionadas">
+    {activas.map((jugadora) => <li><TarjetaJugadora jugadora={jugadora} /></li>)}
+  </ul>
+</section>
+
+<style>
+  /* Celular: carrusel deslizable con snap. */
+  .carrusel {
+    display: grid;
+    grid-auto-columns: min(72vw, 300px);
+    grid-auto-flow: column;
+    gap: 16px;
+    padding-inline: var(--gutter);
+    padding-bottom: 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: var(--gutter);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .carrusel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .carrusel > li {
+    scroll-snap-align: start;
+  }
+
+  /* Escritorio: rejilla. El scroll horizontal fijado llega en la fase 6. */
+  @media (min-width: 768px) {
+    .carrusel {
+      grid-auto-columns: auto;
+      grid-auto-flow: row;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px 24px;
+      max-width: 1280px;
+      margin-inline: auto;
+      overflow: visible;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .carrusel {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>

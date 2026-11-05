@@ -160,7 +160,12 @@ const esquemaRanking = z.strictObject({
 export const esquemaRankings = z.strictObject({
   fivb: esquemaRanking,
   norceca: esquemaRanking,
-  historial: z.array(z.looseObject({})), // el formato de cada registro se fija en la fase 4
+  historial: z.array(z.strictObject({
+    ranking: z.enum(['fivb', 'norceca']),
+    posicion: z.number().int().positive().nullable(),
+    puntos: z.number().nullable(),
+    fecha: fechaN,
+  })),
 });
 
 /* ---------- Estado y correcciones ---------- */

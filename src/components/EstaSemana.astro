@@ -1,0 +1,182 @@
+---
+import { jugadorasDe, partidos } from '../lib/datos';
+import { diaCorto, hora, horaDelLugar, msDe, vigentes } from '../lib/tiempo';
+import { ruta } from '../lib/presentacion';
+import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
+
+const VISIBLES = 3;
+// Van de más: el navegador oculta los que terminen antes de la siguiente construcción.
+const lista = vigentes(partidos, Date.now()).slice(0, 12);
+---
+
+<section class="seccion" aria-labelledby="semana-titulo">
+  <div class="marco">
+    <div class="seccion__cabeza">
+      <h2 id="semana-titulo" class="titulo-seccion">Esta semana</h2>
+      <a class="enlace" href={ruta('agenda')}>Ver agenda completa</a>
+    </div>
+    <ol class="lista" data-semana data-visibles={VISIBLES}>
+      {
+        lista.map((p, i) => {
+          const ms = msDe(p);
+          const alla = p.horaConfirmada ? horaDelLugar(p) : null;
+          return (
+            <li class="partido" data-partido data-inicio={p.inicio} data-confirmada={String(p.horaConfirmada)} hidden={i >= VISIBLES}>
+              <div class="partido__cuando">
+                <time class="dato" datetime={p.inicio} data-dia>{diaCorto(ms, ZONA_SITIO)}</time>
+                <p class="partido__hora" data-hora>{p.horaConfirmada ? hora(ms, ZONA_SITIO) : 'Hora por confirmar'}</p>
+                {alla && <p class="partido__alla">Allá serán las {alla}</p>}
+              </div>
+              <div class="partido__que">
+                <p class="partido__etiquetas">
+                  {p.tipo === 'seleccion' && <span class="etiqueta">Selección</span>}
+                  <span class="etiqueta etiqueta--juego" data-en-juego hidden>En juego</span>
+                </p>
+                <p class="partido__equipos">
+                  <span class:list={{ nuestro: p.nuestro === 'local' }}>{p.local}</span>
+                  <span class="vs">vs</span>
+                  <span class:list={{ nuestro: p.nuestro === 'visita' }}>{p.visitante}</span>
+                </p>
+                <p class="partido__competencia">{[p.competencia, p.sede].filter(Boolean).join(' · ') || 'Competencia por confirmar'}</p>
+                <ul class="partido__jugadoras">
+                  {jugadorasDe(p).map((j) => <li><a href={ruta(`jugadoras/${j.slug}`)}>{j.nombre}</a></li>)}
+                </ul>
+              </div>
+            </li>
+          );
+        })
+      }
+    </ol>
+    <p class="vacio" data-semana-vacia hidden={lista.length > 0}>Sin partidos por ahora.</p>
+  </div>
+</section>
+
+<script>
+  import { diaCorto, hora } from '../lib/tiempo';
+  import { DURACION_MS } from '../../scripts/lib/tiempo.mjs';
+
+  const contenedor = document.querySelector<HTMLElement>('[data-semana]');
+  const vacio = document.querySelector<HTMLElement>('[data-semana-vacia]');
+  const visibles = Number(contenedor?.dataset.visibles ?? 3);
+  const partidos = [...document.querySelectorAll<HTMLElement>('[data-partido]')];
+
+  function pintar() {
+    const ahora = Date.now();
+    let mostrados = 0;
+    for (const el of partidos) {
+      const inicio = el.dataset.inicio ?? '';
+      const ms = Date.parse(inicio);
+      el.hidden = ms + DURACION_MS <= ahora || mostrados >= visibles;
+      if (el.hidden) continue;
+      mostrados += 1;
+      const dia = el.querySelector('[data-dia]');
+      const horaEl = el.querySelector('[data-hora]');
+      const juego = el.querySelector<HTMLElement>('[data-en-juego]');
+      if (dia) dia.textContent = diaCorto(ms);
+      if (horaEl && el.dataset.confirmada === 'true') horaEl.textContent = hora(ms);
+      if (juego) juego.hidden = ms > ahora;
+    }
+    if (vacio) vacio.hidden = mostrados > 0;
+  }
+
+  pintar();
+  setInterval(pintar, 30000);
+</script>
+
+<style>
+  .lista {
+    border-top: 1px solid var(--tinta);
+  }
+
+  .partido {
+    display: grid;
+    gap: 12px;
+    padding-block: 20px;
+    border-bottom: 1px solid var(--linea);
+  }
+
+  .partido__hora {
+    font-family: var(--fuente-display);
+    font-size: 2.5rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    line-height: 1.05;
+  }
+
+  .partido__alla,
+  .partido__competencia {
+    color: var(--gris);
+    font-size: 0.875rem;
+  }
+
+  .partido__etiquetas:not(:has(.etiqueta:not([hidden]))) {
+    display: none;
+  }
+
+  .partido__etiquetas {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .etiqueta {
+    padding: 2px 10px;
+    background: var(--rojo);
+    border-radius: 999px;
+    color: var(--papel);
+    font-family: var(--fuente-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .etiqueta--juego {
+    background: var(--tinta);
+  }
+
+  .partido__equipos {
+    color: var(--gris);
+    font-size: 1.1875rem;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .nuestro {
+    color: var(--tinta);
+    font-weight: 700;
+  }
+
+  .vs {
+    padding-inline: 4px;
+    font-size: 0.875rem;
+  }
+
+  .partido__jugadoras {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+    margin-top: 6px;
+  }
+
+  .partido__jugadoras a {
+    display: inline-block;
+    padding-block: 6px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-underline-offset: 3px;
+  }
+
+  .vacio {
+    padding-block: 20px;
+    color: var(--gris);
+  }
+
+  @media (min-width: 768px) {
+    .partido {
+      grid-template-columns: 220px 1fr;
+      gap: 32px;
+      padding-block: 28px;
+    }
+  }
+</style>

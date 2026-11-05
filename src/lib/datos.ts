@@ -2,6 +2,7 @@
 // así Zod y los JSON no llegan al navegador.
 
 import type { z } from 'zod';
+import type { PartidoCliente } from './compromiso';
 import { validarDatos, esquemaClub, esquemaJugadora, esquemaLiga, esquemaPartido, esquemaPlataforma, esquemaTorneo } from '../../scripts/lib/validar.mjs';
 import jugadorasJson from '../../data/jugadoras.json';
 import clubesJson from '../../data/clubes.json';
@@ -33,6 +34,20 @@ export const { actualizado, partidos, estados } = datos.partidos;
 
 // Plantel visible: `propuesta` espera aprobación y `exseleccionada` ya no genera página.
 export const activas = jugadoras.filter((j) => j.estado === 'activa');
+
+// Solo lo que el navegador necesita para mantener al día el hero y el botón flotante.
+export const paraCliente = (p: Partido): PartidoCliente => ({
+  tipo: p.tipo,
+  inicio: p.inicio,
+  zonaSede: p.zonaSede,
+  horaConfirmada: p.horaConfirmada,
+  local: p.local,
+  visitante: p.visitante,
+  competencia: p.competencia,
+  sede: p.sede,
+  club: p.clubId ? clubes[p.clubId]?.nombre ?? null : null,
+  jugadoras: jugadorasDe(p).map((j) => j.nombre),
+});
 
 // Seleccionadas de un partido: las de su club o, en la Selección, las convocadas.
 export const jugadorasDe = (p: Partido): Jugadora[] => (p.tipo === 'seleccion'

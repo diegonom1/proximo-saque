@@ -1,0 +1,57 @@
+---
+import { partidos } from '../lib/datos';
+import { textoBoton } from '../lib/compromiso';
+import { vigentes } from '../lib/tiempo';
+import { ruta } from '../lib/presentacion';
+import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
+
+const ahora = Date.now();
+const lista = vigentes(partidos, ahora).slice(0, 30).map(({ inicio, horaConfirmada }) => ({ inicio, horaConfirmada }));
+const texto = textoBoton(lista, ahora, ZONA_SITIO);
+---
+
+<a id="boton-proximo" class="boton-proximo" href={ruta('agenda')} hidden={!texto}>{texto}</a>
+<script type="application/json" id="datos-boton" set:html={JSON.stringify(lista).replace(/</g, '\\u003c')} />
+
+<script>
+  import { textoBoton } from '../lib/compromiso';
+
+  const boton = document.getElementById('boton-proximo');
+  const lista = JSON.parse(document.getElementById('datos-boton')?.textContent ?? '[]');
+
+  function pintar() {
+    if (!boton) return;
+    const texto = textoBoton(lista, Date.now());
+    boton.hidden = !texto;
+    if (texto && boton.textContent !== texto) boton.textContent = texto;
+  }
+
+  pintar();
+  setInterval(pintar, 30000);
+</script>
+
+<style>
+  .boton-proximo {
+    position: fixed;
+    right: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding-inline: 18px;
+    background: var(--rojo);
+    border-radius: 999px;
+    box-shadow: 0 6px 20px rgb(14 14 16 / 30%);
+    color: var(--papel);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  @media (min-width: 768px) {
+    .boton-proximo {
+      display: none;
+    }
+  }
+</style>
