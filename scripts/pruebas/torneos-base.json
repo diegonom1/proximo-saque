@@ -1,0 +1,55 @@
+{
+  "maximo": 7,
+  "torneos": [
+    {
+      "id": "norceca-final-six-2026",
+      "nombre": "NORCECA Final Six",
+      "edicion": 2026,
+      "ciudad": "Zinacantepec",
+      "pais": "México",
+      "fechaInicio": "2026-09-21",
+      "fechaFin": "2026-09-27",
+      "posicion": 2,
+      "medalla": "plata",
+      "record": "5-2",
+      "premios": [
+        {
+          "jugadora": "sofia-maldonado",
+          "premio": "Mejor anotadora"
+        },
+        {
+          "jugadora": "sofia-maldonado",
+          "premio": "Mejor saque"
+        },
+        {
+          "jugadora": "sofia-maldonado",
+          "premio": "Mejor recepción"
+        },
+        {
+          "jugadora": "sofia-maldonado",
+          "premio": "Equipo ideal (punta)"
+        }
+      ],
+      "fuente": "https://norceca.net/2026%20Competition%20&%20Activities/Final%20Six/Women/News-Pages-Women%20Final%20Six.htm"
+    },
+    {
+      "id": "norceca-final-four-2026",
+      "nombre": "NORCECA Final Four",
+      "edicion": 2026,
+      "ciudad": "Ponce",
+      "pais": "Puerto Rico",
+      "fechaInicio": "2026-06-03",
+      "fechaFin": "2026-06-08",
+      "posicion": 1,
+      "medalla": "oro",
+      "record": null,
+      "premios": [
+        {
+          "jugadora": "sofia-maldonado",
+          "premio": "MVP"
+        }
+      ],
+      "fuente": "https://norceca.info/mexicos-sofia-maldonado-named-most-valuable-player-of-the-2026-norceca-womens-final-four/"
+    }
+  ]
+}

@@ -1,11 +1,13 @@
 // Búsqueda hecha por el código. Gemini recibe lo que se encontró y solo extrae el JSON.
 // Tavily: 1 crédito por búsqueda básica y 1 por cada 5 páginas extraídas con éxito.
 
-import { REDES_SOCIALES, esDominio, fuenteAdmisible, urlValida } from './fuentes.mjs';
+import { normalizar } from './evidencia.mjs';
+import { REDES_SOCIALES, esDominio, filasDePagina, fuenteAdmisible, urlValida } from './fuentes.mjs';
 
 const API = 'https://api.tavily.com';
 const MAX_PAGINAS = 5; // una sola extracción: 1 crédito
-const MAX_CONTENIDO = 6000;
+const MAX_FRAGMENTO = 6000; // lo que devuelve una búsqueda
+const MAX_PAGINA = 20000; // una página leída completa: un calendario de temporada no cabe en menos
 // Las reglas comunes prohíben usarlos como fuente: ni siquiera se le muestran a Gemini.
 const EXCLUIDOS = ['wikipedia.org', 'reddit.com', 'quora.com', ...REDES_SOCIALES];
 
@@ -29,7 +31,9 @@ function sinCuota(mensaje) {
   return Object.assign(new Error(mensaje), { sinCuota: true });
 }
 
-const recortar = (texto) => (texto ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_CONTENIDO);
+const recortar = (texto) => (texto ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_FRAGMENTO);
+// Los saltos de línea se conservan: separan las filas de un calendario.
+const textoDePagina = (texto) => (texto ?? '').replace(/[^\S\n]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
 
 export function crearBuscadorTavily({ clave, fetch: pedir = globalThis.fetch, limiteMensual = LIMITE_MENSUAL, limiteCorrida = LIMITE_CORRIDA, creditosPrevios = 0 }) {
   if (!clave) throw new Error('falta TAVILY_API_KEY');
@@ -85,14 +89,23 @@ export function crearBuscadorTavily({ clave, fetch: pedir = globalThis.fetch, li
   }
 
   // `avanzado` lee tablas y contenido incrustado; cuesta el doble.
-  async function extraer(urls, intencion, avanzado) {
+  // Sin `query`: con ella Tavily devuelve solo unos fragmentos y deja fuera filas del calendario.
+  async function extraer(urls, avanzado) {
     if (urls.length === 0) return { results: [] };
     reservar(avanzado ? 2 : 1);
-    return post('/extract', { urls, extract_depth: avanzado ? 'advanced' : 'basic', format: 'text', query: intencion, chunks_per_source: 5 });
+    return post('/extract', { urls, extract_depth: avanzado ? 'advanced' : 'basic', format: 'text' });
   }
 
-  // plan: { consultas: [{ texto, dominios, max }], paginas: [url], mejores: n, intencion }
-  async function investigar({ consultas = [], paginas = [], mejores = 2, intencion, avanzado = false }) {
+  // Filas que solo existen en los atributos del HTML. Abrir la página no gasta créditos.
+  async function filasDe(url, terminos) {
+    const palabras = terminos.map(normalizar);
+    const filas = await filasDePagina(url, pedir);
+    return palabras.length ? filas.filter((f) => palabras.some((p) => normalizar(f).includes(p))) : filas;
+  }
+
+  // plan: { consultas: [{ texto, dominios, max }], paginas: [url], mejores: n, avanzado, filas: [términos] }
+  // `filas` pide además las filas de los atributos que mencionen esos términos, antes del texto.
+  async function investigar({ consultas = [], paginas = [], mejores = 2, avanzado = false, filas = null }) {
     await preparar();
     const porUrl = new Map();
     for (const consulta of consultas) {
@@ -104,11 +117,13 @@ export function crearBuscadorTavily({ clave, fetch: pedir = globalThis.fetch, li
     const fijas = paginas.filter(urlValida);
     const encontradas = [...porUrl.values()].slice(0, mejores).map((r) => r.url);
     const urls = [...new Set([...fijas, ...encontradas])].slice(0, MAX_PAGINAS);
-    const { results = [] } = await extraer(urls, intencion ?? consultas[0]?.texto, avanzado);
-    for (const r of results) {
-      const id = normalizarUrl(r.url);
-      const contenido = recortar(r.raw_content);
-      if (id && contenido) porUrl.set(id, { url: r.url, titulo: porUrl.get(id)?.titulo ?? null, contenido });
+    const { results = [] } = await extraer(urls, avanzado);
+    const extraidas = new Map(results.map((r) => [normalizarUrl(r.url), r]));
+    for (const url of urls) {
+      const id = normalizarUrl(url);
+      const extra = filas ? await filasDe(url, filas) : [];
+      const contenido = [...extra, textoDePagina(extraidas.get(id)?.raw_content)].filter(Boolean).join('\n').slice(0, MAX_PAGINA);
+      if (id && contenido) porUrl.set(id, { url, titulo: porUrl.get(id)?.titulo ?? null, contenido });
     }
     return { resultados: [...porUrl.values()] };
   }

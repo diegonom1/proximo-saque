@@ -64,6 +64,8 @@ Las ligas mueven horarios por la televisión. Si dos fuentes no coinciden en la 
 ```
 
 - `hora: null` si solo se conoce la fecha.
+- La `hora` sale de la fila de ese partido, nunca de una frase sobre toda la jornada ("6 matchs à partir de 14:00", "desde las 18:00") ni de la fila de al lado. Si tu partido no trae hora propia, `hora: null`. El programa comprueba que la hora aparezca junto al rival.
+- Revisa la lista de arriba abajo y reporta **todos** los partidos del club entre `desde` y `hasta`, de local y de visita.
 - `zonaHoraria`: la zona de la hora que publica la fuente. `zonaSede`: la zona del lugar donde se juega; cuida los partidos de visita en otra zona (copas continentales, otro país).
 - `fase`: jornada, ronda o etapa tal como la nombra la fuente.
 - `motivo`: si no encontraste ningún partido, explica en una frase qué revisaste.

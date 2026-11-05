@@ -22,7 +22,7 @@ export async function consultar(ctx, agente, clave, entrada, esquema, plan) {
     if (resultados.length === 0) throw new Error('la búsqueda no trajo resultados');
     const mensaje = JSON.stringify({ ...entrada, resultadosBusqueda: resultados }, null, 2);
     const r = await ctx.llamar({ agente, clave, mensaje, conBusqueda: false });
-    return { respuesta: registrar(r, resultados), verificar: verificadorDeResultados(resultados, plan.exige) };
+    return { respuesta: registrar(r, resultados), verificar: verificadorDeResultados(resultados, plan.exige), resultados };
   }
   const r = await ctx.llamar({ agente, clave, mensaje: JSON.stringify(entrada, null, 2) });
   return { respuesta: registrar(r), verificar: (url) => ctx.verificar(url, r.fuentes) };

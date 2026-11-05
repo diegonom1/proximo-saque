@@ -84,7 +84,8 @@ describe('investigar', () => {
     await buscador(pedir).investigar({ consultas: [{ texto: 'q' }], mejores: 9, intencion: 'y' });
     const [e] = cuerpos(pedir, '/extract');
     expect(e.urls).toHaveLength(5);
-    expect(e).toMatchObject({ extract_depth: 'basic', query: 'y' });
+    expect(e).toMatchObject({ extract_depth: 'basic' });
+    expect(e).not.toHaveProperty('query'); // con query Tavily devuelve fragmentos, no la página
     expect(cuerpos(pedir, '/extract')).toHaveLength(1);
   });
   it('nunca le muestra redes sociales a Gemini', async () => {
@@ -102,7 +103,45 @@ describe('investigar', () => {
   it('recorta el contenido largo', async () => {
     const pedir = api({ extraidos: [{ url: 'https://a.mx/1', raw_content: 'x'.repeat(50000) }] });
     const { resultados } = await buscador(pedir).investigar({ consultas: [{ texto: 'q' }] });
+    expect(resultados[0].contenido.length).toBe(20000);
+  });
+  it('recorta un fragmento de búsqueda más que una página', async () => {
+    const pedir = api({ resultados: [{ url: 'https://a.mx/1', content: 'x'.repeat(50000) }] });
+    const { resultados } = await buscador(pedir).investigar({ consultas: [{ texto: 'q' }], mejores: 0 });
     expect(resultados[0].contenido.length).toBe(6000);
+  });
+  it('conserva los saltos de línea de una página: separan las filas', async () => {
+    const pedir = api({ extraidos: [{ url: 'https://a.mx/1', raw_content: 'Fila  uno\n\n  Fila dos' }] });
+    const { resultados } = await buscador(pedir).investigar({ consultas: [{ texto: 'q' }] });
+    expect(resultados[0].contenido).toBe('Fila uno\nFila dos');
+  });
+  describe('filas de los atributos', () => {
+    const html = '<a aria-label="Nancy contre Béziers, samedi 21 novembre, 20:00"></a><a aria-label="Évreux contre Cannes, samedi 21 novembre, 15:00"></a>';
+    const conPagina = (respuesta) => {
+      const base = api({ extraidos: [{ url: 'https://a.mx/1', raw_content: 'Texto visible' }] });
+      return vi.fn(async (url, opciones) => (url.startsWith('https://a.mx') ? respuesta : base(url, opciones)));
+    };
+    const pagina = { ok: true, headers: new Headers({ 'content-type': 'text/html' }), text: async () => html };
+    const investigar = (pedir, filas) => buscador(pedir).investigar({ consultas: [{ texto: 'q' }], filas });
+
+    it('antepone las filas que mencionan al club', async () => {
+      const { resultados } = await investigar(conPagina(pagina), ['Nancy']);
+      expect(resultados[0].contenido).toBe('Nancy contre Béziers, samedi 21 novembre, 20:00\nTexto visible');
+    });
+    it('sin pedirlas no abre la página', async () => {
+      const pedir = conPagina(pagina);
+      await investigar(pedir, null);
+      expect(pedir.mock.calls.some(([u]) => u.startsWith('https://a.mx'))).toBe(false);
+    });
+    it('si la página no abre queda el texto de Tavily', async () => {
+      const { resultados } = await investigar(conPagina({ ok: false, headers: new Headers() }), ['Nancy']);
+      expect(resultados[0].contenido).toBe('Texto visible');
+    });
+    it('abrir la página no cobra créditos', async () => {
+      const b = buscador(conPagina(pagina));
+      await b.investigar({ consultas: [{ texto: 'q' }], filas: ['Nancy'] });
+      expect((await b.resumen()).corrida).toBe(2);
+    });
   });
   it('no repite una búsqueda idéntica ni la cobra dos veces', async () => {
     const pedir = api();

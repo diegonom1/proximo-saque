@@ -33,7 +33,7 @@ import { DURACION_MS, ZONA_SITIO, fechaEnZona, isoEnZona } from '../lib/tiempo.m
 import { convertir, convertirSeleccion, esquemaEstadoAgentes, esquemaManual, esquemaPartido, validarDatos } from '../lib/validar.mjs';
 
 const RAIZ = fileURLToPath(new URL('../../', import.meta.url));
-const MODELOS_DEFECTO = 'gemini-3.8-flash,gemini-3.5-flash,gemini-3.1-flash-lite';
+const MODELOS_DEFECTO = 'gemini-3.1-flash-lite'; // el único con cuota gratis; las tareas están pensadas para él
 
 const ARCHIVOS = {
   jugadoras: 'jugadoras.json',
@@ -187,7 +187,7 @@ export async function correr({
   const aprobados = { clubes: new Set(Object.keys(archivosAprobados.clubes)), jugadoras: new Set(archivosAprobados.jugadoras.map((j) => j.slug)) };
   const diagnostico = [];
   const comparacion = [];
-  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, ahora, hoy, diasAdelante, reporte, aprobados, altas: [], nuevos: {} };
+  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, ahora, hoy, diasAdelante, reporte, aprobados, altas: [], nuevos: {}, torneosDetectados: [] };
   atenderPr(ctx.datos.estado, prEstado, hoy);
   // Con el PR abierto, una `propuesta` todavía no está aprobada.
   if (prEstado !== 'OPEN') aprobarPropuestas(ctx.datos);
@@ -202,7 +202,9 @@ export async function correr({
     for (const { agente, clave } of previos) if (MODULOS[agente]) await ejecutar(agente, clave);
     if (rankings.toca(ctx.datos.estado, hoy)) await ejecutar(rankings.AGENTE);
     await ejecutar(seleccion.AGENTE);
+    for (const clave of seleccion.torneosPorRevisar(ctx)) await ejecutar(seleccion.AGENTE, clave);
     await ejecutar(plantel.AGENTE);
+    for (const clave of plantel.listasPorRevisar(ctx.datos, hoy)) await ejecutar(plantel.AGENTE, clave);
     for (const slug of perfil.porRevisar(ctx.datos.jugadoras, ctx.altas, ctx.datos.estado.revisado)) await ejecutar(perfil.AGENTE, slug);
     for (const club of partidos.clubesPorRevisar(ctx.datos, aprobados.clubes)) await ejecutar(partidos.AGENTE, club);
     for (const id of donde.porRevisar(ctx.datos, hoy)) await ejecutar(donde.AGENTE, id);

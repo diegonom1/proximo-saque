@@ -43,7 +43,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  └─ manual.json           correcciones humanas; siempre ganan
 ├─ scripts/
 │  ├─ agentes/              correr.mjs (orquestador) + un módulo por agente
-│  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, busqueda.mjs, nombres.mjs, torneos.mjs, fotos-sin-credito.mjs
+│  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, busqueda.mjs, evidencia.mjs, nombres.mjs, torneos.mjs, fotos-sin-credito.mjs
 │  ├─ pruebas/              respuestas simuladas por agente (IA_SIMULADA)
 │  └─ fotos/                procesar.py (npm run fotos): prepara las fotos, solo en local
 ├─ src/
@@ -384,8 +384,8 @@ Los contextos están en `agentes/` (ver `agentes/README.md`). Para cada llamada,
 Orden de cada corrida semanal:
 
 1. **06 Rankings** (1 llamada, una vez al mes: cada 28 días).
-2. **04 Selección y torneos** (1 llamada).
-3. **01 Plantel** (1 llamada).
+2. **04 Selección y torneos**: 1 llamada para el próximo compromiso, que también nombra los torneos terminados que ve; luego 1 llamada por torneo del catálogo que no esté en `torneos.json` (máximo 2 por corrida, cada uno cada 30 días).
+3. **01 Plantel**: 1 llamada para anuncios de retiro; luego 1 llamada por torneo guardado más reciente que la última lista conocida (máximo 2 por corrida, cada uno cada 30 días). Lo histórico no lo buscan los agentes: se cargó una vez por PR.
 4. **02 Perfiles**: altas nuevas primero; luego las 4 jugadoras con `revisado` más viejo (así cada perfil se revisa cerca de una vez al mes sin gastar todo en un lunes).
 5. **03 Partidos de club**: 1 llamada por club con seleccionadas activas, ya aprobado en `clubes.json`. Un club nuevo empieza a tener partidos en la corrida siguiente a aprobar el PR (o al correr el workflow a mano).
 6. **05 Dónde ver**: máximo 2 por corrida, para ligas o el próximo torneo con `plataformas` vacía, `temporada` distinta o `revisado` de más de 30 días.
@@ -393,11 +393,12 @@ Orden de cada corrida semanal:
 
 Detalles técnicos:
 
-- Modelos en `GEMINI_MODELOS` (lista separada por comas, por defecto `gemini-3.8-flash,gemini-3.5-flash,gemini-3.1-flash-lite`; Google retiró `gemini-2.5-flash` para usuarios nuevos). Si uno responde 404 o 429 por cuota agotada, se pasa al siguiente de la lista. Si ninguno responde por eso, la corrida deja de llamar y lo demás queda en `pendientes`.
+- Modelos en `GEMINI_MODELOS` (lista separada por comas, por defecto `gemini-3.1-flash-lite`, el único con cuota gratis; las tareas están pensadas para él: chicas, una cosa por llamada y con el texto de la página). Si uno responde 404 o 429 por cuota agotada, se pasa al siguiente de la lista. Si ninguno responde por eso, la corrida deja de llamar y lo demás queda en `pendientes`.
 - Presupuesto: `MAX_LLAMADAS` por corrida (por defecto 20). Lo que no cabe va a `estado-agentes.json → pendientes`. Los límites gratis los cambia Google seguido; se revisan en AI Studio.
+- Páginas: `/extract` sin `query` (con ella Tavily devuelve solo fragmentos), hasta 20 000 caracteres por página y con los saltos de línea. Para partidos, además se abre la página y se antepone lo que hay en `aria-label` y `title`: spikelive guarda ahí la hora de cada partido y Tavily no la ve.
 - Búsqueda (`scripts/lib/busqueda.mjs`): 1 crédito por búsqueda básica y 1 por extracción de hasta 5 páginas. Límite duro de 800 créditos al mes: vale el mayor entre `/usage` de Tavily (va atrasado) y el contador propio (`estado-agentes.json → tavily` y, para `--seco`, `.tavily-creditos.json`, fuera del repo). Si `/usage` no se puede leer, no se busca. Tope de 180 por corrida. Al llegar a un límite la corrida deja de llamar y lo demás queda en `pendientes`. El resumen muestra los créditos.
 - Llamada: `system_instruction` + `contents`, y `tools: [{ google_search: {} }]` solo con `BUSQUEDA=google`. `temperature: 0` en modelos 2.5; en Gemini 3 se deja la temperatura por defecto (Google lo recomienda). Pedir el JSON en el texto y extraerlo (`extraerJSON` del v1); no combinar `responseSchema` con `google_search` si el modelo no lo soporta.
-- Reintentos ante 429/5xx con espera creciente; pausa de 8 s entre llamadas. Si se agota el tiempo pasa al siguiente modelo; si le pasa a todos, el agente 01 se divide en listas oficiales y anuncios de retiro.
+- Reintentos ante 429/5xx con espera creciente; pausa de 8 s entre llamadas. Si se agota el tiempo pasa al siguiente modelo.
 - `DIAGNOSTICO=<archivo>` guarda las respuestas crudas, las URLs de cada tarea y la comparación de partidos.
 - `IA_SIMULADA=scripts/pruebas` usa respuestas guardadas (un JSON por agente, basados en los ejemplos de `agentes/`) para probar sin gastar llamadas ni usar la red. Aceptan `{{HOY+3}}` y `{{CLAVE}}` para no caducar. `npm run agentes:simulado` lo corre con `--seco`, que muestra el resumen sin escribir nada.
 - `DIAS_ADELANTE` (por defecto 45): rango de búsqueda de partidos.
@@ -409,9 +410,10 @@ Detalles técnicos:
 - Todo dato nuevo necesita `fuente`; sin fuente se descarta.
 - Fuentes con `BUSQUEDA=tavily`: una URL vale solo si vino en los resultados de esa misma tarea. Otra página del mismo dominio no vale.
 - Nunca valen como fuente las redes sociales (Instagram, LinkedIn, X, Facebook, TikTok) ni la portada de un sitio.
-- Perfiles: la página debe mencionar a la jugadora en el título, la URL o el texto que vino en los resultados.
+- Perfiles: la página debe mencionar a la jugadora en el título, la URL o el texto que vino en los resultados, y no puede ser un listado (búsquedas, filtros por país, listas de jugadoras; `esListado`).
 - Fuentes con `BUSQUEDA=google`: una URL se acepta si su dominio aparece entre las fuentes de `groundingMetadata` de esa misma respuesta o si responde al abrirla (2xx/3xx; Volleybox contesta 403 a los bots y se acepta si viene en `groundingMetadata`). Los enlaces de redirección de Google en `groundingMetadata` (`vertexaisearch.cloud.google.com/grounding-api-redirect/…`) se resuelven a su URL final antes de guardarlos. Si ninguna fuente del dato pasa, se descarta.
 - Partidos: fecha válida, futura, a menos de 120 días, zona IANA válida, local y visitante presentes. La hora llega como la publica la fuente (`fecha`, `hora`, `zonaHoraria`), junto con `zonaSede`. El código calcula el instante con `hora` + `zonaHoraria` y guarda `inicio` en `zonaSede` (`relojLocalAUtc` e `isoEnZona` del v1). El desfase de `inicio` debe coincidir con `zonaSede`.
+- Evidencia (`scripts/lib/evidencia.mjs`): un partido nuevo o un cambio solo se acepta si en el texto de la fuente aparecen el rival y la fecha en la misma fila o bloque; si no, se descarta (o queda "Por revisar" si ya existía). Si la hora no aparece junto al rival, entra con hora por confirmar. "6 matchs à partir de 14:00" no cuenta como hora de un partido. Sin texto de la fuente (modo simulado) no se coteja.
 - Un cambio de fecha, hora o rival a un partido que ya existe solo se aplica si la fuente es la liga, el club o Volleybox (en la Selección, la federación). Si no, queda como está y sale en el resumen como "Por revisar". Un partido nuevo entra con cualquier fuente válida. Lo que el agente no confirma se conserva.
 - Plantilla: un alta necesita aparecer en una lista oficial (FMVB, NORCECA, FIVB/Volleyball World, Panam Sports, Centro Caribe Sports) de los últimos 12 meses. Una baja necesita anuncio explícito o 24 meses sin aparecer en listas oficiales (se calcula con `ultimaListaOficial.fecha`; si la fecha es `null`, nunca hay baja por inactividad). Faltar a un torneo nunca es baja.
 - Nombres: el `slug` que propone el agente se acepta solo si el apellido coincide (comparado sin acentos ni mayúsculas). Si una lista trae solo apellidos, se fusiona cuando el apellido es único en la plantilla; si no, va a dudas del PR.

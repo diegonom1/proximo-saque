@@ -2,7 +2,6 @@
 
 import { dominio } from '../lib/fuentes.mjs';
 import { mencionaA } from '../lib/nombres.mjs';
-import { mismoTorneo } from '../lib/torneos.mjs';
 
 export const FEDERACIONES = ['fmvb.org', 'norceca.net', 'norceca.info', 'fivb.com', 'volleyballworld.com'];
 const anio = (ctx) => Number(ctx.hoy.slice(0, 4));
@@ -13,50 +12,43 @@ export const planRankings = () => ({
     { texto: 'NORCECA women senior ranking Mexico', dominios: ['norceca.net', 'norceca.info'] },
   ],
   paginas: ['https://en.volleyballworld.com/volleyball/world-ranking/women', 'https://www.fivb.com/volleyball/rankings/senior-world-ranking-women/', 'https://www.fmvb.org/femenil-mayor'],
-  intencion: 'Mexico women volleyball world ranking position points',
   avanzado: true, // el ranking es una tabla; una vez al mes se puede pagar la lectura completa
 });
 
-// Lo que el agente 04 debería tener ya; solo se busca lo que falta en torneos.json.
-function torneosPendientes(ctx) {
-  const a = anio(ctx);
-  return [
-    { nombre: 'Juegos Centroamericanos y del Caribe', edicion: a },
-    { nombre: 'Copa Panamericana', edicion: a },
-    { nombre: 'Copa Panamericana', edicion: a - 1 },
-    { nombre: 'NORCECA Final Six', edicion: a - 1 },
-    { nombre: 'Campeonato Mundial', edicion: a - 1 },
-  ].filter((t) => !ctx.datos.torneos.torneos.some((g) => mismoTorneo(g, t)));
-}
-
-export const planSeleccion = (ctx) => ({
+// El agente 04 solo detecta lo nuevo: lo histórico ya está en torneos.json.
+export const planProximo = (ctx) => ({
   consultas: [
     { texto: `Selección Mexicana voleibol femenil mayor próximo torneo ${anio(ctx) + 1}`, dominios: FEDERACIONES },
     { texto: `NORCECA calendar of competitions ${anio(ctx) + 1} women senior hosts`, dominios: ['norceca.net', 'norceca.info'] },
     { texto: 'Lima 2027 Juegos Panamericanos voleibol femenino clasificación México' },
-    ...torneosPendientes(ctx).map((t) => ({ texto: `${t.nombre} ${t.edicion} voleibol femenil México resultado lugar final` })),
+    { texto: `selección mexicana voleibol femenil resultado torneo ${anio(ctx)}` },
   ],
   mejores: 4,
-  intencion: 'México selección femenil voleibol torneo fechas sede resultado lugar',
 });
 
-const consultaListas = (ctx) => [
-  { texto: `NORCECA ${anio(ctx)} Mexico women roster boletín`, dominios: ['norceca.net', 'norceca.info'] },
-  { texto: `convocatoria selección mexicana voleibol femenil mayor ${anio(ctx)}`, dominios: ['fmvb.org', 'norceca.info', 'volleyballworld.com'] },
-];
-const consultaRetiros = (ctx) => [{ texto: `selección mexicana voleibol femenil retiro anuncio ${anio(ctx)}` }];
-const intencionListas = 'lista de jugadoras selección mexicana femenil número posición entrenador';
+export const planTorneo = (ctx, { nombre, edicion }) => ({
+  consultas: [
+    { texto: `${nombre} ${edicion} voleibol femenil México resultado lugar final premios` },
+    { texto: `${nombre} ${edicion} women volleyball Mexico final standings awards`, dominios: FEDERACIONES },
+  ],
+  mejores: 3,
+});
 
-export const planPlantel = (ctx) => ({ consultas: [...consultaListas(ctx), ...consultaRetiros(ctx)], mejores: 3, intencion: intencionListas });
-export const planListas = (ctx) => ({ consultas: consultaListas(ctx), mejores: 3, intencion: intencionListas });
-export const planRetiros = (ctx) => ({ consultas: consultaRetiros(ctx), mejores: 2, intencion: 'jugadora selección mexicana voleibol anuncia retiro' });
+export const planLista = (ctx, { nombre, edicion }) => ({
+  consultas: [
+    { texto: `${nombre} ${edicion} Mexico women roster`, dominios: [...FEDERACIONES, 'panamsports.org', 'centrocaribesports.org'] },
+    { texto: `${nombre} ${edicion} selección mexicana voleibol femenil lista convocadas` },
+  ],
+  mejores: 3,
+});
+
+export const planRetiros = (ctx) => ({ consultas: [{ texto: `selección mexicana voleibol femenil retiro anuncio ${anio(ctx)}` }], mejores: 2 });
 
 export const planPerfil = (ctx, j, club) => ({
   consultas: [
     { texto: `"${j.nombre}" voleibol`, dominios: ['volleybox.net'] },
     { texto: `"${j.nombre}" voleibol ${club ? club.nombre : 'fichaje'} ${anio(ctx)}` },
   ],
-  intencion: `${j.nombre} voleibol fecha de nacimiento estatura club trayectoria premios`,
   exige: (resultado) => mencionaA(resultado, j.nombre), // un dato de perfil exige una página que hable de ella
 });
 
@@ -89,7 +81,7 @@ export function planPartidos(ctx, club, liga) {
     ],
     paginas: [club.calendarioUrl, liga?.calendarioOficialUrl].filter(Boolean),
     mejores: 3,
-    intencion: `${club.nombre} ${nombre} calendario partidos fecha hora rival`,
+    filas: [club.nombre, ...club.alias],
   };
 }
 
@@ -109,5 +101,4 @@ export const planDondeVer = (ctx, competencia, liga) => ({
     { texto: `${competencia.nombre} volleyball official broadcast streaming youtube channel ${anio(ctx)}` },
   ],
   paginas: [liga?.calendarioOficialUrl].filter(Boolean),
-  intencion: `${competencia.nombre} transmisión oficial plataforma canal`,
 });

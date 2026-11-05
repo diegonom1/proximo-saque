@@ -28,6 +28,8 @@ beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), 'datos-'));
   fotos = join(dir, 'fotos');
   await cp(new URL('../../data/', import.meta.url), dir, { recursive: true });
+  // Base fija: las pruebas no dependen de qué torneos estén cargados en data/.
+  await cp(new URL('../pruebas/torneos-base.json', import.meta.url), join(dir, 'torneos.json'));
 });
 afterEach(() => rm(dir, { recursive: true, force: true }));
 
@@ -516,7 +518,7 @@ describe('orquestador', () => {
 
 describe('búsqueda hecha por el código', () => {
   const URL_BUENA = 'https://cbv.com.br/tabela';
-  const buscadorFalso = (resultados = [{ url: URL_BUENA, titulo: 'Tabela', contenido: 'Rodada 9' }]) => {
+  const buscadorFalso = (resultados = [{ url: URL_BUENA, titulo: 'Tabela', contenido: '01/12 21:00 Sesi Vôlei Bauru x Praia Clube' }]) => {
     const planes = [];
     return {
       planes,
@@ -544,7 +546,7 @@ describe('búsqueda hecha por el código', () => {
   it('Gemini recibe los resultados en el mensaje y no busca', async () => {
     const { llamar } = await correrCon(buscadorFalso(), {});
     const m = JSON.parse(llamar.llamadas[0].mensaje);
-    expect(m.resultadosBusqueda).toEqual([{ url: URL_BUENA, titulo: 'Tabela', contenido: 'Rodada 9' }]);
+    expect(m.resultadosBusqueda).toEqual([{ url: URL_BUENA, titulo: 'Tabela', contenido: '01/12 21:00 Sesi Vôlei Bauru x Praia Clube' }]);
     expect(m.guardado).toBeTruthy();
     expect(llamar.llamadas.every((l) => l.conBusqueda === false)).toBe(true);
   });
@@ -648,7 +650,7 @@ describe('cambios a partidos que ya existen', () => {
 
 describe('perfiles con búsqueda: la página debe mencionarla', () => {
   const buscador = (resultados) => ({
-    investigar: async (plan) => ({ resultados: plan.intencion?.includes('Uxue') ? resultados : [{ url: 'https://a.mx/nada', titulo: 'x', contenido: 'y' }] }),
+    investigar: async (plan) => ({ resultados: plan.consultas[0].texto.includes('Uxue') ? resultados : [{ url: 'https://a.mx/nada', titulo: 'x', contenido: 'y' }] }),
     resumen: async () => ({ proveedor: 'Tavily', corrida: 0, mes: 0, limite: 800 }),
     usarPrevios: () => {},
   });
@@ -665,21 +667,137 @@ describe('perfiles con búsqueda: la página debe mencionarla', () => {
   });
 });
 
-describe('agente 01 sin tiempo', () => {
-  const tiempo = Object.assign(new Error('tiempo agotado'), { tiempo: true });
-  const conClaves = (primera, segunda) => ({ '01-plantel': (clave) => (clave === null || clave === undefined ? primera : clave.startsWith('listas') ? segunda : VACIAS['01-plantel']) });
+describe('tareas chicas', () => {
+  const fin = (d) => ({ id: `t-${d}`, nombre: 'Copa Panamericana', edicion: 2026, ciudad: null, pais: null, fechaInicio: null, fechaFin: d, posicion: null, medalla: null, record: null, premios: [], fuente: OFICIAL });
+  const claves = (llamar, agente) => llamar.llamadas.filter((l) => l.agente === agente).map((l) => l.clave);
+  const corre = (llamar, extra = {}) => correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA, ...extra });
+  const mencion = (...torneosMencionados) => ({ '04-seleccion-torneos': (clave) => (clave ? undefined : { ...VACIAS['04-seleccion-torneos'], torneosMencionados }) });
 
-  it('se divide en listas y retiros, y aplica lo que encuentre', async () => {
-    const llamar = llamarCon(conClaves(tiempo, { ...VACIAS['01-plantel'], listas: [lista([{ nombre: 'Rosa Hernández', slug: null }])] }));
-    const r = await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA });
-    expect(llamar.llamadas.filter((l) => l.agente === '01-plantel').map((l) => l.clave)).toEqual([null, 'listas oficiales recientes', 'anuncios de retiro']);
-    expect(await jugadora('rosa-hernandez')).toBeTruthy();
-    expect(r.resumen).toContain('se dividió');
+  it('el agente 04 pregunta por cada torneo nuevo aparte', async () => {
+    const llamar = llamarCon(mencion({ nombre: 'Pan American Cup', edicion: 2026 }, { nombre: 'Mundial', edicion: 2025 }));
+    await corre(llamar);
+    expect(claves(llamar, '04-seleccion-torneos')).toEqual([null, 'Copa Panamericana|2026', 'Campeonato Mundial|2025']);
+    expect(llamar.llamadas.find((l) => l.clave === 'Copa Panamericana|2026').mensaje).toContain('"tarea": "torneo"');
   });
-  it('otro error no se divide', async () => {
-    const llamar = llamarCon({ '01-plantel': new Error('otra cosa') });
-    await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA });
-    expect(llamar.llamadas.filter((l) => l.agente === '01-plantel')).toHaveLength(1);
+  it('no pasa de dos torneos por corrida', async () => {
+    const llamar = llamarCon(mencion({ nombre: 'Copa Panamericana', edicion: 2026 }, { nombre: 'Mundial', edicion: 2025 }, { nombre: 'Copa Challenger', edicion: 2026 }));
+    await corre(llamar);
+    expect(claves(llamar, '04-seleccion-torneos')).toHaveLength(3);
+  });
+  it('ignora lo que ya está guardado, lo futuro y lo que no es de categoría mayor', async () => {
+    const llamar = llamarCon(mencion({ nombre: 'Final Six', edicion: 2026 }, { nombre: 'Juegos Panamericanos', edicion: 2027 }, { nombre: 'Copa Panamericana U21', edicion: 2026 }));
+    await corre(llamar);
+    expect(claves(llamar, '04-seleccion-torneos')).toEqual([null]);
+  });
+  it('un torneo revisado no se repite en 30 días', async () => {
+    await cambiar('estado-agentes.json', (e) => { e.revisado['torneo:copa-panamericana-2026'] = '2026-11-01'; });
+    const llamar = llamarCon(mencion({ nombre: 'Copa Panamericana', edicion: 2026 }));
+    await corre(llamar);
+    expect(claves(llamar, '04-seleccion-torneos')).toEqual([null]);
+  });
+  it('el torneo revisado entra por PR y otro distinto se descarta', async () => {
+    const terminado = { nombre: 'Copa Panamericana', edicion: 2026, ciudad: 'León', pais: 'México', fechaInicio: '2026-09-08', fechaFin: '2026-09-18', posicion: 3, medalla: 'bronce', record: null, premios: [], fuente: OFICIAL };
+    const llamar = llamarCon({ '04-seleccion-torneos': (clave) => (clave ? { ...VACIAS['04-seleccion-torneos'], torneosTerminados: [terminado, { ...terminado, nombre: 'Copa Challenger' }] } : { ...VACIAS['04-seleccion-torneos'], torneosMencionados: [{ nombre: 'Copa Panamericana', edicion: 2026 }] }) });
+    const r = await corre(llamar);
+    const { torneos } = await leer('torneos.json');
+    expect(torneos.some((t) => t.id === 'copa-panamericana-2026')).toBe(true);
+    expect(torneos.some((t) => t.nombre === 'Copa Challenger')).toBe(false);
+    expect(r.resumen).toContain('se preguntó por Copa Panamericana 2026');
+  });
+  it('un próximo torneo que ya terminó se revisa solo', async () => {
+    await cambiar('seleccion.json', (s) => { s.proximoTorneo = { id: 'copa-challenger-2026', nombre: 'Copa Challenger', edicion: 2026, ciudad: null, pais: null, fechaInicio: '2026-10-01', fechaFin: '2026-10-08', fuente: OFICIAL }; });
+    const llamar = llamarCon();
+    await corre(llamar);
+    expect(claves(llamar, '04-seleccion-torneos')).toEqual([null, 'Copa Challenger|2026']);
+  });
+
+  it('el agente 01 solo busca anuncios si no hay torneos nuevos', async () => {
+    await cambiar('jugadoras.json', (js) => { js[0].ultimaListaOficial = { torneo: 'X', fecha: '2026-10-30', fuente: OFICIAL }; });
+    const llamar = llamarCon();
+    await corre(llamar);
+    expect(claves(llamar, '01-plantel')).toEqual([null]);
+    expect(llamar.llamadas.find((l) => l.agente === '01-plantel').mensaje).toContain('"tarea": "retiros"');
+  });
+  it('pide una lista por cada torneo más nuevo que la última conocida', async () => {
+    await cambiar('torneos.json', (d) => { d.torneos.unshift({ ...fin('2026-10-20'), id: 'copa-a-2026', nombre: 'Copa A' }, { ...fin('2026-10-10'), id: 'copa-b-2026', nombre: 'Copa B' }, { ...fin('2026-10-01'), id: 'copa-c-2026', nombre: 'Copa C' }); });
+    const llamar = llamarCon();
+    await corre(llamar);
+    expect(claves(llamar, '01-plantel')).toEqual([null, 'lista:copa-a-2026', 'lista:copa-b-2026']);
+  });
+  it('la lista queda con el torneo y la fecha del programa, no con los de Gemini', async () => {
+    await cambiar('torneos.json', (d) => { d.torneos.unshift({ ...fin('2026-10-20'), id: 'copa-a-2026', nombre: 'Copa A' }); });
+    const llamar = llamarCon({ '01-plantel': (clave) => (clave ? { ...VACIAS['01-plantel'], listas: [lista([{ nombre: 'Sofía Maldonado', numero: 3, slug: 'sofia-maldonado' }], { torneo: 'Otro nombre', fechaFin: '2026-01-01' }), lista([{ nombre: 'Rosa Hernández' }])] } : undefined) });
+    await corre(llamar);
+    expect((await jugadora('sofia-maldonado')).ultimaListaOficial).toMatchObject({ torneo: 'Copa A 2026', fecha: '2026-10-20' });
+    expect(await jugadora('rosa-hernandez')).toBeFalsy(); // una lista por llamada
+  });
+  it('una lista revisada no se repite en 30 días', async () => {
+    await cambiar('torneos.json', (d) => { d.torneos.unshift({ ...fin('2026-10-20'), id: 'copa-a-2026', nombre: 'Copa A' }); });
+    await cambiar('estado-agentes.json', (e) => { e.revisado['lista:copa-a-2026'] = '2026-11-01'; });
+    const llamar = llamarCon();
+    await corre(llamar);
+    expect(claves(llamar, '01-plantel')).toEqual([null]);
+  });
+});
+
+describe('evidencia en el texto de la fuente', () => {
+  const URL_LIGA = 'https://spikelive.fr/ligue/laf/calendrier';
+  const PRENSA = 'https://noticias.fr/nancy';
+  const nancy = (cambios) => ({ '03-partidos-club': (clave) => (clave === 'nancy' ? { clubId: clave, partidos: [{ fecha: '2026-11-21', hora: '20:00', zonaHoraria: 'Europe/Paris', zonaSede: 'Europe/Paris', local: 'Vandœuvre Nancy Volley-Ball', visitante: 'Béziers Volley', nuestro: 'local', fuente: URL_LIGA, ...cambios }] } : undefined) });
+  const corre = (respuestas, contenido, url = URL_LIGA) => correr({
+    dirDatos: dir, dirFotos: fotos, llamar: llamarCon(respuestas), verificar: async () => null, ahora: AHORA,
+    buscador: { investigar: async () => ({ resultados: [{ url, titulo: 'x', contenido }] }), resumen: async () => ({ proveedor: 'Tavily', corrida: 1, mes: 1, limite: 800 }), usarPrevios: () => {} },
+  });
+  const guardado = async (dia) => (await leer('partidos.json')).partidos.find((p) => p.id === `club-nancy-${dia}`);
+  const PAGINA = 'Vandœuvre Nancy contre Béziers, samedi 21 novembre, 20:00\nNantes contre Vandœuvre Nancy, samedi 14 novembre, 20:00';
+
+  it('con rival, fecha y hora juntos entra con su hora', async () => {
+    await corre(nancy({}), PAGINA);
+    expect(await guardado('2026-11-21')).toMatchObject({ horaConfirmada: true, inicio: '2026-11-21T20:00:00+01:00' });
+  });
+  it('si la hora no aparece junto al rival entra con hora por confirmar', async () => {
+    const r = await corre(nancy({ hora: '14:00' }), PAGINA);
+    expect(await guardado('2026-11-21')).toMatchObject({ horaConfirmada: false });
+    expect(r.comparacion.find((f) => f.fecha === '2026-11-21').resultado).toBe('Nuevo (hora sin verificar)');
+    expect(r.resumen).toContain('la hora 14:00 no aparece junto al rival');
+  });
+  it('si el rival y la fecha no están juntos no entra', async () => {
+    const r = await corre(nancy({ fecha: '2026-11-28' }), PAGINA);
+    expect(await guardado('2026-11-28')).toBeFalsy();
+    expect(r.comparacion.find((f) => f.fecha === '2026-11-28').resultado).toBe('Sin evidencia');
+    expect(r.resumen).toContain('no aparecen juntos');
+  });
+  it('un cambio sin evidencia deja el partido como estaba y sale por revisar', async () => {
+    const antes = await guardado('2026-11-14');
+    const r = await corre(nancy({ fecha: '2026-11-14', hora: '18:00', local: 'Volley-Ball Nantes', visitante: 'Vandœuvre Nancy Volley-Ball', nuestro: 'visita' }), 'Otra cosa: Nantes contre Rennes, 15 novembre, 18:00');
+    expect((await guardado('2026-11-14')).inicio).toBe(antes.inicio);
+    expect(r.comparacion.find((f) => f.fecha === '2026-11-14').resultado).toBe('Sin evidencia');
+    expect(r.resumen).toContain('Por revisar');
+  });
+  it('un cambio de hora sin la hora junto al rival no cambia nada', async () => {
+    const antes = await guardado('2026-11-14');
+    const r = await corre(nancy({ fecha: '2026-11-14', hora: '18:00', local: 'Volley-Ball Nantes', visitante: 'Vandœuvre Nancy Volley-Ball', nuestro: 'visita' }), PAGINA);
+    expect(await guardado('2026-11-14')).toMatchObject({ inicio: antes.inicio, horaConfirmada: true });
+    expect(r.comparacion.find((f) => f.fecha === '2026-11-14').resultado).toBe('Coincide (hora sin verificar)');
+  });
+  it('lo que coincide con lo guardado no necesita evidencia', async () => {
+    const r = await corre(nancy({ fecha: '2026-11-14', hora: '20:00', local: 'Volley-Ball Nantes', visitante: 'Vandœuvre Nancy Volley-Ball', nuestro: 'visita' }), 'Calendario sin esa fila');
+    expect(r.comparacion.find((f) => f.fecha === '2026-11-14').resultado).toBe('Coincide');
+  });
+  it('también aplica a los partidos de la Selección', async () => {
+    const p = { fecha: '2026-12-01', hora: '19:00', zonaHoraria: 'America/Lima', zonaSede: 'America/Lima', local: 'México', visitante: 'Perú', mexico: 'local', torneo: 'Copa', fuente: URL_LIGA };
+    await corre({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], partidos: [p] } }, 'México vs Perú, 1 de diciembre');
+    expect((await leer('partidos.json')).partidos.find((x) => x.tipo === 'seleccion')).toMatchObject({ horaConfirmada: false });
+  });
+});
+
+describe('perfiles: un listado no es fuente', () => {
+  const LISTADO = 'https://women.volleybox.net/players?country=MX';
+  it('rechaza el listado aunque nombre a la jugadora', async () => {
+    const buscador = { investigar: async () => ({ resultados: [{ url: LISTADO, titulo: 'Jugadoras', contenido: 'Uxue Guereca, Sofía Maldonado, Grecia Castro' }] }), resumen: async () => ({ proveedor: 'Tavily', corrida: 1, mes: 1, limite: 800 }), usarPrevios: () => {} };
+    const llamar = llamarCon({ '02-perfil': (clave) => (clave === 'uxue-guereca' ? { slug: clave, estaturaCm: { valor: 178, fuente: LISTADO, confianza: 'alta' } } : undefined) });
+    await correr({ dirDatos: dir, dirFotos: fotos, llamar, buscador, verificar: async () => null, ahora: AHORA });
+    expect((await jugadora('uxue-guereca')).estaturaCm).toBeNull();
   });
 });
 

@@ -10,15 +10,36 @@ export const limpiarHtml = (html) => html
 
 const AGENTE_HTTP = 'ProximoSaque/2.0 (calendario de aficionados; una consulta por semana)';
 
+const decodificar = (texto) => texto.replace(/&nbsp;/g, ' ').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+
+// Hay calendarios que guardan la hora solo en atributos de accesibilidad, y el texto visible no la trae.
+// `aria-label="Vandœuvre Nancy contre Béziers, samedi 21 novembre, 20:00"` es la fila completa del partido.
+export function filasDeAtributos(html) {
+  const filas = [...html.matchAll(/\b(?:aria-label|title)="([^"]{12,200})"/g)].map(([, valor]) => decodificar(valor).trim());
+  return [...new Set(filas.filter((f) => /\d/.test(f)))];
+}
+
 export async function textoDePagina(url, pedir = globalThis.fetch) {
   const r = await pedir(url, {
     headers: { 'user-agent': AGENTE_HTTP, 'accept-language': 'es,en;q=0.8' },
     signal: AbortSignal.timeout(30000),
   });
   if (!r.ok) throw new Error(`respondió ${r.status}`);
-  const limpio = limpiarHtml(await r.text());
+  const html = await r.text();
+  const limpio = limpiarHtml(html);
   if (limpio.length < 400) throw new Error('la página casi no trae texto (seguramente se arma con JavaScript)');
-  return limpio.slice(0, 60000);
+  return [...filasDeAtributos(html), limpio].join('\n').slice(0, 60000);
+}
+
+// Lo mismo, solo las filas: lo que el extractor de Tavily no ve. Si la página no abre, no hay filas.
+export async function filasDePagina(url, pedir = globalThis.fetch) {
+  try {
+    const r = await pedir(url, { headers: { 'user-agent': AGENTE_HTTP, 'accept-language': 'es,en;q=0.8' }, signal: AbortSignal.timeout(30000) });
+    if (!r.ok || !/html/i.test(r.headers?.get('content-type') ?? '')) return [];
+    return filasDeAtributos(await r.text());
+  } catch {
+    return [];
+  }
 }
 
 export function dominio(url) {
@@ -41,6 +62,18 @@ export function fuenteAdmisible(url) {
   if (!urlValida(url) || esDominio(url, REDES_SOCIALES)) return false;
   const { pathname, search } = new URL(url);
   return pathname.replace(/\/+$/, '') !== '' || search !== '';
+}
+
+// Búsquedas, filtros y listas de jugadoras: nombrar a alguien no las vuelve una ficha suya.
+const SEGMENTOS_LISTADO = /^(players?|jugadoras?|atletas?|athletes?|roster|rosters|squad|team|teams|equipos?|plantilla|plantel|elenco|search|buscar|busqueda|tag|tags|category|categoria|clubs?|clubes)$/i;
+const PARAMETROS_LISTADO = /^(country|pais|nationality|q|s|search|query|filter|sort|page|gender)$/i;
+
+export function esListado(url) {
+  if (!urlValida(url)) return false;
+  const { pathname, searchParams } = new URL(url);
+  const segmentos = pathname.split('/').filter(Boolean);
+  if ([...searchParams.keys()].some((k) => PARAMETROS_LISTADO.test(k))) return true;
+  return segmentos.length > 0 && (SEGMENTOS_LISTADO.test(segmentos.at(-1)) || /^(search|buscar|tag|tags|category)$/i.test(segmentos[0]));
 }
 
 const mismoDominio = (a, b) => a === b || a.endsWith(`.${b}`) || b.endsWith(`.${a}`);

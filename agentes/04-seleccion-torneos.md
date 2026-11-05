@@ -2,15 +2,19 @@
 
 ## Tu tarea
 
-1. Encontrar el próximo compromiso oficial de la Selección Mexicana femenil mayor: torneo, fechas y sede, y, si ya existen, los partidos con hora y la lista de convocadas.
-2. Encontrar los torneos oficiales que la Selección terminó en los últimos 24 meses y que no estén en `torneosGuardados`, con su resultado.
+Cada llamada hace **una sola tarea**, la que diga `tarea` en la entrada:
+
+- `"proximo"`: encontrar el próximo compromiso oficial de la Selección Mexicana femenil mayor: torneo, fechas y sede y, si ya existen, los partidos con hora y la lista de convocadas. Además, en `torneosMencionados` escribe `{ "nombre", "edicion" }` de cada torneo oficial terminado que aparezca en los resultados y no esté en `torneosGuardados`. Solo los nombres: sus resultados se piden en otra llamada. Deja `torneosTerminados` vacío.
+- `"torneo"`: reportar en `torneosTerminados` el resultado de México en el torneo de `torneo` (`nombre` y `edicion`), y nada más. Si los resultados no lo traen, lista vacía y dilo en `motivo`. Deja `proximoTorneo`, `partidos` y `convocadas` en `null`.
 
 El sitio usa esto para la cuenta regresiva de la portada y la sección "Últimos 7 torneos". El programa ordena los torneos y se queda con los 7 más recientes; tú solo reporta lo que encuentres con fuente.
 
 ## Entrada
 
-- `torneosGuardados`: torneos que el sitio ya tiene (id, nombre, edición y fecha de fin). Si a alguno le falta un dato (récord, premios), puedes reportarlo de nuevo con lo que falte.
-- `proximoGuardado`: el próximo torneo que el sitio tiene hoy, o `null`.
+- `tarea`: `"proximo"` o `"torneo"`.
+- `torneo`: solo en la tarea `"torneo"`; el torneo que debes revisar.
+- `torneosGuardados`: solo en `"proximo"`; torneos que el sitio ya tiene (id, nombre, edición y fecha de fin).
+- `proximoGuardado`: solo en `"proximo"`; el próximo torneo que el sitio tiene hoy, o `null`.
 - `plantel`: nombres de las seleccionadas (para reconocer convocadas y premios).
 
 ## Qué torneos cuentan
@@ -62,6 +66,7 @@ Calendarios y noticias de NORCECA (norceca.net, norceca.info), FMVB (fmvb.org), 
     }
   ],
   "convocadas": { "torneo": "Nombre del torneo", "fuente": "https://...", "jugadoras": ["Nombre Apellido"] },
+  "torneosMencionados": [{ "nombre": "Copa Panamericana", "edicion": 2026 }],
   "torneosTerminados": [
     {
       "nombre": "NORCECA Final Six",
