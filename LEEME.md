@@ -39,7 +39,7 @@ Genera en `src/assets/fotos/`:
 - `fondo.jpg`: foto grande para el perfil.
 - `recorte.png`: la jugadora sin fondo, para el efecto de profundidad.
 - `hero.jpg` y `hero-movil.jpg`: para la portada, en `seleccion/`.
-- `credito.txt`: lo crea vacío. Escriban de quién es la foto, por ejemplo `Foto: FMVB — https://...`.
+- `credito.txt`: lo crea vacío. Escriban de quién es la foto, por ejemplo `Foto: FMVB — https://...`. **Sin crédito la foto no se publica**: en `npm run dev` se ve, pero en el sitio real sale con iniciales.
 
 Al terminar, abran `fotos-originales/vista-previa.jpg` y lean los avisos: dicen si una foto quedó con poca resolución y si falta un crédito. La hoja muestra los dos recortes de cada jugadora lado a lado. Revisen sobre todo el cabello y que no se haya comido el balón.
 

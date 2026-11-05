@@ -600,7 +600,7 @@ def main():
         if nombre != "seleccion" and (COMPARAR / nombre).exists():
             aplicar_recorte(nombre, modelo_de(origen, avisos[nombre]), avisos[nombre])
         if credito_pendiente(destino_de(nombre)):
-            avisos[nombre].append("credito.txt está vacío: escribe \"Foto: autor o cuenta — URL\".")
+            avisos[nombre].append("credito.txt está vacío: sin crédito la foto no se publica. Escribe \"Foto: autor o cuenta — URL\".")
 
     todas = [("seleccion", destino_de("seleccion"))] if (SALIDA / "seleccion").exists() else []
     todas += [(s, destino_de(s)) for s in sorted(slugs)]

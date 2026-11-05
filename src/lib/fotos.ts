@@ -1,11 +1,12 @@
 // Fotos y créditos de src/assets/fotos/. Astro genera tamaños y formatos al construir.
 // Solo se usa en el frontmatter: en el navegador no hace falta.
+// En producción las fotos sin crédito llegan como null (ver scripts/lib/fotos-sin-credito.mjs).
 
 import type { ImageMetadata } from 'astro';
 
 const RAIZ = '/src/assets/fotos/';
 
-const imagenes = import.meta.glob<ImageMetadata>('/src/assets/fotos/**/*.{jpg,png}', { eager: true, import: 'default' });
+const imagenes = import.meta.glob<ImageMetadata | null>('/src/assets/fotos/**/*.{jpg,png}', { eager: true, import: 'default' });
 const creditos = import.meta.glob<string>('/src/assets/fotos/**/credito.txt', { eager: true, query: '?raw', import: 'default' });
 
 const foto = (ruta: string) => imagenes[`${RAIZ}${ruta}`] ?? null;

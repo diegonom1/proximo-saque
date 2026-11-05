@@ -8,6 +8,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 
 - En todo el texto visible del sitio se dice "Plantilla", no "Plantel". Los nombres internos (agente 01, variables, `#plantel`) se pueden quedar.
 - Commits sin líneas `Co-Authored-By` ni menciones a Claude.
+- No hagas commit de fotos sin `credito.txt` lleno.
 - Código, comentarios y textos del sitio en español de México.
 - Mobile first: la mayoría de las visitas llegan desde el celular.
 - No descargues fotos de internet ni enlaces fotos de Volleybox u otros sitios. Las fotos las ponemos nosotros en `src/assets/fotos/`.
@@ -360,6 +361,7 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 | `jugadoras/<slug>/recorte.png` | Efecto de profundidad (opcional) | PNG transparente, 1600 px de alto |
 | `credito.txt` | Crédito visible | `Foto: autor o cuenta — URL` |
 
+- En el build de producción una foto sin `credito.txt` lleno no se usa: sale con iniciales, el build lo avisa y el archivo tampoco llega a `dist/` (`scripts/lib/fotos-sin-credito.mjs`). En `npm run dev` sí se ve, para revisarla.
 - Si falta una foto: tarjeta con iniciales y número en contorno; perfil con fondo de color y nombre gigante.
 - Si solo existe `fondo.jpg`, la tarjeta usa un recorte de esa misma foto con `fotos.foco`.
 - `npm run fotos` (`scripts/fotos/procesar.py`, solo en local, con `.venv`): toma `fotos-originales/<slug>/` y `fotos-originales/seleccion/` (cualquier nombre y formato) y genera en `src/assets/fotos/` `tarjeta.jpg` (cara en el tercio de arriba, con detección de rostro), `fondo.jpg`, `recorte.png`, `hero.jpg` y `hero-movil.jpg`. Crea `credito.txt` vacío si falta, avisa de lo que queda debajo del mínimo, no repite lo que no cambió y deja una hoja en `fotos-originales/vista-previa.jpg`. No quita marcas de agua.

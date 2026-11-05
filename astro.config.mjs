@@ -1,8 +1,12 @@
 import { defineConfig, fontProviders } from 'astro/config';
+import { fotosSinCredito } from './scripts/lib/fotos-sin-credito.mjs';
 
 // `site` y `base` se configuran en la fase 5, cuando exista el repo en GitHub.
 export default defineConfig({
   output: 'static',
+  vite: {
+    plugins: [fotosSinCredito()],
+  },
   // Astro descarga las fuentes al construir y las sirve desde el propio sitio.
   fonts: [
     {
