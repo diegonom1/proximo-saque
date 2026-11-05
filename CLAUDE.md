@@ -271,11 +271,12 @@ Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los ree
 {
   "partidos": [],
   "jugadoras": {},
-  "seleccion": { "proximoTorneo": null }
+  "seleccion": { "proximoTorneo": null },
+  "rankings": { "fivb": null, "norceca": null }
 }
 ```
 
-`partidos` funciona como en el v1 (agregar, corregir o `"eliminar": true`). `jugadoras` fija campos por slug (`{ "jocelyn-urias": { "capitana": true } }`) y gana sobre la IA. `seleccion.proximoTorneo` fija el próximo torneo y gana sobre el agente 04 mientras no termine; pide `nombre`, `edicion` y `fuente`, y lo demás es opcional (`ciudad`, `pais`, `fechaInicio`, `fechaFin`; el `id` se calcula). Con `null` decide el agente. Se aplica en la siguiente corrida. Si el agente halla un torneo confirmado que empieza antes, sale en "Por revisar" para decidir.
+`partidos` funciona como en el v1 (agregar, corregir o `"eliminar": true`). `jugadoras` fija campos por slug (`{ "jocelyn-urias": { "capitana": true } }`) y gana sobre la IA. `seleccion.proximoTorneo` fija el próximo torneo y gana sobre el agente 04 mientras no termine; pide `nombre`, `edicion` y `fuente`, y lo demás es opcional (`ciudad`, `pais`, `fechaInicio`, `fechaFin`; el `id` se calcula). Con `null` decide el agente. Se aplica en la siguiente corrida. Si el agente halla un torneo confirmado que empieza antes, sale en "Por revisar" para decidir. `rankings.fivb` y `rankings.norceca` fijan el registro completo (`posicion`, `puntos`, `fecha`, `fuente`, con `fuente` obligatoria) y ganan sobre el agente 06; lo que reemplazan pasa al historial. Si el agente halla otro dato con fuente, sale en "Por revisar"; para aceptarlo, se pone el nuevo aquí o se vuelve a `null`.
 
 ## Páginas
 

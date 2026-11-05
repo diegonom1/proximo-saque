@@ -11,5 +11,14 @@
       "fechaFin": "2027-09-05",
       "fuente": "https://www.clarosports.com/otros-deportes/mexico-clasifica-mundial-voleibol-2027/"
     }
+  },
+  "rankings": {
+    "fivb": {
+      "posicion": 21,
+      "puntos": null,
+      "fecha": "2026-10-01",
+      "fuente": "https://www.clarosports.com/otros-deportes/mexico-clasifica-mundial-voleibol-2027/"
+    },
+    "norceca": null
   }
 }

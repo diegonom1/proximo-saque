@@ -184,6 +184,8 @@ export const esquemaEstadoAgentes = z.strictObject({
   tavily: z.strictObject({ mes: z.string().regex(/^\d{4}-\d{2}$/), creditos: z.number().int().nonnegative() }).nullable().default(null),
 });
 
+const esquemaRankingManual = esquemaRanking.extend({ fuente: url });
+
 export const esquemaManual = z.strictObject({
   partidos: z.array(z.looseObject({})), // pasan por convertir(), que decide si sirven
   jugadoras: z.record(slug, esquemaJugadora.partial()),
@@ -191,6 +193,8 @@ export const esquemaManual = z.strictObject({
   seleccion: z.strictObject({
     proximoTorneo: esquemaProximoTorneo.partial({ id: true, ciudad: true, pais: true, fechaInicio: true, fechaFin: true }).nullable(),
   }).default({ proximoTorneo: null }),
+  // Sin `fuente` no pasa: un dato escrito a mano también dice de dónde salió.
+  rankings: z.strictObject({ fivb: esquemaRankingManual.nullable(), norceca: esquemaRankingManual.nullable() }).default({ fivb: null, norceca: null }),
 });
 
 /* ---------- Todo junto ---------- */

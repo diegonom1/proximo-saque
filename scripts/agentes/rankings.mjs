@@ -14,6 +14,12 @@ export function toca(estado, hoy) {
   return (Date.parse(`${hoy}T00:00:00Z`) - Date.parse(`${ultima}T00:00:00Z`)) / 864e5 >= DIAS_ENTRE_REVISIONES;
 }
 
+// El registro que se reemplaza pasa al historial, salvo que no tuviera nada.
+export function archivar(rankings, clave) {
+  const { posicion, puntos, fecha } = rankings[clave];
+  if (posicion !== null || puntos !== null) rankings.historial.push({ ranking: clave, posicion, puntos, fecha });
+}
+
 const esquemaRanking = z.object({
   posicion: z.number().int().positive().nullable().optional(),
   puntos: z.number().nullable().optional(),
@@ -44,10 +50,16 @@ export async function correr(ctx) {
     }
     const posicion = nuevo.posicion ?? actual.posicion;
     const puntos = nuevo.puntos ?? actual.puntos;
-    const cambio = posicion !== actual.posicion || puntos !== actual.puntos;
-    if (cambio && (actual.posicion !== null || actual.puntos !== null)) {
-      rankings.historial.push({ ranking: clave, posicion: actual.posicion, puntos: actual.puntos, fecha: actual.fecha });
+    const fijo = ctx.manual.rankings?.[clave];
+    if (fijo) {
+      // Lo escrito a mano gana; si la fuente dice otra cosa, decide una persona.
+      if (posicion !== fijo.posicion || puntos !== fijo.puntos) {
+        ctx.reporte.porRevisar(AGENTE, `${clave}: manual.json dice lugar ${fijo.posicion ?? 'por confirmar'} y ${fijo.puntos ?? 'sin'} puntos (${fijo.fecha ?? 'sin fecha'}); ${fuente} dice lugar ${posicion ?? 'por confirmar'} y ${puntos ?? 'sin'} puntos (${nuevo.fecha ?? 'sin fecha'})`);
+      }
+      continue;
     }
+    const cambio = posicion !== actual.posicion || puntos !== actual.puntos;
+    if (cambio) archivar(rankings, clave);
     rankings[clave] = { posicion, puntos, fecha: nuevo.fecha ?? null, fuente };
     ctx.reporte.encontro(AGENTE, `${clave}: lugar ${posicion ?? 'por confirmar'}, ${puntos} puntos${cambio ? '' : ' (sin cambios)'}`);
   }

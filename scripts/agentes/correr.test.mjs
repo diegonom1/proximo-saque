@@ -1071,6 +1071,60 @@ describe('verificación de partidos próximos', () => {
   });
 });
 
+describe('manual.json: rankings', () => {
+  const CLARO = 'https://www.clarosports.com/nota';
+  const fijo = { posicion: 21, puntos: null, fecha: '2026-10-01', fuente: CLARO };
+  const mano = (fivb, norceca = null) => cambiar('manual.json', (m) => { m.rankings = { fivb, norceca }; });
+  const agente = (cambios) => ({ '06-rankings': { fivb: { posicion: 21, fecha: '2026-11-01', fuente: 'https://www.fivb.com/x', ...cambios }, norceca: {} } });
+
+  it('gana sobre lo guardado y manda lo anterior al historial', async () => {
+    await mano(fijo);
+    await ejecutar({});
+    const r = await leer('rankings.json');
+    expect(r.fivb).toEqual(fijo);
+    expect(r.historial).toEqual([{ ranking: 'fivb', posicion: null, puntos: 166.82, fecha: null }]);
+  });
+  it('no toca el ranking que no se fijó', async () => {
+    await mano(fijo);
+    await ejecutar({});
+    expect((await leer('rankings.json')).norceca.puntos).toBe(183);
+  });
+  it('sin IA también se aplica', async () => {
+    await mano(fijo);
+    await correr({ dirDatos: dir, dirFotos: fotos, llamar: null, verificar: crearVerificador({ red: false }), ahora: AHORA });
+    expect((await leer('rankings.json')).fivb.posicion).toBe(21);
+  });
+  it('correr dos veces no repite el historial', async () => {
+    await mano(fijo);
+    await ejecutar({});
+    await ejecutar({});
+    expect((await leer('rankings.json')).historial).toHaveLength(1);
+  });
+  it('si el agente halla otro dato, manual gana, avisa y no ensucia el historial', async () => {
+    await mano(fijo);
+    const r = await ejecutar(agente({ posicion: 19, puntos: 180.5 }));
+    const guardado = await leer('rankings.json');
+    expect(guardado.fivb).toEqual(fijo);
+    expect(guardado.historial).toHaveLength(1);
+    expect(r.resumen).toContain('**Por revisar:** fivb: manual.json dice lugar 21 y sin puntos (2026-10-01); https://www.fivb.com/x dice lugar 19 y 180.5 puntos (2026-11-01)');
+  });
+  it('si el agente confirma lo mismo no avisa', async () => {
+    await mano(fijo);
+    await cambiar('rankings.json', (d) => { d.fivb = fijo; });
+    const r = await ejecutar(agente({}));
+    expect(r.resumen).not.toContain('manual.json dice lugar');
+  });
+  it('en null decide el agente', async () => {
+    await mano(null);
+    await ejecutar(agente({ posicion: 19 }));
+    expect((await leer('rankings.json')).fivb.posicion).toBe(19);
+  });
+  it('sin fuente no pasa la validación', async () => {
+    await mano({ ...fijo, fuente: null });
+    await expect(ejecutar({})).rejects.toThrow();
+  });
+});
+
 describe('próximo torneo: la fuente debe decir que México participa', () => {
   const FIVB = 'https://www.fivb.com/qualified-teams';
   const respuesta = (cambios = {}) => ({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], proximoTorneo: { nombre: 'Copa del Mundo Femenina de Voleibol de la FIVB', edicion: 2027, fechaInicio: '2027-08-20', fechaFin: '2027-09-05', fuente: FIVB, confianza: 'alta', ...cambios } } });

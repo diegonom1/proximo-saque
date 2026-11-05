@@ -164,6 +164,16 @@ function aplicarManualJugadoras(ctx, manual) {
   }
 }
 
+function aplicarManualRankings(ctx, manual) {
+  const { rankings: datos } = ctx.datos;
+  for (const clave of ['fivb', 'norceca']) {
+    const fijo = manual.rankings[clave];
+    if (!fijo || JSON.stringify(fijo) === JSON.stringify(datos[clave])) continue;
+    rankings.archivar(datos, clave);
+    datos[clave] = { ...fijo };
+  }
+}
+
 // El próximo torneo escrito a mano gana sobre el agente mientras no haya terminado.
 function aplicarManualSeleccion(ctx, manual) {
   const t = manual.seleccion.proximoTorneo;
@@ -256,6 +266,7 @@ export async function correr({
   reconstruirPartidos(ctx, manual);
   aplicarManualJugadoras(ctx, manual);
   aplicarManualSeleccion(ctx, manual);
+  aplicarManualRankings(ctx, manual);
 
   const { estado: _, ...resto } = ctx.datos;
   validarDatos(resto);

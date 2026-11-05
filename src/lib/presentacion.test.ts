@@ -38,6 +38,9 @@ describe('tendencia', () => {
   it('sin lugares deciden los puntos', () => {
     expect(tendencia({ posicion: null, puntos: 170 }, [h(null, 166.82)], 'fivb')).toBe('sube');
   });
+  it('sin nada comparable no hay flecha', () => {
+    expect(tendencia({ posicion: 21, puntos: null }, [h(null, 166.82)], 'fivb')).toBeNull();
+  });
   it('usa el registro más reciente que sea distinto', () => {
     expect(tendencia({ posicion: 20, puntos: 170 }, [h(30, 150), h(18, 180), h(20, 170)], 'fivb')).toBe('baja');
   });

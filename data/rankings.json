@@ -1,9 +1,9 @@
 {
   "fivb": {
-    "posicion": null,
-    "puntos": 166.82,
-    "fecha": null,
-    "fuente": "https://www.fmvb.org/femenil-mayor"
+    "posicion": 21,
+    "puntos": null,
+    "fecha": "2026-10-01",
+    "fuente": "https://www.clarosports.com/otros-deportes/mexico-clasifica-mundial-voleibol-2027/"
   },
   "norceca": {
     "posicion": null,
@@ -11,5 +11,12 @@
     "fecha": null,
     "fuente": "https://www.fmvb.org/femenil-mayor"
   },
-  "historial": []
+  "historial": [
+    {
+      "ranking": "fivb",
+      "posicion": null,
+      "puntos": 166.82,
+      "fecha": null
+    }
+  ]
 }
