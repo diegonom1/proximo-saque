@@ -31,7 +31,7 @@ Dejen las fotos tal cual en `fotos-originales/<slug>/` (cualquier nombre y forma
 npm run fotos
 ```
 
-La primera vez crea un entorno de Python y descarga el modelo de recorte (cerca de 1 GB), así que tarda unos minutos. Después solo procesa las fotos que cambiaron.
+La primera vez crea un entorno de Python y descarga el modelo de recorte (cerca de 1 GB), así que tarda unos minutos. Después solo procesa las fotos que cambiaron. Necesita 6 GB de memoria disponibles: si no los hay, avisa y no carga el modelo, así que cierren Chrome y vuelvan a correrlo.
 
 Genera en `src/assets/fotos/`:
 
@@ -41,7 +41,9 @@ Genera en `src/assets/fotos/`:
 - `hero.jpg` y `hero-movil.jpg`: para la portada, en `seleccion/`.
 - `credito.txt`: lo crea vacío. Escriban de quién es la foto, por ejemplo `Foto: FMVB — https://...`.
 
-Al terminar, abran `fotos-originales/vista-previa.jpg` y lean los avisos: dicen si una foto quedó con poca resolución y si falta un crédito. Revisen sobre todo que el recorte no se haya comido el balón.
+Al terminar, abran `fotos-originales/vista-previa.jpg` y lean los avisos: dicen si una foto quedó con poca resolución y si falta un crédito. La hoja muestra los dos recortes de cada jugadora lado a lado. Revisen sobre todo el cabello y que no se haya comido el balón.
+
+Para cambiar de recorte, creen `fotos-originales/<slug>/modelo.txt` con la palabra `general` (o `portrait`) y corran `npm run fotos` otra vez; tarda un segundo.
 
 - Si una carpeta trae varias fotos, el script usa la más vertical para la tarjeta y la más horizontal para el fondo. Para elegir ustedes, pongan `tarjeta`, `fondo` o `recorte` en el nombre del archivo.
 - El script no quita marcas de agua, pero un recorte puede dejar fuera una que esté en la orilla. Respeten los permisos de cada foto.

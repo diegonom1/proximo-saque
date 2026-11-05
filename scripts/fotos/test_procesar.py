@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from procesar import Cara, caras_fuera, foco_sugerido, huella, recuadro_proporcion, recuadro_tarjeta
+from procesar import Cara, caras_fuera, falta_memoria, foco_sugerido, huella, interpretar_modelo, recuadro_proporcion, recuadro_tarjeta
 
 
 def centro_relativo(recuadro, cara):
@@ -83,6 +83,21 @@ class Hero(unittest.TestCase):
 
 
 class Otros(unittest.TestCase):
+    def test_memoria_suficiente(self):
+        self.assertIsNone(falta_memoria(6 * 1024**3, "birefnet-general"))
+
+    def test_memoria_insuficiente_dice_cuanta_hay(self):
+        aviso = falta_memoria(int(4.2 * 1024**3), "birefnet-general")
+        self.assertIn("4.2 GB", aviso)
+        self.assertIn("Chrome", aviso)
+
+    def test_modelo(self):
+        self.assertEqual(interpretar_modelo("general\n"), "birefnet-general")
+        self.assertEqual(interpretar_modelo(" Birefnet-General "), "birefnet-general")
+        self.assertEqual(interpretar_modelo("portrait"), "birefnet-portrait")
+        self.assertIsNone(interpretar_modelo("otro"))
+        self.assertIsNone(interpretar_modelo(""))
+
     def test_foco(self):
         self.assertEqual(foco_sugerido(1000, 1000, Cara(600, 200, 100, 100)), "65% 25%")
 
