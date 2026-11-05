@@ -54,13 +54,30 @@ describe('crearClienteGemini', () => {
   });
   it('un 429 pasajero se reintenta con espera creciente', async () => {
     const dormir = vi.fn(async () => {});
-    const pedir = vi.fn().mockResolvedValueOnce(respuesta(429, 'rate')).mockResolvedValueOnce(respuesta(503, 'x')).mockResolvedValueOnce(ok('{}'));
+    const pedir = vi.fn().mockResolvedValueOnce(respuesta(429, 'google.rpc.RetryInfo retryDelay 30s')).mockResolvedValueOnce(respuesta(503, 'x')).mockResolvedValueOnce(ok('{}'));
     const r = await cliente(pedir, { dormir, esperaMs: 10 })(llamada);
     expect(r.modelo).toBe('gemini-2.5-flash');
     expect(dormir.mock.calls.map((c) => c[0])).toEqual([10, 20]);
   });
   it('si ninguno responde, falla diciendo por qué', async () => {
-    await expect(cliente(async () => respuesta(429, 'per day'))(llamada)).rejects.toThrow('cuota del día agotada');
+    await expect(cliente(async () => respuesta(429, 'per day'))(llamada)).rejects.toThrow('sin cuota');
+  });
+  it('un 429 sin tiempo de espera no se reintenta: la búsqueda no entra en la capa gratis', async () => {
+    const cuerpo = { error: { message: 'You exceeded your current quota. See https://ai.google.dev/gemini-api/docs/rate-limits' } };
+    const pedir = vi.fn(async () => respuesta(429, cuerpo));
+    const dormir = vi.fn(async () => {});
+    const error = await cliente(pedir, { dormir })(llamada).catch((e) => e);
+    expect(error.sinCuota).toBe(true);
+    expect(error.message).toContain('exceeded your current quota');
+    expect(pedir).toHaveBeenCalledTimes(2);
+    expect(dormir).not.toHaveBeenCalled();
+  });
+  it('un modelo retirado pasa al siguiente y dice por qué', async () => {
+    const retirado = { error: { message: 'This model\n  is no longer available to new users.' } };
+    const pedir = vi.fn(async (url) => (url.includes('2.5') ? respuesta(404, retirado) : ok('{}')));
+    expect((await cliente(pedir)(llamada)).modelo).toBe('gemini-3-flash');
+    const todos = await cliente(async () => respuesta(404, retirado))(llamada).catch((e) => e);
+    expect(todos.message).toContain('This model is no longer available to new users.');
   });
   it('un error de la petición no se reintenta', async () => {
     const pedir = vi.fn(async () => respuesta(400, 'mal'));

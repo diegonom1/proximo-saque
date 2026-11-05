@@ -440,6 +440,13 @@ describe('orquestador', () => {
     expect(r.resumen).toContain('Gemini caído');
     expect(r.llamadas).toBeGreaterThan(2);
   });
+  it('sin cuota deja de llamar y todo queda pendiente', async () => {
+    const error = Object.assign(new Error('ningún modelo respondió'), { sinCuota: true });
+    const r = await ejecutar({ '06-rankings': error });
+    expect(r.llamadas).toBe(1);
+    expect(r.pendientes[0]).toEqual({ agente: '06-rankings', clave: null });
+    expect(r.pendientes.length).toBeGreaterThan(10);
+  });
   it('una respuesta con forma equivocada no se usa', async () => {
     const r = await ejecutar({ '06-rankings': { fivb: { posicion: 'primero' }, norceca: {} } });
     expect(r.resumen).toContain('Falló');

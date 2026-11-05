@@ -3,7 +3,7 @@
 //
 // Variables de entorno:
 //   GEMINI_API_KEY   clave de Google AI Studio. Sin ella solo limpia partidos pasados y aplica manual.json.
-//   GEMINI_MODELOS   modelos separados por comas (por defecto gemini-2.5-flash).
+//   GEMINI_MODELOS   modelos separados por comas (por defecto gemini-3.8-flash).
 //   MAX_LLAMADAS     presupuesto por corrida (por defecto 20).
 //   DIAS_ADELANTE    días hacia adelante para buscar partidos (por defecto 45).
 //   IA_SIMULADA      carpeta con respuestas guardadas; no gasta llamadas ni usa la red.
@@ -91,7 +91,7 @@ function ejecutorDe(ctx, maximo, reporte) {
     const id = `${agente}|${clave}`;
     if (hechas.has(id)) return;
     hechas.add(id);
-    if (estado.llamadas >= maximo) {
+    if (estado.llamadas >= maximo || estado.sinCuota) {
       pendientes.push({ agente, clave });
       return;
     }
@@ -111,6 +111,11 @@ function ejecutorDe(ctx, maximo, reporte) {
       delete ctx.nuevos[clave ?? 'seleccion'];
       reporte.volver(marca);
       reporte.fallo(agente, `${clave ? `${clave}: ` : ''}${error.message.split('\n')[0]}`);
+      // Sin cuota, las demás llamadas fallarían igual: se dejan para la siguiente corrida.
+      if (error.sinCuota) {
+        estado.sinCuota = true;
+        pendientes.push({ agente, clave });
+      }
     }
   }
   return { ejecutar, pendientes, estado };
@@ -239,7 +244,7 @@ async function main() {
     llamar = crearClienteSimulado(join(process.cwd(), simulada), hoy);
     modo = 'simulado';
   } else if (clave) {
-    const modelos = (process.env.GEMINI_MODELOS || 'gemini-2.5-flash').split(',').map((m) => m.trim()).filter(Boolean);
+    const modelos = (process.env.GEMINI_MODELOS || 'gemini-3.8-flash').split(',').map((m) => m.trim()).filter(Boolean);
     llamar = crearClienteGemini({ clave, modelos, hoy, dirAgentes });
     modo = `Gemini (${modelos.join(', ')})`;
   } else {

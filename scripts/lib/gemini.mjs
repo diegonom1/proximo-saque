@@ -24,8 +24,17 @@ export async function instruccionesDe(agente, hoy, dirAgentes) {
 
 const dormirReal = (ms) => new Promise((r) => { setTimeout(r, ms); });
 
-// La cuota del día no vuelve por esperar: se pasa al siguiente modelo. Un 429 por minuto sí vale reintentar.
-const cuotaDiaria = (cuerpo) => /per.?day|daily|limit: 0/i.test(cuerpo);
+// Un 429 por minuto trae cuánto esperar. Sin eso, la cuota no vuelve por reintentar: se pasa al siguiente modelo.
+const cuotaAgotada = (cuerpo) => /per.?day|daily|limit: 0/i.test(cuerpo) || !/retry/i.test(cuerpo.replace(/rate-limits/g, ''));
+
+// El cuerpo del error es JSON en varias líneas: se saca el mensaje para que el resumen diga la causa.
+function mensajeDe(crudo) {
+  try {
+    return JSON.parse(crudo).error.message.replace(/\s+/g, ' ').trim().slice(0, 200);
+  } catch {
+    return crudo.replace(/\s+/g, ' ').trim().slice(0, 200);
+  }
+}
 
 const generacion = (modelo) => (modelo.startsWith('gemini-2') ? { temperature: 0 } : {});
 
@@ -60,8 +69,9 @@ export function crearClienteGemini({
         };
       }
       ultimo = `${r.status}`;
-      if (r.status === 429 && cuotaDiaria(crudo)) return { agotado: `${modelo}: cuota del día agotada` };
-      if (r.status !== 429 && r.status < 500) throw new Error(`Gemini respondió ${r.status}: ${crudo.slice(0, 300)}`);
+      if (r.status === 429 && cuotaAgotada(crudo)) return { agotado: `${modelo}: sin cuota (${mensajeDe(crudo)})` };
+      if (r.status === 404) return { agotado: `${modelo}: no disponible (${mensajeDe(crudo)})` };
+      if (r.status !== 429 && r.status < 500) throw new Error(`Gemini respondió ${r.status}: ${mensajeDe(crudo)}`);
       if (intento < intentos) await dormir(esperaMs * intento);
     }
     return { agotado: `${modelo}: respondió ${ultimo} después de ${intentos} intentos` };
@@ -77,7 +87,9 @@ export function crearClienteGemini({
       if (!r.agotado) return r;
       motivos.push(r.agotado);
     }
-    throw new Error(`ningún modelo respondió (${motivos.join('; ')})`);
+    const error = new Error(`ningún modelo respondió (${motivos.join('; ')})`);
+    error.sinCuota = true;
+    throw error;
   };
 }
 

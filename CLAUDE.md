@@ -392,7 +392,7 @@ Orden de cada corrida semanal:
 
 Detalles técnicos:
 
-- Modelos en `GEMINI_MODELOS` (lista separada por comas, por defecto `gemini-2.5-flash`). Si uno responde 429 por cuota agotada, se pasa al siguiente de la lista; cada modelo tiene su propia cuota gratis.
+- Modelos en `GEMINI_MODELOS` (lista separada por comas, por defecto `gemini-3.8-flash`; Google retiró `gemini-2.5-flash` para usuarios nuevos). Si uno responde 404 o 429 por cuota agotada, se pasa al siguiente de la lista. Si ninguno responde por eso, la corrida deja de llamar y lo demás queda en `pendientes`.
 - Presupuesto: `MAX_LLAMADAS` por corrida (por defecto 20). Lo que no cabe va a `estado-agentes.json → pendientes`. Los límites gratis los cambia Google seguido; se revisan en AI Studio.
 - Llamada: `system_instruction` + `contents` + `tools: [{ google_search: {} }]`. `temperature: 0` en modelos 2.5; en Gemini 3 se deja la temperatura por defecto (Google lo recomienda). Pedir el JSON en el texto y extraerlo (`extraerJSON` del v1); no combinar `responseSchema` con `google_search` si el modelo no lo soporta.
 - Reintentos ante 429/5xx con espera creciente; pausa de 8 s entre llamadas.
