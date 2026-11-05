@@ -33,6 +33,8 @@ const CANONICOS = new Map(CATALOGO.flatMap(({ nombre, alias }) => [nombre, ...al
 
 export const nombreCanonico = (nombre) => CANONICOS.get(huella(nombre)) ?? nombre.trim();
 
+export const delCatalogo = (nombre) => CANONICOS.has(huella(nombre));
+
 export const idTorneo = (nombre, edicion) => slugDe(`${nombreCanonico(nombre)} ${edicion ?? ''}`);
 
 const rango = (t) => [t.fechaInicio ?? t.fechaFin ?? null, t.fechaFin ?? t.fechaInicio ?? null];

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dominiosConfiables, planDondeVer, planPartidos, planPerfil, planRankings, planSeleccion } from './busquedas.mjs';
+import { dominiosConfiables, planDondeVer, planPartidos, planPerfil, planLista, planProximo, planRankings, planTorneo } from './busquedas.mjs';
 
 const ctx = { hoy: '2026-11-05', datos: { torneos: { torneos: [{ nombre: 'Campeonato Mundial', edicion: 2025, fechaInicio: '2025-08-22', fechaFin: '2025-09-07' }] } } };
 const club = (pais, nombre, alias = []) => ({ pais, nombre, alias, calendarioUrl: null, sitio: null });
@@ -46,13 +46,16 @@ describe('otros planes', () => {
     expect(plan.avanzado).toBe(true);
     expect(plan.paginas.join()).toContain('volleyballworld.com');
   });
-  it('el agente 04 busca Lima 2027, el calendario NORCECA y solo los torneos que faltan', () => {
-    const t = textos(planSeleccion(ctx));
+  it('el agente 04 busca Lima 2027 y el calendario NORCECA, sin lo histórico', () => {
+    const t = textos(planProximo(ctx));
     expect(t).toContain('Lima 2027');
     expect(t).toContain('NORCECA calendar');
-    expect(t).toContain('Juegos Centroamericanos y del Caribe 2026');
-    expect(t).toContain('NORCECA Final Six 2025');
-    expect(t).not.toContain('Campeonato Mundial 2025');
+    expect(t).not.toContain('Campeonato Mundial');
+  });
+  it('un torneo y una lista se buscan por su nombre y edición', () => {
+    const torneo = { nombre: 'Copa Panamericana', edicion: 2026 };
+    expect(textos(planTorneo(ctx, torneo))).toContain('Copa Panamericana 2026');
+    expect(textos(planLista(ctx, torneo))).toContain('Copa Panamericana 2026');
   });
   it('dónde ver lee el calendario oficial', () => {
     expect(planDondeVer(ctx, { nombre: 'Liga' }, { calendarioOficialUrl: 'https://a.mx/c' }).paginas).toEqual(['https://a.mx/c']);

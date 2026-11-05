@@ -1,8 +1,8 @@
 // Agente 01: listas oficiales, altas y bajas. El agente reporta; estas reglas deciden.
 
 import { z } from 'zod';
-import { planListas, planPlantel, planRetiros } from './busquedas.mjs';
-import { confianza, consultar, fechaN, proponer, restarMeses, textoN, validos } from './comun.mjs';
+import { planLista, planRetiros } from './busquedas.mjs';
+import { confianza, consultar, fechaN, proponer, restarMeses, sumarDias, textoN, validos } from './comun.mjs';
 import { dominio } from '../lib/fuentes.mjs';
 import { normal } from '../lib/fusion.mjs';
 import { resolverJugadora, slugDe } from '../lib/nombres.mjs';
@@ -187,25 +187,41 @@ async function aplicar(ctx, respuesta, verificar) {
   for (const d of respuesta.dudas ?? []) ctx.reporte.duda(`${d.nombre ?? 'Sin nombre'}: ${d.motivo ?? 'sin motivo'}`);
 }
 
-export async function correr(ctx) {
-  const { datos } = ctx;
-  const plantelActual = datos.jugadoras.filter((j) => j.estado !== 'exseleccionada').map((j) => ({
-    slug: j.slug, nombre: j.nombre, ultimaLista: j.ultimaListaOficial?.torneo ?? null, fecha: j.ultimaListaOficial?.fecha ?? null,
-  }));
-  const listasConocidas = [...new Set(datos.jugadoras.flatMap((j) => (j.ultimaListaOficial ? [j.ultimaListaOficial.torneo] : [])))];
-  const entrada = { plantelActual, listasConocidas };
+const MAX_LISTAS = 2; // por corrida
+const DIAS_ENTRE_REVISIONES = 30;
 
-  try {
-    const { respuesta, verificar } = await consultar(ctx, AGENTE, null, entrada, esquema, planPlantel(ctx));
-    await aplicar(ctx, respuesta, verificar);
-  } catch (error) {
-    if (!error.tiempo) throw error;
-    // Si ningún modelo alcanzó a responder, se divide en dos tareas más chicas.
-    ctx.reporte.encontro(AGENTE, 'se agotó el tiempo: se dividió en listas oficiales y anuncios de retiro');
-    for (const [enfoque, plan] of [['listas oficiales recientes', planListas(ctx)], ['anuncios de retiro', planRetiros(ctx)]]) {
-      const { respuesta, verificar } = await consultar(ctx, AGENTE, enfoque, { ...entrada, enfoque }, esquema, plan);
-      await aplicar(ctx, respuesta, verificar);
-    }
+// Solo busca lo nuevo: torneos guardados más recientes que la última lista conocida. Una llamada por lista.
+export function listasPorRevisar(datos, hoy) {
+  const ultima = datos.jugadoras.reduce((m, j) => (j.ultimaListaOficial?.fecha > m ? j.ultimaListaOficial.fecha : m), '');
+  const reciente = (id) => datos.estado.revisado[`lista:${id}`] && sumarDias(datos.estado.revisado[`lista:${id}`], DIAS_ENTRE_REVISIONES) > hoy;
+  return datos.torneos.torneos
+    .filter((t) => t.fechaFin > ultima && t.fechaFin >= restarMeses(hoy, 12) && t.fechaFin <= hoy && !reciente(t.id))
+    .slice(0, MAX_LISTAS)
+    .map((t) => `lista:${t.id}`);
+}
+
+const plantelDe = (datos) => datos.jugadoras.filter((j) => j.estado !== 'exseleccionada').map(({ slug, nombre }) => ({ slug, nombre }));
+
+async function revisarLista(ctx, clave) {
+  const id = clave.slice('lista:'.length);
+  const t = ctx.datos.torneos.torneos.find((x) => x.id === id);
+  if (!t) return;
+  const torneo = { nombre: t.nombre, edicion: t.edicion, fechaFin: t.fechaFin };
+  const { respuesta, verificar } = await consultar(ctx, AGENTE, clave, { tarea: 'lista', torneo, plantelActual: plantelDe(ctx.datos) }, esquema, planLista(ctx, torneo));
+  // El torneo lo puso el programa: Gemini solo copia los nombres.
+  const listas = (respuesta.listas ?? []).slice(0, 1).map((l) => ({ ...l, torneo: `${t.nombre} ${t.edicion}`, fechaFin: t.fechaFin }));
+  if (listas.length === 0) ctx.reporte.noConfirmado(AGENTE, `${t.nombre} ${t.edicion}: no se encontró la lista`);
+  await aplicar(ctx, { ...respuesta, listas }, verificar);
+  ctx.datos.estado.revisado[`lista:${id}`] = ctx.hoy;
+}
+
+export async function correr(ctx, clave = null) {
+  if (clave) {
+    await revisarLista(ctx, clave);
+    return;
   }
+  const entrada = { tarea: 'retiros', plantelActual: plantelDe(ctx.datos) };
+  const { respuesta, verificar } = await consultar(ctx, AGENTE, null, entrada, esquema, planRetiros(ctx));
+  await aplicar(ctx, respuesta, verificar);
   bajasPorInactividad(ctx);
 }

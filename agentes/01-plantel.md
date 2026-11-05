@@ -2,7 +2,12 @@
 
 ## Tu tarea
 
-Encontrar las listas oficiales recientes de la Selección Mexicana femenil mayor de voleibol de sala y reportar quién aparece en ellas, más cualquier anuncio explícito de retiro o salida. No decides quién entra o sale del sitio: lo decide el programa con estas reglas, que debes conocer para buscar bien.
+Cada llamada hace **una sola tarea**, la que diga `tarea` en la entrada:
+
+- `"lista"`: copiar la lista de la Selección Mexicana femenil mayor de voleibol de sala en el torneo de `torneo`. Una sola lista por llamada.
+- `"retiros"`: reportar cualquier anuncio explícito de retiro o salida de alguien de `plantelActual`. `listas` va vacía.
+
+No decides quién entra o sale del sitio: lo decide el programa con estas reglas, que debes conocer.
 
 - Faltar a uno o varios torneos **no** es salir de la Selección. Las jugadoras se ausentan por su club, sus estudios, descanso o asuntos personales. Por ejemplo, Samantha Bricio no estuvo en el último torneo y sigue siendo seleccionada.
 - Una **alta** necesita aparecer en una lista oficial de los últimos 12 meses.
@@ -10,8 +15,9 @@ Encontrar las listas oficiales recientes de la Selección Mexicana femenil mayor
 
 ## Entrada
 
-- `plantelActual`: las jugadoras que el sitio tiene hoy, con su última lista oficial conocida.
-- `listasConocidas`: listas que ya están guardadas. No hace falta volver a reportarlas, salvo que encuentres más detalle (nombres completos, números o posiciones que faltaban).
+- `tarea`: `"lista"` o `"retiros"`.
+- `torneo`: solo en la tarea `"lista"`; nombre, edición y fecha de fin del torneo.
+- `plantelActual`: las jugadoras que el sitio tiene hoy (`slug` y `nombre`).
 
 ## Qué cuenta como lista oficial
 
@@ -21,14 +27,12 @@ Encontrar las listas oficiales recientes de la Selección Mexicana femenil mayor
 
 Dónde suelen estar: boletines PDF de NORCECA (traen la lista con número, nombre y posición), páginas de equipo de Volleyball World, comunicados de la FMVB y notas de prensa que publican la lista completa.
 
-## Cómo buscar
+## Cómo trabajar
 
-1. Busca torneos y convocatorias de la Selección mayor desde hace 12 meses hasta hoy, y el próximo torneo si ya publicaron la lista. Por ejemplo: `boletín NORCECA <torneo> <año> Mexico roster`, `convocatoria selección mexicana voleibol femenil <año>`, `site:fmvb.org convocatoria`.
-2. Para cada lista, copia a todas las jugadoras: nombre, número, posición, si es capitana (en los boletines suele venir como "C") y club si aparece. Indica si la lista está completa (`"completa": true`) o si solo encontraste algunos nombres.
-3. Relaciona cada nombre con un `slug` de `plantelActual` cuando sea la misma persona (cuidado con apellidos repetidos). Si es alguien nuevo o no estás segura de que sea la misma, `"slug": null`.
-4. Para las jugadoras de `plantelActual` que no aparecen en ninguna lista de los últimos 12 meses, busca su última aparición oficial (hasta 24 meses atrás) y repórtala en `ultimasApariciones`.
-5. Busca anuncios de retiro o salida de cualquiera de `plantelActual` (por ejemplo, `"<nombre>" retiro selección mexicana voleibol`).
-6. Confirma quién es la entrenadora o el entrenador principal.
+1. En la tarea `"lista"`, copia a todas las jugadoras que aparezcan: nombre, número, posición, si es capitana (en los boletines suele venir como "C") y club si aparece. Copia el nombre tal como viene, sin completarlo. Indica si la lista está completa (`"completa": true`) o si solo encontraste algunos nombres. Una nota que menciona a una o dos jugadoras no es una lista: en ese caso `"completa": false`.
+2. Relaciona cada nombre con un `slug` de `plantelActual` cuando sea la misma persona (cuidado con apellidos repetidos). Si es alguien nuevo o no estás segura de que sea la misma, `"slug": null`.
+3. Si la fuente dice quién dirige al equipo, repórtalo en `entrenador`.
+4. En la tarea `"retiros"`, repórtalo solo si el texto lo dice de forma explícita.
 
 ## Formato de respuesta
 
@@ -46,9 +50,6 @@ Dónde suelen estar: boletines PDF de NORCECA (traen la lista con número, nombr
         { "nombre": "Nombre Apellido", "numero": 9, "posicion": "Central", "capitana": false, "club": "Club de ejemplo", "slug": null }
       ]
     }
-  ],
-  "ultimasApariciones": [
-    { "slug": "ximena-solar", "torneo": "Campeonato Mundial 2025", "fechaFin": "AAAA-MM-DD", "fuente": "https://..." }
   ],
   "bajas": [
     { "slug": "slug-de-la-jugadora", "tipo": "retiro", "evidencia": "Cita breve del anuncio", "fecha": "AAAA-MM-DD", "fuente": "https://...", "confianza": "alta" }

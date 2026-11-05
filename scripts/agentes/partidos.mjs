@@ -3,6 +3,8 @@
 import { z } from 'zod';
 import { dominiosConfiables, planPartidos } from './busquedas.mjs';
 import { consultar, sumarDias, textoN, validos } from './comun.mjs';
+import { evidenciaPartido } from '../lib/evidencia.mjs';
+import { normalizarUrl } from '../lib/busqueda.mjs';
 import { esDominio } from '../lib/fuentes.mjs';
 import { conMs, mismoCruce } from '../lib/fusion.mjs';
 import { fechaEnZona } from '../lib/tiempo.mjs';
@@ -37,14 +39,46 @@ export function clasificar(nuevo, previos, zona) {
 const rivalDe = (p) => (p.nuestro === 'visita' ? p.local : p.visitante);
 const horaDe = (p) => (p.horaConfirmada ? p.inicio.slice(11, 16) : 'por confirmar');
 
+// Coteja un partido con el texto de su fuente. Sin texto (modo simulado) no hay nada que cotejar.
+export function revisarEvidencia(textos, crudo, partido, propio, sinHora) {
+  const texto = textos.get(normalizarUrl(partido.fuente));
+  if (!texto) return null;
+  const evidencia = evidenciaPartido(texto, { fecha: crudo.fecha, hora: crudo.hora, rival: rivalDe(partido), propio });
+  return { evidencia, sinHora };
+}
+
+export const textosDe = (resultados = []) => new Map(resultados.map((r) => [normalizarUrl(r.url), r.contenido]));
+
 // Un partido nuevo entra con cualquier fuente válida. Cambiar uno que ya existe exige la liga, el club o Volleybox.
-export function decidirPartidos(ctx, agente, nombre, nuevos, previosCrudos, zona, confiables) {
+// Y ninguno de los dos pasa si su fuente no muestra al rival y la fecha juntos (`revisiones`).
+export function decidirPartidos(ctx, agente, nombre, nuevos, previosCrudos, zona, confiables, revisiones = new Map()) {
   const previos = previosCrudos.map(conMs).filter(Boolean);
   const aceptados = [];
   const vistos = new Set();
-  for (const n of nuevos) {
-    const { tipo, previo } = clasificar(n, previos, zona);
+  const anotar = (n, resultado, previo) => ctx.comparacion?.push({
+    club: nombre, fecha: n.inicio.slice(0, 10), hora: horaDe(n), rival: rivalDe(n), fuente: n.fuente, resultado,
+    guardado: previo ? `${previo.inicio.slice(0, 10)} ${horaDe(previo)} vs ${rivalDe(previo)}` : null,
+  });
+  for (const original of nuevos) {
+    let n = original;
+    let { tipo, previo } = clasificar(n, previos, zona);
     if (previo) vistos.add(previo.id);
+    const revision = revisiones.get(original);
+    let horaDudosa = false;
+    if (tipo !== 'coincide' && revision?.evidencia === 'nada') {
+      const motivo = `el rival y la fecha no aparecen juntos en ${n.fuente}`;
+      if (previo) ctx.reporte.porRevisar(agente, `${nombre}: ${n.inicio.slice(0, 10)} vs ${rivalDe(n)}: ${motivo}`);
+      else ctx.reporte.descarto(agente, `${nombre}: ${n.inicio.slice(0, 10)} vs ${rivalDe(n)}`, motivo);
+      anotar(n, 'Sin evidencia', previo);
+      continue;
+    }
+    if (tipo !== 'coincide' && revision?.evidencia === 'sinHora' && n.horaConfirmada && revision.sinHora) {
+      // La hora no está junto al rival: vale la fecha y la hora queda por confirmar.
+      ctx.reporte.noConfirmado(agente, `${nombre}: ${n.inicio.slice(0, 10)} vs ${rivalDe(n)}: la hora ${horaDe(n)} no aparece junto al rival`);
+      n = revision.sinHora;
+      horaDudosa = true;
+      ({ tipo, previo } = clasificar(n, previos, zona));
+    }
     const confiable = esDominio(n.fuente, confiables);
     let resultado = { nuevo: 'Nuevo', coincide: 'Coincide', cambia: 'Cambia' }[tipo];
     if (tipo === 'cambia' && !confiable) {
@@ -53,10 +87,7 @@ export function decidirPartidos(ctx, agente, nombre, nuevos, previosCrudos, zona
     } else if (!(tipo === 'coincide' && !n.horaConfirmada)) {
       aceptados.push(n);
     }
-    ctx.comparacion?.push({
-      club: nombre, fecha: n.inicio.slice(0, 10), hora: horaDe(n), rival: rivalDe(n), fuente: n.fuente, resultado,
-      guardado: previo ? `${previo.inicio.slice(0, 10)} ${horaDe(previo)} vs ${rivalDe(previo)}` : null,
-    });
+    anotar(n, horaDudosa ? `${resultado} (hora sin verificar)` : resultado, previo);
   }
   for (const p of previos) {
     if (vistos.has(p.id)) continue;
@@ -92,7 +123,10 @@ export async function correr(ctx, clubId) {
     })),
     ...(textoPagina ? { textoPagina, urlPagina: club.calendarioUrl } : {}),
   };
-  const { respuesta, verificar } = await consultar(ctx, AGENTE, clubId, entrada, esquema, planPartidos(ctx, club, liga));
+  const { respuesta, verificar, resultados } = await consultar(ctx, AGENTE, clubId, entrada, esquema, planPartidos(ctx, club, liga));
+  const textos = textosDe(resultados);
+  if (textoPagina) textos.set(normalizarUrl(club.calendarioUrl), textoPagina);
+  const revisiones = new Map();
 
   const nuevos = [];
   for (const p of respuesta.partidos ?? []) {
@@ -114,6 +148,8 @@ export async function correr(ctx, clubId) {
       continue;
     }
     nuevos.push(partido);
+    const sinHora = convertir({ ...p, hora: null, fuente, transmision }, { id: clubId, ...club }, 'ia', ctx.ahora);
+    revisiones.set(partido, revisarEvidencia(textos, p, partido, [club.nombre, ...club.alias], sinHora));
   }
 
   for (const n of respuesta.noEncontrados ?? []) ctx.reporte.noConfirmado(AGENTE, `${club.nombre}: ${n.rival} (${n.fecha}): ${n.motivo ?? 'no apareció en ninguna fuente'}`);
@@ -127,5 +163,5 @@ export async function correr(ctx, clubId) {
 
   ctx.reporte.encontro(AGENTE, `${club.nombre}: ${nuevos.length} partido(s)${respuesta.motivo ? ` (${respuesta.motivo})` : ''}`);
   const previos = datos.partidos.partidos.filter((p) => p.clubId === clubId);
-  ctx.nuevos[clubId] = decidirPartidos(ctx, AGENTE, club.nombre, nuevos, previos, club.zona, dominiosConfiables(club, liga, club.ligaId));
+  ctx.nuevos[clubId] = decidirPartidos(ctx, AGENTE, club.nombre, nuevos, previos, club.zona, dominiosConfiables(club, liga, club.ligaId), revisiones);
 }

@@ -1,8 +1,39 @@
 import { describe, expect, it, vi } from 'vitest';
 import { crearVerificador, dominio, fuenteAdmisible } from './fuentes.mjs';
+import { esListado, filasDeAtributos } from './fuentes.mjs';
 
 const http = (status, location) => ({ status, headers: { get: () => location ?? null } });
 const REDIRECCION = 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc';
+
+describe('esListado', () => {
+  it.each([
+    'https://women.volleybox.net/players?country=MX',
+    'https://women.volleybox.net/players',
+    'https://sitio.mx/search?q=sofia',
+    'https://sitio.mx/buscar/maldonado',
+    'https://club.it/squadra?page=2',
+    'https://fmvb.org/seleccion/jugadoras/',
+    'https://women.volleybox.net/mackenzie-t5/players',
+    'https://en.volleyballworld.com/teams/mexico/roster',
+    'https://noticias.mx/tag/voleibol',
+  ])('%s es un listado', (url) => expect(esListado(url)).toBe(true));
+  it.each([
+    'https://women.volleybox.net/uxue-guereca-p13878',
+    'https://noticias.mx/deportes/sofia-maldonado-mvp-final-four',
+    'https://norceca.info/mexicos-sofia-maldonado-named-most-valuable-player/',
+    'https://sitio.mx/nota?utm_source=x',
+  ])('%s no lo es', (url) => expect(esListado(url)).toBe(false));
+  it('una URL inválida no es listado', () => expect(esListado('no')).toBe(false));
+});
+
+describe('filasDeAtributos', () => {
+  it('saca la fila completa de aria-label y decodifica', () => {
+    expect(filasDeAtributos('<a aria-label="Nancy contre B&amp;B, samedi 21 novembre, 20:00" href="/x">')).toEqual(['Nancy contre B&B, samedi 21 novembre, 20:00']);
+  });
+  it('ignora etiquetas sin números y repetidas', () => {
+    expect(filasDeAtributos('<a aria-label="Ir al inicio del sitio"><a title="Jornada 9 del torneo"><a title="Jornada 9 del torneo">')).toEqual(['Jornada 9 del torneo']);
+  });
+});
 
 describe('dominio', () => {
   it('quita www', () => {
