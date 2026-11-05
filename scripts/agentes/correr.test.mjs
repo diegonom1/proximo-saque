@@ -695,6 +695,13 @@ describe('tareas chicas', () => {
     await corre(llamar);
     expect(claves(llamar, '04-seleccion-torneos')).toEqual([null]);
   });
+  it('un torneo sin lugar conserva hasta qué fase llegó', async () => {
+    const terminado = { nombre: 'Copa Panamericana', edicion: 2026, ciudad: 'León', pais: 'México', fechaInicio: '2026-09-08', fechaFin: '2026-09-18', posicion: null, medalla: null, fase: 'Fase de grupos', record: null, premios: [], fuente: OFICIAL };
+    const llamar = llamarCon({ '04-seleccion-torneos': (clave) => (clave ? { ...VACIAS['04-seleccion-torneos'], torneosTerminados: [terminado] } : { ...VACIAS['04-seleccion-torneos'], torneosMencionados: [{ nombre: 'Copa Panamericana', edicion: 2026 }] }) });
+    const r = await corre(llamar);
+    expect((await leer('torneos.json')).torneos.find((t) => t.id === 'copa-panamericana-2026')).toMatchObject({ posicion: null, fase: 'Fase de grupos' });
+    expect(r.cuerpoPr).toContain('Copa Panamericana 2026: Fase de grupos');
+  });
   it('el torneo revisado entra por PR y otro distinto se descarta', async () => {
     const terminado = { nombre: 'Copa Panamericana', edicion: 2026, ciudad: 'León', pais: 'México', fechaInicio: '2026-09-08', fechaFin: '2026-09-18', posicion: 3, medalla: 'bronce', record: null, premios: [], fuente: OFICIAL };
     const llamar = llamarCon({ '04-seleccion-torneos': (clave) => (clave ? { ...VACIAS['04-seleccion-torneos'], torneosTerminados: [terminado, { ...terminado, nombre: 'Copa Challenger' }] } : { ...VACIAS['04-seleccion-torneos'], torneosMencionados: [{ nombre: 'Copa Panamericana', edicion: 2026 }] }) });

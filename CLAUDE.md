@@ -235,6 +235,8 @@ Cada plataforma (la llena el agente 05):
 }
 ```
 
+`fase`: hasta dónde llegó México (por ejemplo `"Fase de grupos"`). El sitio la muestra cuando `posicion` es `null`.
+
 Regla en código, no en la IA: se ordenan por `fechaFin` descendente y se guardan solo los `maximo` más recientes. Un torneo entra cuando el agente 04 lo reporta terminado.
 
 ### `data/rankings.json`
@@ -468,7 +470,7 @@ Jugadoras que aparecen en al menos una lista oficial reciente: el Campeonato Mun
 | `joseline-landeros` | Joseline Landeros | 12 | Líbero | Mundial 2025, Final Four 2026 |
 | `tanguma` | Tanguma (nombre por confirmar) | 13 | Central | Final Four 2026 |
 | `paola-rivera` | Paola Rivera | 15 | Acomodadora | Mundial 2025, Final Four 2026 |
-| `paulett-munoz` | Paulett Muñoz | 16 | Atacante en 2026; en 2025 aparecía como líbero (el agente 01 confirma que sea la misma Muñoz) | Mundial 2025, Final Four 2026 |
+| `paulett-munoz` | Paulet Muñoz | 16 | Atacante en 2026; en 2025 aparecía como líbero (el agente 01 confirma que sea la misma Muñoz) | Mundial 2025, Final Four 2026 |
 | `aime-topete` | Aime Topete | 20 | Atacante | Mundial 2025, Final Four 2026 |
 | `karina-flores` | Karina Flores | 33 | Central | Mundial 2025, Final Four 2026 |
 | `melanie-parra` | Melanie Parra | — | Atacante | Mundial 2025 |

@@ -30,6 +30,7 @@
           "premio": "Equipo ideal (punta)"
         }
       ],
+      "fase": null,
       "fuente": "https://norceca.net/2026%20Competition%20&%20Activities/Final%20Six/Women/News-Pages-Women%20Final%20Six.htm"
     },
     {
@@ -53,6 +54,7 @@
           "premio": "Equipo ideal (punta)"
         }
       ],
+      "fase": null,
       "fuente": "https://www.fivb.com/dominican-republic-and-mexico-claim-womens-pan-american-cup-silver-and-bronze-with-empowerment/"
     },
     {
@@ -72,7 +74,8 @@
           "premio": "Mejor saque"
         }
       ],
-      "fuente": "https://norceca.net/2026%20Competition%20"fuente": "https://norceca.info/event/2026-norceca-womens-continental-championship/"%20Activities/NORCECA%20Continental%20Championship%202026/Women/2026-%20Women%20Continental%20Championship.htm"
+      "fase": null,
+      "fuente": "https://norceca.net/2026%20Competition%20&%20Activities/NORCECA%20Continental%20Championship%202026/Women/2026-%20Women%20Continental%20Championship.htm"
     },
     {
       "id": "juegos-centroamericanos-y-del-caribe-2026",
@@ -86,6 +89,7 @@
       "medalla": null,
       "record": "4-2",
       "premios": [],
+      "fase": null,
       "fuente": "https://norceca.info/mexico-finishes-fifth-at-santo-domingo-2026/"
     },
     {
@@ -113,6 +117,7 @@
           "premio": "Mejor recepción"
         }
       ],
+      "fase": null,
       "fuente": "https://norceca.info/mexicos-sofia-maldonado-named-most-valuable-player-of-the-2026-norceca-womens-final-four/"
     },
     {
@@ -127,6 +132,7 @@
       "medalla": "plata",
       "record": "5-2",
       "premios": [],
+      "fase": null,
       "fuente": "https://norceca.net/2025%20Events%20&%20Activities/Events/Final%20Six/Women%20Final%20Six/2025%20NORCECA%20Women%20Final%206.htm"
     },
     {
@@ -141,6 +147,7 @@
       "medalla": null,
       "record": "1-2",
       "premios": [],
+      "fase": "Fase de grupos",
       "fuente": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/news/maldonado-fires-33-to-help-mexico-finish-on-a-high"
     }
   ]
