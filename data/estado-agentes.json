@@ -1,5 +1,265 @@
 {
-  "ultimaCorrida": null,
-  "revisado": {},
-  "pendientes": []
+  "ultimaCorrida": "2026-11-05T08:35:00-06:00",
+  "revisado": {
+    "rankings": "2026-11-05",
+    "perfil:uxue-guereca": "2026-11-05",
+    "perfil:samantha-bricio": "2026-11-05",
+    "perfil:sofia-maldonado": "2026-11-05",
+    "perfil:grecia-castro": "2026-11-05",
+    "dondever:proximo-torneo": "2026-11-05",
+    "dondever:serie-a1-it": "2026-11-05"
+  },
+  "pendientes": [],
+  "propuestas": [
+    {
+      "clave": "perfil:uxue-guereca:club:lovb miami|2026-27",
+      "seccion": "Perfiles",
+      "texto": "Uxue Guereca: club LOVB Miami (2026-27)",
+      "fuente": "https://auprosports.com/read/lovb-announces-new-signings-for-2027-season",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:uxue-guereca:club:ao markopoulo revoil|2024-25",
+      "seccion": "Perfiles",
+      "texto": "Uxue Guereca: club AO Markópoulo Revoil (2024-25)",
+      "fuente": "https://women.volleybox.net/uxue-guereca-p13878",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:uxue-guereca:club:new mexico univ|2023-24",
+      "seccion": "Perfiles",
+      "texto": "Uxue Guereca: club New Mexico Univ. (2023-24)",
+      "fuente": "https://women.volleybox.net/uxue-guereca-p13878",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:uxue-guereca:destacado:mejor atacante de la tauron liga polonia",
+      "seccion": "Perfiles",
+      "texto": "Uxue Guereca: Mejor Atacante de la Tauron Liga (Polonia)",
+      "fuente": "https://sports.yahoo.com/articles/lovb-miami-now-roster-first-170322750.html",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:uxue-guereca:destacado:debut con la seleccion mexicana mayor",
+      "seccion": "Perfiles",
+      "texto": "Uxue Guereca: Debut con la Selección Mexicana mayor",
+      "fuente": "https://www.lovb.com/teams/lovb-miami-volleyball/athletes/uxue-guereca",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:samantha-bricio:nombreCompleto:\"Samantha Bricio\"",
+      "seccion": "Perfiles",
+      "texto": "Samantha Bricio: nombreCompleto Samantha Bricio",
+      "fuente": "https://women.volleybox.net/samantha-bricio-p5050",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:samantha-bricio:fechaNacimiento:\"1994-11-22\"",
+      "seccion": "Perfiles",
+      "texto": "Samantha Bricio: fechaNacimiento 1994-11-22",
+      "fuente": "https://women.volleybox.net/samantha-bricio-p5050/movies?orderValue=add_date&orderDirection=asc",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:samantha-bricio:club:beijing arctic ocean|2026-27",
+      "seccion": "Perfiles",
+      "texto": "Samantha Bricio: club Beijing Arctic Ocean (2026-27)",
+      "fuente": "https://paralelo19.tv/deportes/2026/10/05/samantha-bricio-regresa-superliga-china-beijing-arctic-ocean",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:samantha-bricio:club:ilbank|2025-26",
+      "seccion": "Perfiles",
+      "texto": "Samantha Bricio: club İlbank (2025-26)",
+      "fuente": "https://paralelo19.tv/deportes/2026/10/05/samantha-bricio-regresa-superliga-china-beijing-arctic-ocean",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:samantha-bricio:club:fenerbahce|2024-25",
+      "seccion": "Perfiles",
+      "texto": "Samantha Bricio: club Fenerbahçe (2024-25)",
+      "fuente": "https://paralelo19.tv/deportes/2026/10/05/samantha-bricio-regresa-superliga-china-beijing-arctic-ocean",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:samantha-bricio:club:shanghai bright ubest|2023-24",
+      "seccion": "Perfiles",
+      "texto": "Samantha Bricio: club Shanghai Bright Ubest (2023-24)",
+      "fuente": "https://women.volleybox.net/samantha-bricio-p5050/movies",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:samantha-bricio:club:shanghai bright ubest|2022-23",
+      "seccion": "Perfiles",
+      "texto": "Samantha Bricio: club Shanghai Bright Ubest (2022-23)",
+      "fuente": "https://www.clarosports.com/otros-deportes/la-voleibolista-mexicana-samantha-bricio-tendra-una-nueva-aventura-en-asia",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:samantha-bricio:destacado:mvp de la supercopa italiana",
+      "seccion": "Perfiles",
+      "texto": "Samantha Bricio: MVP de la Supercopa Italiana",
+      "fuente": "https://women.volleybox.net/samantha-bricio-p5050/movies?orderValue=add_date&orderDirection=asc",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:sofia-maldonado:fechaNacimiento:\"2002-02-06\"",
+      "seccion": "Perfiles",
+      "texto": "Sofía Maldonado: fechaNacimiento 2002-02-06",
+      "fuente": "https://www.melhordovolei.com.br/2026/06/01/sesi-volei-bauru-anuncia-sofia-maldonado-atacante-destaque-em-liga-dos-eua",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:sofia-maldonado:estaturaCm:182",
+      "seccion": "Perfiles",
+      "texto": "Sofía Maldonado: estaturaCm 182",
+      "fuente": "https://www.melhordovolei.com.br/2026/06/01/sesi-volei-bauru-anuncia-sofia-maldonado-atacante-destaque-em-liga-dos-eua",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:sofia-maldonado:club:sesi volei bauru|2026-27",
+      "seccion": "Perfiles",
+      "texto": "Sofía Maldonado: club Sesi Vôlei Bauru (2026-27)",
+      "fuente": "https://www.sesisp.org.br/noticia/sesi-volei-bauru-vence-batavo-mackenzie-na-estreia-da-superliga",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:sofia-maldonado:club:dallas pulse|2025-26",
+      "seccion": "Perfiles",
+      "texto": "Sofía Maldonado: club Dallas Pulse (2025-26)",
+      "fuente": "https://ge.globo.com/sp/tem-esporte/volei/noticia/2026/06/01/sesi-bauru-contrata-a-mexicana-sofia-maldonado-mvp-da-liga-dos-eua.ghtml",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:sofia-maldonado:club:louisville cardinals|2024-25",
+      "seccion": "Perfiles",
+      "texto": "Sofía Maldonado: club Louisville Cardinals (2024-25)",
+      "fuente": "https://www.melhordovolei.com.br/2026/06/01/sesi-volei-bauru-anuncia-sofia-maldonado-atacante-destaque-em-liga-dos-eua",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:sofia-maldonado:club:arizona wildcats|2023-24",
+      "seccion": "Perfiles",
+      "texto": "Sofía Maldonado: club Arizona Wildcats (2023-24)",
+      "fuente": "https://www.olimpiadatododia.com.br/volei/746450-sesi-bauru-acerta-contratacao-de-destaque-mexicana-para-2026-27",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:sofia-maldonado:destacado:mvp de la final de la major league volleyball",
+      "seccion": "Perfiles",
+      "texto": "Sofía Maldonado: MVP de la final de la Major League Volleyball",
+      "fuente": "https://www.olimpiadatododia.com.br/volei/746450-sesi-bauru-acerta-contratacao-de-destaque-mexicana-para-2026-27",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:sofia-maldonado:destacado:campeona de la major league volleyball",
+      "seccion": "Perfiles",
+      "texto": "Sofía Maldonado: Campeona de la Major League Volleyball",
+      "fuente": "https://www.olimpiadatododia.com.br/volei/746450-sesi-bauru-acerta-contratacao-de-destaque-mexicana-para-2026-27",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:sofia-maldonado:destacado:mejor atacante ponteira de la ncaa",
+      "seccion": "Perfiles",
+      "texto": "Sofía Maldonado: Mejor atacante (ponteira) de la NCAA",
+      "fuente": "https://www.olimpiadatododia.com.br/volei/746450-sesi-bauru-acerta-contratacao-de-destaque-mexicana-para-2026-27",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:sofia-maldonado:destacado:vice campeona de la ncaa",
+      "seccion": "Perfiles",
+      "texto": "Sofía Maldonado: Vice-campeona de la NCAA",
+      "fuente": "https://www.melhordovolei.com.br/2026/06/01/sesi-volei-bauru-anuncia-sofia-maldonado-atacante-destaque-em-liga-dos-eua",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:grecia-castro:fechaNacimiento:\"2001-03-05\"",
+      "seccion": "Perfiles",
+      "texto": "Grecia Castro: fechaNacimiento 2001-03-05",
+      "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:grecia-castro:origen:{\"ciudad\":null,\"estado\":\"Sinaloa\",\"pais\":\"México\"}",
+      "seccion": "Perfiles",
+      "texto": "Grecia Castro: origen {\"ciudad\":null,\"estado\":\"Sinaloa\",\"pais\":\"México\"}",
+      "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:grecia-castro:estaturaCm:180",
+      "seccion": "Perfiles",
+      "texto": "Grecia Castro: estaturaCm 180",
+      "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:grecia-castro:club:tijuca tenis clube|2025-26",
+      "seccion": "Perfiles",
+      "texto": "Grecia Castro: club Tijuca Tênis Clube (2025-26)",
+      "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:grecia-castro:club:avarca de menorca|2024-25",
+      "seccion": "Perfiles",
+      "texto": "Grecia Castro: club Avarca de Menorca (2024-25)",
+      "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:grecia-castro:club:vitoria sc|2022-23",
+      "seccion": "Perfiles",
+      "texto": "Grecia Castro: club Vitória SC (2022-23)",
+      "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:grecia-castro:club:ireris uruapan|2019-20",
+      "seccion": "Perfiles",
+      "texto": "Grecia Castro: club Ireris Uruapan (2019-20)",
+      "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:grecia-castro:destacado:medallista de bronce en los xix juegos panamericanos",
+      "seccion": "Perfiles",
+      "texto": "Grecia Castro: Medallista de bronce en los XIX Juegos Panamericanos",
+      "fuente": "https://deportesmenorca.com/2024/05/10/grecia-castro-nueva-incorporacion-para-el-avarca-menorca",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "plataforma:serie-a1-it:https://www.dazn.com/",
+      "seccion": "Plataformas nuevas",
+      "texto": "Serie A1 femminile: DAZN",
+      "fuente": "https://www.youtube.com/watch?v=A4LupRHEcS0",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "plataforma:serie-a1-it:https://www.youtube.com/@legavolleyfemminile",
+      "seccion": "Plataformas nuevas",
+      "texto": "Serie A1 femminile: Lega Volley Femminile YouTube",
+      "fuente": "https://www.youtube.com/watch?v=A4LupRHEcS0",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "plataforma:serie-a1-it:https://www.raiplay.it/",
+      "seccion": "Plataformas nuevas",
+      "texto": "Serie A1 femminile: Rai Sport / RaiPlay",
+      "fuente": "https://note.com/kumikopallavolo/n/n4d88acc585f0?hl=en",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "temporada:serie-a1-it:2026-27",
+      "seccion": "Plataformas nuevas",
+      "texto": "Serie A1 femminile: temporada 2026-27",
+      "fuente": null,
+      "fecha": "2026-11-05"
+    }
+  ],
+  "rechazos": [],
+  "tavily": {
+    "mes": "2026-11",
+    "creditos": 197
+  }
 }

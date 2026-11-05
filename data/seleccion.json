@@ -3,7 +3,37 @@
     "nombre": "Nicola Negro",
     "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
   },
-  "proximoTorneo": null,
-  "plataformas": [],
-  "revisado": null
+  "proximoTorneo": {
+    "id": "copa-del-mundo-femenina-de-voleibol-de-la-fivb-2027",
+    "nombre": "Copa del Mundo Femenina de Voleibol de la FIVB",
+    "edicion": 2027,
+    "ciudad": "Montreal, Omaha, Orlando, Quebec, Anaheim",
+    "pais": "Canadá, Estados Unidos",
+    "fechaInicio": "2027-08-20",
+    "fechaFin": "2027-09-05",
+    "fuente": "https://www.fivb.com/es/equipos-clasificados-confirmados-para-la-copa-del-mundo-femenina-de-voleibol-de-la-fivb-de-2027"
+  },
+  "plataformas": [
+    {
+      "nombre": "VBTV",
+      "tipo": "streaming",
+      "url": "https://play.google.com/store/apps/details?id=dce.fivb.volleyballtv&hl=es_MX",
+      "alcance": "mundial",
+      "costo": "pago",
+      "notas": "Plataforma oficial de la FIVB para ver partidos en vivo y bajo demanda.",
+      "fuente": "https://play.google.com/store/apps/details?id=dce.fivb.volleyballtv&hl=es_MX",
+      "revisado": "2026-11-05"
+    },
+    {
+      "nombre": "Volleyball World (YouTube)",
+      "tipo": "youtube",
+      "url": "https://www.youtube.com/c/volleyballworld",
+      "alcance": "mundial",
+      "costo": "gratis",
+      "notas": "Canal oficial donde se publican resúmenes y clips destacados de torneos FIVB.",
+      "fuente": "https://www.youtube.com/c/volleyballworld",
+      "revisado": "2026-11-05"
+    }
+  ],
+  "revisado": "2026-11-05"
 }
