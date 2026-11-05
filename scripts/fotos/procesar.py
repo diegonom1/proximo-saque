@@ -59,8 +59,8 @@ MODELOS_RECORTE = (MODELO_DEFECTO, "birefnet-general")
 
 # Memoria: no se carga un modelo con menos de esto disponible. Medido en 14 GB de RAM: cada modelo
 # llega a 9.1 GB en la inferencia, sin importar hilos, arena ni tamaño de la foto, porque la red
-# siempre trabaja a 1024 × 1024. Entre 6 y 9.1 GB disponibles el sistema tira de la memoria swap.
-MIN_MEMORIA_GB = 6
+# siempre trabaja a 1024 × 1024. Por eso el mínimo va por encima de ese pico.
+MIN_MEMORIA_GB = 10
 ONNX_HILOS = 4
 # Lado largo de la copia para la inferencia.
 INFERENCIA_LADO = 1600

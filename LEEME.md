@@ -31,7 +31,7 @@ Dejen las fotos tal cual en `fotos-originales/<slug>/` (cualquier nombre y forma
 npm run fotos
 ```
 
-La primera vez crea un entorno de Python y descarga el modelo de recorte (cerca de 1 GB), así que tarda unos minutos. Después solo procesa las fotos que cambiaron. Necesita 6 GB de memoria disponibles: si no los hay, avisa y no carga el modelo, así que cierren Chrome y vuelvan a correrlo.
+La primera vez crea un entorno de Python y descarga el modelo de recorte (cerca de 1 GB), así que tarda unos minutos. Después solo procesa las fotos que cambiaron. Necesita 10 GB de memoria disponibles: si no los hay, avisa y no carga el modelo, así que cierren Chrome y vuelvan a correrlo.
 
 Genera en `src/assets/fotos/`:
 
