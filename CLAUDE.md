@@ -439,8 +439,8 @@ Detalles técnicos:
 
 Ambos usan Node 24: `actions/setup-node` con `node-version-file: .nvmrc`.
 
-- `actualizar.yml`: `schedule` lunes 06:17 de Tonalá (`17 12 * * 1` en UTC) y `workflow_dispatch`. Secretos `GEMINI_API_KEY` y `TAVILY_API_KEY`, variables `GEMINI_MODELOS`, `MAX_LLAMADAS` y `BUSQUEDA`. Después del commit, construye y despliega en el mismo workflow: un push hecho con `GITHUB_TOKEN` no dispara otros workflows.
-- `deploy.yml`: en push a `main` (por ejemplo al aprobar el PR), `astro build` y despliegue a Pages (`actions/upload-pages-artifact` + `actions/deploy-pages`; en Settings → Pages, fuente *GitHub Actions*). Configurar `site` y `base` de Astro según el nombre del repo.
+- `actualizar.yml`: `schedule` lunes 06:17 de Tonalá (`17 12 * * 1` en UTC) y `workflow_dispatch`. La programada solo corre con la variable `CORRIDA_PROGRAMADA` en `true`; a mano siempre corre. Secretos `GEMINI_API_KEY` y `TAVILY_API_KEY`, variables `GEMINI_MODELOS`, `MAX_LLAMADAS` y `BUSQUEDA`. Después del commit, construye y despliega en el mismo workflow, llamando a `deploy.yml`: un push hecho con `GITHUB_TOKEN` no dispara otros workflows.
+- `deploy.yml`: en push a `main` (por ejemplo al aprobar el PR), `astro build` y despliegue a Pages (`actions/upload-pages-artifact` + `actions/deploy-pages`; en Settings → Pages, fuente *GitHub Actions*). `site` y `base` están en `astro.config.mjs`: si cambia el nombre del repo, hay que cambiar `base`.
 
 ## Fases
 

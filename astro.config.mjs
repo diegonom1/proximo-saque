@@ -1,8 +1,9 @@
 import { defineConfig, fontProviders } from 'astro/config';
 import { fotosSinCredito } from './scripts/lib/fotos-sin-credito.mjs';
 
-// `site` y `base` se configuran en la fase 5, cuando exista el repo en GitHub.
 export default defineConfig({
+  site: 'https://diegonom1.github.io',
+  base: '/proximo-saque', // GitHub Pages sirve el sitio bajo el nombre del repo
   output: 'static',
   vite: {
     plugins: [fotosSinCredito()],
