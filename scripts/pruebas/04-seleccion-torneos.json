@@ -1,0 +1,16 @@
+{
+  "fuentes": ["https://norceca.info/calendario", "https://www.fivb.com/mundial-2025"],
+  "respuestas": {
+    "*": {
+      "proximoTorneo": { "nombre": "Copa Panamericana", "edicion": 2027, "ciudad": "Lima", "pais": "Perú", "fechaInicio": "{{HOY+20}}", "fechaFin": "{{HOY+27}}", "fuente": "https://norceca.info/calendario", "confianza": "alta" },
+      "partidos": [
+        { "fecha": "{{HOY+20}}", "hora": "19:00", "zonaHoraria": "America/Lima", "zonaSede": "America/Lima", "local": "México", "visitante": "Rival de ejemplo", "mexico": "local", "torneo": "Copa Panamericana", "fase": "Fase de grupos", "sede": "Lima", "fuente": "https://norceca.info/calendario", "confianza": "alta" }
+      ],
+      "convocadas": null,
+      "torneosTerminados": [
+        { "nombre": "Campeonato Mundial", "edicion": 2025, "ciudad": "Phuket", "pais": "Tailandia", "fechaInicio": "2025-08-22", "fechaFin": "2025-09-07", "posicion": 25, "medalla": null, "record": "0-3", "premios": [], "fuente": "https://www.fivb.com/mundial-2025", "confianza": "alta" }
+      ],
+      "motivo": null
+    }
+  }
+}

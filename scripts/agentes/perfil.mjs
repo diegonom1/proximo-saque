@@ -1,0 +1,174 @@
+// Agente 02: ficha de una jugadora.
+
+import { z } from 'zod';
+import { confianza, consultar, textoN, validos } from './comun.mjs';
+import { normal } from '../lib/fusion.mjs';
+import { slugDe } from '../lib/nombres.mjs';
+import { zonaValida } from '../lib/tiempo.mjs';
+
+export const AGENTE = '02-perfil';
+
+const POSICIONES = ['Acomodadora', 'Opuesta', 'Atacante', 'Central', 'Líbero'];
+const REDES = ['instagram', 'tiktok', 'x', 'facebook', 'youtube'];
+const campo = z.object({ valor: z.unknown(), fuente: textoN, confianza, motivo: textoN }).nullable().optional();
+const esquema = z.object({
+  slug: z.string(),
+  nombreCompleto: campo,
+  fechaNacimiento: campo,
+  origen: campo,
+  estaturaCm: campo,
+  posicion: campo,
+  club: campo,
+  historialClubes: z.array(z.unknown()).nullable().optional(),
+  redes: z.array(z.unknown()).nullable().optional(),
+  destacados: z.array(z.unknown()).nullable().optional(),
+  dudas: z.array(z.unknown()).nullable().optional(),
+});
+const esquemaOrigen = z.object({ ciudad: textoN, estado: textoN, pais: textoN });
+const esquemaClub = z.object({ nombre: z.string().min(1), liga: textoN, pais: textoN, ciudad: textoN, zonaHoraria: textoN, sitio: textoN, volleybox: textoN });
+const esquemaHistorial = z.object({ club: z.string().min(1), pais: textoN, temporada: textoN, fuente: z.string() });
+const esquemaRed = z.object({ red: z.enum(REDES), url: z.url(), fuente: z.string() });
+const esquemaDestacado = z.object({ texto: z.string().min(1), anio: z.number().int().nullable().optional(), fuente: z.string() });
+
+const VALIDADORES = {
+  nombreCompleto: (v) => (typeof v === 'string' && v.trim().length > 3 ? v.trim() : null),
+  fechaNacimiento(v, ctx) {
+    if (!z.iso.date().safeParse(v).success) return null;
+    const edad = Number(ctx.hoy.slice(0, 4)) - Number(v.slice(0, 4));
+    return edad >= 15 && edad <= 50 ? v : null; // fuera de eso casi seguro es otra persona
+  },
+  origen(v) {
+    const r = esquemaOrigen.safeParse(v);
+    if (!r.success || !(r.data.ciudad || r.data.estado || r.data.pais)) return null;
+    return { ciudad: r.data.ciudad ?? null, estado: r.data.estado ?? null, pais: r.data.pais ?? null };
+  },
+  estaturaCm: (v) => (Number.isInteger(v) && v >= 150 && v <= 215 ? v : null),
+  posicion: (v) => (POSICIONES.includes(v) ? v : null),
+};
+
+function buscarClub(clubes, nombre) {
+  const n = normal(nombre);
+  return Object.entries(clubes).find(([, c]) => [c.nombre, ...c.alias].some((a) => normal(a) === n))?.[0] ?? null;
+}
+
+function buscarLiga(ligas, nombre) {
+  const n = normal(nombre ?? '');
+  return Object.entries(ligas).find(([, l]) => normal(l.nombre) === n)?.[0] ?? null;
+}
+
+function crearClub(ctx, valor) {
+  const { clubes, ligas } = ctx.datos;
+  let ligaId = buscarLiga(ligas, valor.liga);
+  if (!ligaId && valor.liga) {
+    ligaId = slugDe(`${valor.liga} ${valor.pais ?? ''}`);
+    ligas[ligaId] = { nombre: valor.liga, pais: valor.pais ?? null, temporada: null, calendarioOficialUrl: null, plataformas: [], revisado: null };
+  }
+  const id = slugDe(valor.nombre);
+  clubes[id] = {
+    nombre: valor.nombre,
+    alias: [],
+    ligaId,
+    pais: valor.pais ?? null,
+    ciudad: valor.ciudad ?? null,
+    zona: valor.zonaHoraria,
+    volleybox: { url: valor.volleybox ?? null, widgetId: null },
+    sitio: valor.sitio ?? null,
+    calendarioUrl: null,
+  };
+  return id;
+}
+
+async function cambiarClub(ctx, j, c, verificar) {
+  if (!c?.valor) return;
+  const r = esquemaClub.safeParse(c.valor);
+  const fuente = await verificar(c.fuente);
+  if (!r.success || !fuente) {
+    ctx.reporte.descarto(AGENTE, `club de ${j.nombre}`, !r.success ? 'formato inválido' : 'sin fuente verificable');
+    return;
+  }
+  const valor = r.data;
+  const id = buscarClub(ctx.datos.clubes, valor.nombre);
+  if (id === j.clubId) {
+    j.fuentes.clubId = fuente;
+    return;
+  }
+  if (c.confianza === 'baja') {
+    ctx.reporte.agregarPr('Dudas', `Posible cambio de club de ${j.nombre}: ${valor.nombre}`, fuente);
+    return;
+  }
+  if (!id && !zonaValida(valor.zonaHoraria)) {
+    ctx.reporte.agregarPr('Dudas', `${j.nombre} estaría en ${valor.nombre}, pero falta su zona horaria`, fuente);
+    return;
+  }
+  const antes = j.clubId ? ctx.datos.clubes[j.clubId]?.nombre : 'sin club';
+  j.clubId = id ?? crearClub(ctx, valor);
+  j.fuentes.clubId = fuente;
+  ctx.reporte.agregarPr('Cambios de club', `${j.nombre}: ${antes} → ${valor.nombre}`, fuente);
+}
+
+async function conFuente(lista, verificar) {
+  const salida = [];
+  for (const x of lista) {
+    const fuente = await verificar(x.fuente);
+    if (fuente) salida.push({ ...x, fuente });
+  }
+  return salida;
+}
+
+export async function correr(ctx, slug) {
+  const j = ctx.datos.jugadoras.find((x) => x.slug === slug);
+  if (!j) throw new Error(`no existe ${slug}`);
+  const club = j.clubId ? ctx.datos.clubes[j.clubId] : null;
+  const campos = ['nombreCompleto', 'fechaNacimiento', 'origen', 'estaturaCm'];
+  const entrada = {
+    jugadora: { slug, nombre: j.nombre, posicion: j.posicion, club: club ? `${club.nombre} (${club.pais})` : null },
+    conocido: {
+      ...(club && j.fuentes.clubId ? { club: { valor: club.nombre, fuente: j.fuentes.clubId } } : {}),
+      ...Object.fromEntries(campos.filter((c) => j[c] !== null).map((c) => [c, { valor: j[c], fuente: j.fuentes[c] ?? null }])),
+    },
+    faltan: [...campos.filter((c) => j[c] === null), ...(club ? [] : ['club']), 'historialClubes', 'redes', 'destacados'],
+  };
+  const { respuesta, verificar } = await consultar(ctx, AGENTE, slug, entrada, esquema);
+  if (respuesta.slug !== slug) throw new Error(`la respuesta es de ${respuesta.slug}, no de ${slug}`);
+
+  let datosNuevos = 0;
+  for (const [nombre, validar] of Object.entries(VALIDADORES)) {
+    const c = respuesta[nombre];
+    if (c?.valor == null) continue;
+    const valor = validar(c.valor, ctx);
+    const fuente = await verificar(c.fuente);
+    if (valor === null || !fuente) {
+      ctx.reporte.descarto(AGENTE, `${nombre} de ${j.nombre}`, valor === null ? 'valor inválido' : 'sin fuente verificable');
+      continue;
+    }
+    j[nombre] = valor;
+    j.fuentes[nombre] = fuente;
+    datosNuevos += 1;
+  }
+  await cambiarClub(ctx, j, respuesta.club, verificar);
+
+  const descartar = (etiqueta) => () => ctx.reporte.descarto(AGENTE, `${etiqueta} de ${j.nombre}`, 'formato inválido');
+  const historial = await conFuente(validos(respuesta.historialClubes, esquemaHistorial, descartar('club')), verificar);
+  if (historial.length) j.historialClubes = historial.map((h) => ({ club: h.club, pais: h.pais ?? null, temporada: h.temporada ?? null, fuente: h.fuente }));
+  const redes = await conFuente(validos(respuesta.redes, esquemaRed, descartar('red')), verificar);
+  if (redes.length) j.redes = redes;
+  const destacados = await conFuente(validos(respuesta.destacados, esquemaDestacado, descartar('destacado')), verificar);
+  if (destacados.length) j.destacados = destacados.slice(0, 6).map((d) => ({ texto: d.texto, anio: d.anio ?? null, fuente: d.fuente }));
+
+  for (const d of respuesta.dudas ?? []) ctx.reporte.agregarPr('Dudas', `${j.nombre}: ${typeof d === 'string' ? d : JSON.stringify(d)}`);
+  j.revisado = ctx.hoy;
+  ctx.datos.estado.revisado[`perfil:${slug}`] = ctx.hoy;
+  ctx.reporte.encontro(AGENTE, `${j.nombre}: ${datosNuevos} dato(s) verificado(s)`);
+}
+
+// Altas nuevas primero; luego las 4 con revisión más vieja. La fecha sale de estado-agentes.json,
+// que se guarda directo: si un PR tarda en aprobarse, la rotación sigue avanzando.
+export function porRevisar(jugadoras, altas, revisado) {
+  const fecha = (j) => revisado[`perfil:${j.slug}`] ?? j.revisado ?? '';
+  const viejas = jugadoras
+    .filter((j) => j.estado === 'activa' && !altas.includes(j.slug))
+    .sort((a, b) => fecha(a).localeCompare(fecha(b)))
+    .slice(0, 4)
+    .map((j) => j.slug);
+  return [...altas, ...viejas];
+}

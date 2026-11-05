@@ -267,7 +267,8 @@ export function convertir(p, club, origen, ahora = Date.now()) {
   const visitante = limpio(p.visitante);
   const nuestro = p.nuestro === 'local' || p.nuestro === 'visita' ? p.nuestro : ladoNuestro({ local, visitante }, club);
   const zonaFuente = p.zonaHoraria ?? club.zona;
-  const zonaSede = p.zonaSede ?? (nuestro === 'local' ? club.zona : null);
+  const zonaLocal = 'zonaLocal' in club ? club.zonaLocal : club.zona;
+  const zonaSede = p.zonaSede ?? (nuestro === 'local' ? zonaLocal : null);
 
   const conDesfase = typeof p.inicio === 'string' && RE_ISO.test(p.inicio);
   let confirmada = p.horaConfirmada !== false;
@@ -318,4 +319,22 @@ export function convertir(p, club, origen, ahora = Date.now()) {
   if (p.eliminar) partido.eliminar = true;
   Object.defineProperty(partido, 'ms', { value: ms, enumerable: false });
   return partido;
+}
+
+// Partido de la Selección: mismas reglas, sin club. México no tiene una zona propia:
+// sin zonaSede queda null aunque juegue de local. `mexico` es el lado de México.
+export function convertirSeleccion(p, torneoId, origen, ahora = Date.now()) {
+  if (!p || typeof p !== 'object') return null;
+  const zona = zonaValida(p.zonaHoraria) ? p.zonaHoraria : (zonaValida(p.zonaSede) ? p.zonaSede : 'America/Mexico_City');
+  const entidad = { id: 'seleccion', zona, zonaLocal: null, nombre: 'México', alias: [], ligaId: null };
+  const partido = convertir({ ...p, competencia: p.competencia ?? p.torneo, nuestro: p.mexico ?? p.nuestro }, entidad, origen, ahora);
+  if (!partido) return null;
+  return Object.defineProperty({
+    ...partido,
+    id: `seleccion-${fechaEnZona(partido.ms, partido.zonaSede ?? zona)}`,
+    tipo: 'seleccion',
+    clubId: null,
+    torneoId,
+    convocadas: Array.isArray(p.convocadas) ? p.convocadas : null,
+  }, 'ms', { value: partido.ms, enumerable: false });
 }

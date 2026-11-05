@@ -59,6 +59,14 @@ El recorte usa `birefnet-general`. Para cambiarlo en una jugadora, creen `fotos-
 - El script no quita marcas de agua, pero un recorte puede dejar fuera una que esté en la orilla. Respeten los permisos de cada foto.
 - Si no tienen todas las fotos, no pasa nada: el sitio pone iniciales y número mientras tanto.
 
+## Probar los agentes sin gastar llamadas
+
+```
+npm run agentes:simulado
+```
+
+Corre todo el proceso con respuestas guardadas en `scripts/pruebas/` y muestra qué encontró y qué descartó, sin escribir nada en `data/`.
+
 ## Antes de la fase 5
 
 - Saquen una clave gratis de la API de Gemini en [Google AI Studio](https://aistudio.google.com/). Es aparte de su plan de estudiante.

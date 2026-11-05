@@ -1,0 +1,18 @@
+{
+  "fuentes": ["https://volleybox.net/es/ficha"],
+  "respuestas": {
+    "*": {
+      "slug": "{{CLAVE}}",
+      "nombreCompleto": { "valor": null, "fuente": null, "confianza": null, "motivo": "No aparece" },
+      "fechaNacimiento": { "valor": "2000-05-10", "fuente": "https://volleybox.net/es/ficha", "confianza": "alta", "motivo": null },
+      "origen": { "valor": null, "fuente": null, "confianza": null, "motivo": "No aparece" },
+      "estaturaCm": { "valor": 183, "fuente": "https://volleybox.net/es/ficha", "confianza": "alta", "motivo": null },
+      "posicion": { "valor": null, "fuente": null, "confianza": null, "motivo": null },
+      "club": { "valor": null, "fuente": null, "confianza": null, "motivo": "Sin cambios" },
+      "historialClubes": [],
+      "redes": [],
+      "destacados": [],
+      "dudas": []
+    }
+  }
+}

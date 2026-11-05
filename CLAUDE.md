@@ -42,7 +42,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  └─ manual.json           correcciones humanas; siempre ganan
 ├─ scripts/
 │  ├─ agentes/              correr.mjs (orquestador) + un módulo por agente
-│  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs
+│  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, nombres.mjs, fotos-sin-credito.mjs
 │  ├─ pruebas/              respuestas simuladas por agente (IA_SIMULADA)
 │  └─ fotos/                procesar.py (npm run fotos): prepara las fotos, solo en local
 ├─ src/
@@ -394,7 +394,9 @@ Detalles técnicos:
 - Presupuesto: `MAX_LLAMADAS` por corrida (por defecto 20). Lo que no cabe va a `estado-agentes.json → pendientes`. Los límites gratis los cambia Google seguido; se revisan en AI Studio.
 - Llamada: `system_instruction` + `contents` + `tools: [{ google_search: {} }]`. `temperature: 0` en modelos 2.5; en Gemini 3 se deja la temperatura por defecto (Google lo recomienda). Pedir el JSON en el texto y extraerlo (`extraerJSON` del v1); no combinar `responseSchema` con `google_search` si el modelo no lo soporta.
 - Reintentos ante 429/5xx con espera creciente; pausa de 8 s entre llamadas.
-- `IA_SIMULADA=scripts/pruebas/` usa respuestas guardadas (un JSON por agente, basados en los ejemplos de `agentes/`) para probar sin gastar llamadas.
+- `IA_SIMULADA=scripts/pruebas` usa respuestas guardadas (un JSON por agente, basados en los ejemplos de `agentes/`) para probar sin gastar llamadas ni usar la red. Aceptan `{{HOY+3}}` y `{{CLAVE}}` para no caducar. `npm run agentes:simulado` lo corre con `--seco`, que muestra el resumen sin escribir nada.
+- `DIAS_ADELANTE` (por defecto 45): rango de búsqueda de partidos.
+- Cada tarea corre aislada: si falla o deja datos que no validan, se deshace todo lo que hizo, incluido lo anotado para el PR.
 - Resumen por agente en `GITHUB_STEP_SUMMARY` (qué encontró, qué descartó y por qué).
 
 ### Validación (código, no IA)
@@ -406,11 +408,18 @@ Detalles técnicos:
 - Nombres: el `slug` que propone el agente se acepta solo si el apellido coincide (comparado sin acentos ni mayúsculas). Si una lista trae solo apellidos, se fusiona cuando el apellido es único en la plantilla; si no, va a dudas del PR.
 - Torneos: máximo 7 por fecha de fin; sin duplicados por `id` (`<organizador>-<torneo>-<edicion>`).
 - Si un agente falla o su respuesta no valida, se conservan los datos anteriores y se avisa en el resumen.
+- Fuentes oficiales para un alta: `fmvb.org`, `norceca.net`, `norceca.info`, `fivb.com`, `fivb.org`, `volleyballworld.com`, `panamsports.org`, `centrocaribesports.org`.
+- Un torneo ya guardado no se pisa: el agente solo completa los campos vacíos. Un cambio de club con confianza baja va a dudas.
+- Un partido de la Selección sin `zonaSede` la deja en `null`, aunque México juegue de local.
 
 ### Qué se guarda solo y qué se aprueba
 
 - **Commit directo**: `partidos.json`, `rankings.json`, `seleccion.json`, `estado-agentes.json`.
 - **Pull Request de revisión semanal** (rama `revision-semanal`, uno abierto a la vez; si ya existe se actualiza): cambios en `jugadoras.json`, `clubes.json`, `ligas.json` y `torneos.json`. El cuerpo del PR resume altas, bajas, cambios de club, plataformas nuevas, torneos nuevos y dudas, cada uno con su fuente. Un alta crea también `src/assets/fotos/jugadoras/<slug>/.gitkeep`. Se aprueba desde la app de GitHub en el celular.
+- Lo que se guarda directo debe ser válido contra los archivos del PR sin aprobar: `partidos.json` no puede citar un club que solo existe en el PR. Por eso la rotación de los agentes 02 y 05 sale de `estado-agentes.json`, no de los `revisado` de `jugadoras.json` y `ligas.json`.
+- Un alta entra como `propuesta` por el PR. Si la siguiente corrida la encuentra en `main`, el PR se aprobó y pasa a `activa`.
+- Cuando se confirma el nombre de `ovalle` o `tanguma`, el agente actualiza `nombre` y avisa en dudas; renombrar `slug` y carpeta es a mano.
+- El cuerpo del PR se escribe en `revision-semanal.md` (fuera del repo).
 - Requisito: en el repo, Settings → Actions → General → *Allow GitHub Actions to create and approve pull requests*. Usar `peter-evans/create-pull-request`.
 
 ### Workflows

@@ -1,0 +1,15 @@
+{
+  "fuentes": ["https://cbv.com.br/tabela"],
+  "respuestas": {
+    "sesi-bauru": {
+      "clubId": "sesi-bauru",
+      "partidos": [
+        { "fecha": "{{HOY+6}}", "hora": "21:00", "zonaHoraria": "America/Sao_Paulo", "zonaSede": "America/Sao_Paulo", "local": "Sesi Vôlei Bauru", "visitante": "Rival de ejemplo", "nuestro": "local", "competencia": "Superliga Feminina", "fase": "Rodada 7", "sede": "Bauru", "fuente": "https://cbv.com.br/tabela", "confianza": "alta", "transmision": [] }
+      ],
+      "noEncontrados": [],
+      "estadoTemporada": { "texto": null, "fuente": null },
+      "motivo": null
+    },
+    "*": { "clubId": "{{CLAVE}}", "partidos": [], "noEncontrados": [], "estadoTemporada": { "texto": null, "fuente": null }, "motivo": "Sin partidos en el rango" }
+  }
+}

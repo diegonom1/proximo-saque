@@ -1,0 +1,20 @@
+{
+  "fuentes": ["https://norceca.info/final-six-2026-roster"],
+  "respuestas": {
+    "*": {
+      "listas": [
+        {
+          "torneo": "NORCECA Final Six 2026", "tipo": "torneo", "fechaFin": "2026-09-27", "fuente": "https://norceca.info/final-six-2026-roster", "completa": false,
+          "jugadoras": [
+            { "nombre": "Sofía Maldonado", "numero": 3, "posicion": "Atacante", "capitana": false, "club": null, "slug": "sofia-maldonado" },
+            { "nombre": "Nombre Apellido", "numero": 9, "posicion": "Central", "capitana": false, "club": null, "slug": null }
+          ]
+        }
+      ],
+      "ultimasApariciones": [],
+      "bajas": [],
+      "entrenador": { "nombre": "Nicola Negro", "fuente": "https://norceca.info/final-six-2026-roster" },
+      "dudas": []
+    }
+  }
+}

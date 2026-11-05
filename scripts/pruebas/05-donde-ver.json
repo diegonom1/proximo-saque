@@ -1,0 +1,14 @@
+{
+  "fuentes": ["https://www.youtube.com/@canal"],
+  "respuestas": {
+    "*": {
+      "competencia": "Competencia de ejemplo",
+      "temporada": "2026-27",
+      "plataformas": [
+        { "nombre": "Canal de ejemplo", "tipo": "youtube", "url": "https://www.youtube.com/@canal", "alcance": "mundial", "costo": "gratis", "notas": null, "fuente": "https://www.youtube.com/@canal", "confianza": "alta" }
+      ],
+      "calendarioOficialUrl": null,
+      "motivo": null
+    }
+  }
+}
