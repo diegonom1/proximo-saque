@@ -1203,6 +1203,30 @@ describe('calendario del club: lo que Gemini omite', () => {
   });
 });
 
+describe('perfiles: lo que ya tenemos', () => {
+  const BOLETIN = 'https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf';
+  const corre = (valor, fuente = BOLETIN) => correr({
+    dirDatos: dir, dirFotos: fotos, verificar: async () => null, ahora: AHORA,
+    llamar: llamarCon({ '02-perfil': (clave) => (clave === 'sofia-maldonado' ? { slug: clave, nombreCompleto: { valor, fuente, confianza: 'alta' } } : undefined) }),
+    buscador: { investigar: async () => ({ resultados: [{ url: 'https://a.mx/sofia-maldonado', titulo: 'Sofía Maldonado', contenido: 'x' }] }), resumen: async () => ({ proveedor: 'Tavily', corrida: 1, mes: 1, limite: 800 }), usarPrevios: () => {} },
+  });
+  it('el mismo nombre no se descarta aunque su fuente no venga en los resultados', async () => {
+    const r = await corre('Sofía Maldonado Díaz');
+    expect(r.resumen).not.toContain('nombreCompleto de Sofía');
+    expect((await jugadora('sofia-maldonado')).fuentes.nombreCompleto).toBe(BOLETIN);
+  });
+  it('tampoco si solo cambian los acentos, y no los pisa', async () => {
+    const r = await corre('Sofia Maldonado Diaz', 'https://a.mx/sofia-maldonado');
+    expect(r.resumen).not.toContain('nombreCompleto de Sofía');
+    expect((await jugadora('sofia-maldonado')).nombreCompleto).toBe('Sofía Maldonado Díaz');
+  });
+  it('un nombre distinto sin fuente válida sí se descarta', async () => {
+    const r = await corre('Sofía Maldonado Pérez');
+    expect(r.resumen).toContain('Descartado: nombreCompleto de Sofía Maldonado: la fuente no pasó');
+    expect((await jugadora('sofia-maldonado')).nombreCompleto).toBe('Sofía Maldonado Díaz');
+  });
+});
+
 describe('perfiles: un listado no es fuente', () => {
   const LISTADO = 'https://women.volleybox.net/players?country=MX';
   it('rechaza el listado aunque nombre a la jugadora', async () => {

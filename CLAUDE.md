@@ -486,4 +486,4 @@ Jugadoras que aparecen en al menos una lista oficial reciente: el Campeonato Mun
 | `melanie-parra` | Melanie Parra | — | Atacante | Mundial 2025 |
 | `ximena-solar` | Ximena Solar | — | Central | Mundial 2025 |
 
-Nombres completos según el boletín: Uxue Amaya Guereca Parra, Sofía Maldonado Díaz, Grecia Esther Castro López, Gloria Argentina Ung Enríquez, Joseline Landeros Palacios, Karina Angélica Flores Gámez. Cuando se confirmen los nombres de `ovalle` y `tanguma`, renombrar carpeta y `slug`.
+Nombres completos según el boletín: Uxue Amaya Guereca Parra, Sofía Maldonado Díaz, Grecia Esther Castro López, Gloria Argentina Ung Enríquez, Joseline Landeros Palacios, Karina Angélica Flores Gámez. Tavily no trae ese PDF, así que el agente 02 no puede citarlo: si reporta el mismo valor (sin contar acentos), se ignora sin verificar. Cuando se confirmen los nombres de `ovalle` y `tanguma`, renombrar carpeta y `slug`.

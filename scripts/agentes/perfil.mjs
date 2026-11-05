@@ -48,6 +48,9 @@ const VALIDADORES = {
   posicion: (v) => (POSICIONES.includes(v) ? v : null),
 };
 
+// "Sofia Maldonado Diaz" y "Sofía Maldonado Díaz" son lo mismo: los acentos no se pisan.
+const mismoValor = (a, b) => (typeof a === 'string' && typeof b === 'string' ? normal(a) === normal(b) : JSON.stringify(a) === JSON.stringify(b));
+
 function buscarClub(clubes, nombre) {
   const n = normal(nombre);
   return Object.entries(clubes).find(([, c]) => [c.nombre, ...c.alias].some((a) => normal(a) === n))?.[0] ?? null;
@@ -146,12 +149,13 @@ export async function correr(ctx, slug) {
     const c = respuesta[nombre];
     if (c?.valor == null) continue;
     const valor = validar(c.valor, ctx);
+    // Lo que ya tenemos no necesita fuente nueva: la del boletín no llega en los resultados de Tavily.
+    if (mismoValor(valor, j[nombre])) continue;
     const fuente = await verificar(c.fuente);
     if (valor === null || !fuente) {
       ctx.reporte.descarto(AGENTE, `${nombre} de ${j.nombre}`, valor === null ? 'valor inválido' : `la fuente no pasó (${c.fuente ?? 'sin fuente'})`);
       continue;
     }
-    if (JSON.stringify(valor) === JSON.stringify(j[nombre])) continue;
     const texto = `${j.nombre}: ${nombre} ${typeof valor === 'object' ? JSON.stringify(valor) : valor}`;
     if (!proponer(ctx, AGENTE, { clave: `perfil:${slug}:${nombre}:${JSON.stringify(valor)}`, seccion: 'Perfiles', texto, fuente })) continue;
     j[nombre] = valor;
