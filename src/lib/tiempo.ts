@@ -37,8 +37,8 @@ export const diaCorto = (ms: number, zona?: string) => cap(limpiarFecha(
 
 export const ymd = (ms: number, zona?: string) => formato('ymd', { year: 'numeric', month: '2-digit', day: '2-digit' }, zona, 'en-CA').format(ms);
 
-// "allá serán las 21:00": `inicio` ya trae la hora local de la sede.
-export const horaDelLugar = (p: ConInicio) => p.inicio.slice(11, 16);
+// "allá serán las 21:00": `inicio` trae la hora de la sede solo si `zonaSede` es conocida.
+export const horaDelLugar = (p: ConInicio & { zonaSede: string | null }) => (p.zonaSede ? p.inicio.slice(11, 16) : null);
 
 // "2026-09-21" -> "21.09.26"
 export const fechaGrande = (fecha: string) => {

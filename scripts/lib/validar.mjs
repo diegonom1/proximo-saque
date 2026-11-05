@@ -21,6 +21,7 @@ const textoN = texto.nullable();
 const slug = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
 // Nunca se guarda una hora sin desfase.
 const instante = z.string().regex(RE_ISO_DESFASE).refine((s) => Number.isFinite(Date.parse(s)), 'fecha imposible');
+const zonaIana = z.string().refine(zonaValida, 'zona IANA inválida');
 const confianza = z.enum(['alta', 'media', 'baja']).nullable();
 
 /* ---------- Jugadoras ---------- */
@@ -54,7 +55,7 @@ export const esquemaClub = z.strictObject({
   ligaId: textoN,
   pais: textoN,
   ciudad: textoN,
-  zona: z.string().refine(zonaValida, 'zona IANA inválida'),
+  zona: zonaIana,
   volleybox: z.strictObject({ url: urlN, widgetId: z.number().int().nullable() }),
   sitio: urlN,
   calendarioUrl: urlN,
@@ -89,6 +90,7 @@ export const esquemaPartido = z.strictObject({
   torneoId: textoN,
   ligaId: textoN,
   inicio: instante,
+  zonaSede: zonaIana.nullable(),
   horaConfirmada: z.boolean(),
   local: texto,
   visitante: texto,
@@ -100,6 +102,14 @@ export const esquemaPartido = z.strictObject({
   fuente: urlN,
   confianza,
   origen: z.enum(['manual', 'ia', 'inicial']),
+}).refine((p) => {
+  const ms = Date.parse(p.inicio);
+  // Las zonas y fechas inválidas ya las reportan sus propios campos.
+  if (!p.zonaSede || !zonaValida(p.zonaSede) || !Number.isFinite(ms)) return true;
+  return isoEnZona(ms, p.zonaSede) === p.inicio;
+}, {
+  path: ['inicio'],
+  error: 'inicio no está en la zona de la sede',
 });
 
 export const esquemaPartidos = z.strictObject({
@@ -240,11 +250,20 @@ const fechaReal = (s) => {
 };
 
 // Convierte una respuesta (de la IA o de manual.json) en un partido de club limpio, o null si no sirve.
+// El instante sale de hora + zonaHoraria; `inicio` se guarda en zonaSede. Sin zonaSede: en partidos de
+// local vale la zona del club y, si no, queda null y se usa zonaHoraria (el sitio omite "allá serán las…").
 // `club` lleva su `id`. `ahora` se puede fijar para probar.
 export function convertir(p, club, origen, ahora = Date.now()) {
   if (!p || typeof p !== 'object') return null;
   if (p.zonaHoraria != null && !zonaValida(p.zonaHoraria)) return null;
-  const zona = p.zonaHoraria ?? club.zona;
+  if (p.zonaSede != null && !zonaValida(p.zonaSede)) return null;
+
+  const local = limpio(p.local);
+  const visitante = limpio(p.visitante);
+  const nuestro = p.nuestro === 'local' || p.nuestro === 'visita' ? p.nuestro : ladoNuestro({ local, visitante }, club);
+  const zonaFuente = p.zonaHoraria ?? club.zona;
+  const zonaSede = p.zonaSede ?? (nuestro === 'local' ? club.zona : null);
+
   const conDesfase = typeof p.inicio === 'string' && RE_ISO.test(p.inicio);
   let confirmada = p.horaConfirmada !== false;
   let ms;
@@ -253,7 +272,8 @@ export function convertir(p, club, origen, ahora = Date.now()) {
   } else if (fechaReal(p.fecha)) {
     const conHora = RE_HORA.test(p.hora ?? '');
     if (!conHora) confirmada = false;
-    ms = relojLocalAUtc(p.fecha, conHora ? p.hora.padStart(5, '0') : '12:00', zona);
+    // Sin hora se usa mediodía de la sede, para no cambiar de día al convertir.
+    ms = conHora ? relojLocalAUtc(p.fecha, p.hora.padStart(5, '0'), zonaFuente) : relojLocalAUtc(p.fecha, '12:00', zonaSede ?? zonaFuente);
   } else {
     return null;
   }
@@ -261,11 +281,12 @@ export function convertir(p, club, origen, ahora = Date.now()) {
   if (!p.eliminar) {
     if (ms + DURACION_MS < ahora) return null; // ya se jugó
     if (ms > ahora + 120 * DIA_MS) return null; // demasiado lejos: sospechoso
-    if (!limpio(p.local) || !limpio(p.visitante)) return null;
+    if (!local || !visitante) return null;
   }
-  // Si llegó con desfase se conserva (es la hora del lugar); si llegó en UTC ("Z"), se pasa a la zona del partido.
-  let inicio = isoEnZona(ms, zona);
-  if (conDesfase && !p.inicio.endsWith('Z')) {
+
+  let inicio = isoEnZona(ms, zonaSede ?? zonaFuente);
+  // Sin zona de la sede, un desfase escrito a mano es lo más cercano a la hora del lugar: se conserva.
+  if (!zonaSede && conDesfase && !p.inicio.endsWith('Z')) {
     inicio = p.inicio.length === 22 ? p.inicio.replace(/(T\d{2}:\d{2})/, '$1:00') : p.inicio;
   }
   const competencia = [limpio(p.competencia), limpio(p.fase)].filter(Boolean).join(' · ');
@@ -276,10 +297,11 @@ export function convertir(p, club, origen, ahora = Date.now()) {
     torneoId: null,
     ligaId: club.ligaId ?? null,
     inicio,
+    zonaSede,
     horaConfirmada: confirmada,
-    local: limpio(p.local),
-    visitante: limpio(p.visitante),
-    nuestro: null,
+    local,
+    visitante,
+    nuestro,
     competencia: competencia || null,
     sede: limpio(p.sede, 80) || null,
     convocadas: null,
@@ -288,7 +310,6 @@ export function convertir(p, club, origen, ahora = Date.now()) {
     confianza: ['alta', 'media', 'baja'].includes(p.confianza) ? p.confianza : null,
     origen,
   };
-  partido.nuestro = p.nuestro === 'local' || p.nuestro === 'visita' ? p.nuestro : ladoNuestro(partido, club);
   if (p.eliminar) partido.eliminar = true;
   Object.defineProperty(partido, 'ms', { value: ms, enumerable: false });
   return partido;

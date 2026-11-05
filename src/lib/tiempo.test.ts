@@ -8,9 +8,12 @@ const p = (inicio: string) => ({ inicio });
 
 describe('formatos', () => {
   it('muestra la hora en la zona pedida y aparte la de la sede', () => {
-    const partido = p('2026-11-07T21:00:00-03:00');
+    const partido = { ...p('2026-11-07T21:00:00-03:00'), zonaSede: 'America/Sao_Paulo' };
     expect(hora(Date.parse(partido.inicio), CDMX)).toBe('18:00');
     expect(horaDelLugar(partido)).toBe('21:00');
+  });
+  it('sin zonaSede no hay "allá"', () => {
+    expect(horaDelLugar({ ...p('2026-11-18T18:00:00+01:00'), zonaSede: null })).toBeNull();
   });
   it('escribe el día con mayúscula y sin comas', () => {
     expect(diaLargo(Date.parse('2026-11-07T21:00:00-03:00'), CDMX)).toBe('Sábado 7 de noviembre');

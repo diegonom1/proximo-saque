@@ -41,6 +41,7 @@ Las ligas mueven horarios por la televisión. Si dos fuentes no coinciden en la 
       "fecha": "AAAA-MM-DD",
       "hora": "21:00",
       "zonaHoraria": "America/Sao_Paulo",
+      "zonaSede": "America/Sao_Paulo",
       "local": "Sesi Vôlei Bauru",
       "visitante": "Rival de ejemplo",
       "nuestro": "local",
@@ -63,6 +64,7 @@ Las ligas mueven horarios por la televisión. Si dos fuentes no coinciden en la 
 ```
 
 - `hora: null` si solo se conoce la fecha.
+- `zonaHoraria`: la zona de la hora que publica la fuente. `zonaSede`: la zona del lugar donde se juega; cuida los partidos de visita en otra zona (copas continentales, otro país).
 - `fase`: jornada, ronda o etapa tal como la nombra la fuente.
 - `motivo`: si no encontraste ningún partido, explica en una frase qué revisaste.
 

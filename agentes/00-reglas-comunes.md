@@ -42,6 +42,7 @@ Hay futbolistas, jugadoras de playa y jugadoras juveniles con los mismos nombres
 - Fechas en formato `AAAA-MM-DD`. Horas en 24 h, `HH:MM`.
 - Reporta la hora **tal como la publica la fuente** y en `zonaHoraria` la zona IANA de esa hora (por ejemplo, `Europe/Rome`, `America/Sao_Paulo`, `America/Mexico_City`). No conviertas horas: lo hace el programa.
 - Si la fuente no dice la hora, `hora: null`. Si no dice en qué zona está la hora, usa la zona de la sede del partido y dilo en `motivo`.
+- En cada partido, `zonaSede` es la zona IANA del lugar donde se juega. No siempre es igual a `zonaHoraria`: un club italiano de visita en Estambul puede publicar la hora de Roma (`zonaHoraria: "Europe/Rome"`, `zonaSede: "Europe/Istanbul"`). Si no sabes dónde se juega, `zonaSede: null`; no la adivines.
 
 ## Lo que no se reporta
 

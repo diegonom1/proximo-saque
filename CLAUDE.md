@@ -55,7 +55,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 
 ## Contratos de datos
 
-Regla de horas: `inicio` se guarda con la hora local de la sede y su desfase (`"2026-11-07T21:00:00-03:00"`). El sitio muestra la hora del dispositivo del visitante con `Intl` y, aparte, "allá serán las 21:00". Nunca se guarda una hora sin desfase.
+Regla de horas: `inicio` se guarda con la hora local de la sede y su desfase (`"2026-11-07T21:00:00-03:00"`), y `zonaSede` dice en qué zona está. El sitio muestra la hora del dispositivo del visitante con `Intl` y, aparte, "allá serán las 21:00". Si `zonaSede` es `null`, no se muestra el "allá". Nunca se guarda una hora sin desfase.
 
 Cualquier campo puede ser `null`. En pantalla, `null` se muestra como "Por confirmar" (o se oculta si es opcional, como redes).
 
@@ -150,6 +150,7 @@ Cada plataforma (la llena el agente 05):
       "torneoId": null,
       "ligaId": "superliga-br",
       "inicio": "2026-11-07T21:00:00-03:00",
+      "zonaSede": "America/Sao_Paulo",
       "horaConfirmada": true,
       "local": "Sesi Vôlei Bauru",
       "visitante": "E.C. Pinheiros",
@@ -169,6 +170,7 @@ Cada plataforma (la llena el agente 05):
 }
 ```
 
+- `zonaSede`: zona IANA de donde se juega. Si el agente no la da, en partidos de local se usa la zona del club; en cualquier otro caso queda `null` e `inicio` usa `zonaHoraria`.
 - `tipo`: `club` | `seleccion`. En partidos de Selección: `clubId: null`, `torneoId` con el id del torneo, `nuestro` indica el lado de México y `convocadas` lleva slugs si ya hay lista.
 - `origen`: `manual` | `ia` | `inicial`. Prioridad al fusionar: manual > ia > inicial (lógica `fusionar` del v1).
 - `estados`: situación de la temporada de cada club (sin empezar, en pausa, terminada), para mostrarla cuando no hay partidos.
@@ -283,7 +285,7 @@ Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los ree
 ### Perfil `/jugadoras/[slug]`
 
 1. **Hero**: `fondo.jpg` (o `recorte.png` encima de su apellido gigante si existe). Datos estilo Volleybox: nombre, fecha de nacimiento y edad, lugar de origen, estatura, club actual con liga y país, posición, número, capitana, redes (iconos solo si hay URL).
-2. **Próximo partido**: rivales, competencia, hora del visitante y "allá serán las…", cuenta regresiva, botón de Google Calendar, iconos de "Dónde verlo" (de la liga o del torneo; cada icono abre el canal o la plataforma) y enlace "Calendario oficial de la liga".
+2. **Próximo partido**: rivales, competencia, hora del visitante y "allá serán las…" (si hay `zonaSede`), cuenta regresiva, botón de Google Calendar, iconos de "Dónde verlo" (de la liga o del torneo; cada icono abre el canal o la plataforma) y enlace "Calendario oficial de la liga".
 3. **Siguientes**: los 3 partidos posteriores (sin cuenta regresiva) y "Ver todos en la agenda" (`/agenda?j=<slug>`).
 4. **Un plus**: destacados (premios, MVP, equipos ideales), línea de tiempo de clubes y última lista oficial en la que apareció.
 5. **Fuentes**: enlaces de donde salió cada dato.
@@ -294,7 +296,7 @@ Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin 
 
 - Todos los partidos futuros (clubes y Selección) en orden, agrupados por día en la hora del visitante.
 - Cuenta regresiva solo en el primero, en una tarjeta destacada arriba.
-- Cada partido: hora, "allá", equipos con el lado mexicano resaltado, competencia, etiqueta roja "Selección" cuando aplique, chips de jugadoras (llevan a su perfil), iconos de dónde verlo, botón de Google Calendar y enlace "Fuente". Si no hay fuente, enlace "Verificar en el calendario oficial".
+- Cada partido: hora, "allá" (si hay `zonaSede`), equipos con el lado mexicano resaltado, competencia, etiqueta roja "Selección" cuando aplique, chips de jugadoras (llevan a su perfil), iconos de dónde verlo, botón de Google Calendar y enlace "Fuente". Si no hay fuente, enlace "Verificar en el calendario oficial".
 - Al final, "Sin partidos por ahora": jugadoras cuyo club no tiene partidos en el rango, con el estado de su temporada.
 - Filtros: Todas, Selección, por jugadora y por liga. `?j=<slug>` preselecciona una jugadora. El filtro se recuerda en `localStorage` (con try/catch).
 - Plus opcional: el build genera `calendario.ics` (todos) y `calendario/<slug>.ics` (por jugadora) para suscribirse desde Google Calendar y recibir los cambios solos.
@@ -380,7 +382,7 @@ Detalles técnicos:
 
 - Todo dato nuevo necesita `fuente`; sin fuente se descarta.
 - Fuentes: una URL se acepta si su dominio aparece entre las fuentes de `groundingMetadata` de esa misma respuesta o si responde al abrirla (2xx/3xx; Volleybox contesta 403 a los bots y se acepta si viene en `groundingMetadata`). Los enlaces de redirección de Google en `groundingMetadata` (`vertexaisearch.cloud.google.com/grounding-api-redirect/…`) se resuelven a su URL final antes de guardarlos. Si ninguna fuente del dato pasa, se descarta.
-- Partidos: fecha válida, futura, a menos de 120 días, zona IANA válida, local y visitante presentes. La hora llega como la publica la fuente (`fecha`, `hora`, `zonaHoraria`) y el código calcula `inicio` en la zona de la sede (`relojLocalAUtc` e `isoEnZona` del v1).
+- Partidos: fecha válida, futura, a menos de 120 días, zona IANA válida, local y visitante presentes. La hora llega como la publica la fuente (`fecha`, `hora`, `zonaHoraria`), junto con `zonaSede`. El código calcula el instante con `hora` + `zonaHoraria` y guarda `inicio` en `zonaSede` (`relojLocalAUtc` e `isoEnZona` del v1). El desfase de `inicio` debe coincidir con `zonaSede`.
 - Plantel: un alta necesita aparecer en una lista oficial (FMVB, NORCECA, FIVB/Volleyball World, Panam Sports, Centro Caribe Sports) de los últimos 12 meses. Una baja necesita anuncio explícito o 24 meses sin aparecer en listas oficiales (se calcula con `ultimaListaOficial.fecha`; si la fecha es `null`, nunca hay baja por inactividad). Faltar a un torneo nunca es baja.
 - Nombres: el `slug` que propone el agente se acepta solo si el apellido coincide (comparado sin acentos ni mayúsculas). Si una lista trae solo apellidos, se fusiona cuando el apellido es único en el plantel; si no, va a dudas del PR.
 - Torneos: máximo 7 por fecha de fin; sin duplicados por `id` (`<organizador>-<torneo>-<edicion>`).
