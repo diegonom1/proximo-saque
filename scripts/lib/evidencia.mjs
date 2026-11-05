@@ -125,14 +125,14 @@ export function evidenciaPartido(texto, { fecha, hora, rival, propio }) {
   const dia = fecha.slice(5);
   const patron = hora ? escrituras(hora) : null;
   const filas = filasDe(lineas, palabrasRival);
-  const conAmbos = (f) => [f.texto, f.corta ? lineas[f.i - 1] : '', f.corta ? lineas[f.i + 1] : ''].some((l) => l && menciona(l, palabrasPropias));
+  const mismaFila = filas.filter((f) => menciona(f.texto, palabrasPropias));
+  const conVecina = filas.filter((f) => f.corta && [lineas[f.i - 1], lineas[f.i + 1]].some((l) => l && menciona(l, palabrasPropias)));
   // En un calendario de liga cada fila nombra a los dos equipos: la fila del rival contra otro no cuenta.
-  // En el calendario de un club su nombre no se repite en cada fila.
-  const exigePropio = filas.some(conAmbos);
+  // Hay páginas con un equipo por línea (se mira la de junto), y en el calendario de un club su nombre no se repite.
+  const candidatas = mismaFila.length ? mismaFila : conVecina.length ? conVecina : filas;
 
   let resultado = 'nada';
-  for (const fila of filas) {
-    if (exigePropio && !conAmbos(fila)) continue;
+  for (const fila of candidatas) {
     const { fechas, encabezado } = fechasDeFila(lineas, fila);
     if (!fechas.has(dia)) continue;
     if (patron && tieneHora(lineas, fila, encabezado, patron)) return 'completa';

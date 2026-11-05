@@ -420,6 +420,8 @@ describe('dónde ver', () => {
 describe('orquestador', () => {
   it('corre en el orden acordado', async () => {
     const llamar = llamarCon();
+    // Sin partidos próximos: esos van antes que todo y tienen su propia prueba.
+    await cambiar('partidos.json', (d) => { d.partidos = []; });
     await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA, maxLlamadas: 99 });
     const orden = [...new Set(llamar.llamadas.map((l) => l.agente))];
     expect(orden).toEqual(['06-rankings', '04-seleccion-torneos', '01-plantel', '02-perfil', '03-partidos-club', '05-donde-ver']);
@@ -430,6 +432,8 @@ describe('orquestador', () => {
     expect(r.pendientes.length).toBeGreaterThan(0);
     const { pendientes } = await leer('estado-agentes.json');
     expect(pendientes).toEqual(r.pendientes);
+    // Sin partidos próximos, que son lo único que va antes de los pendientes.
+    await cambiar('partidos.json', (d) => { d.partidos = []; });
     const llamar = llamarCon();
     await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA + 7 * 864e5, maxLlamadas: 99 });
     expect({ agente: llamar.llamadas[0].agente, clave: llamar.llamadas[0].clave ?? null }).toEqual(pendientes[0]);
@@ -444,6 +448,7 @@ describe('orquestador', () => {
   });
   it('sin cuota deja de llamar y todo queda pendiente', async () => {
     const error = Object.assign(new Error('ningún modelo respondió'), { sinCuota: true });
+    await cambiar('partidos.json', (d) => { d.partidos = []; });
     const r = await ejecutar({ '06-rankings': error });
     expect(r.llamadas).toBe(1);
     expect(r.pendientes[0]).toEqual({ agente: '06-rankings', clave: null });
@@ -545,7 +550,7 @@ describe('búsqueda hecha por el código', () => {
   });
   it('Gemini recibe los resultados en el mensaje y no busca', async () => {
     const { llamar } = await correrCon(buscadorFalso(), {});
-    const m = JSON.parse(llamar.llamadas[0].mensaje);
+    const m = JSON.parse(llamar.llamadas.find((l) => l.agente === '06-rankings').mensaje);
     expect(m.resultadosBusqueda).toEqual([{ url: URL_BUENA, titulo: 'Tabela', contenido: '01/12 21:00 Sesi Vôlei Bauru x Praia Clube' }]);
     expect(m.guardado).toBeTruthy();
     expect(llamar.llamadas.every((l) => l.conBusqueda === false)).toBe(true);
@@ -870,6 +875,185 @@ describe('manual.json: próximo torneo', () => {
   it('sin fuente no pasa la validación', async () => {
     await mano({ nombre: 'Copa', edicion: 2027 });
     await expect(ejecutar({})).rejects.toThrow();
+  });
+});
+
+describe('verificación de partidos próximos', () => {
+  const URL_CAL = 'https://cbv.com.br/tabela';
+  const partido = (cambios) => ({ id: 'club-sesi-bauru-2026-11-20', tipo: 'club', clubId: 'sesi-bauru', torneoId: null, ligaId: 'superliga-br', inicio: '2026-11-20T21:00:00-03:00', zonaSede: 'America/Sao_Paulo', horaConfirmada: true, local: 'Sesi Vôlei Bauru', visitante: 'Praia Clube', nuestro: 'local', competencia: 'Superliga', sede: 'Bauru', convocadas: null, transmision: [], fuente: 'https://cbv.com.br/nota', confianza: null, origen: 'ia', ...cambios });
+  const buscador = (contenido, planes = []) => ({ planes, investigar: async (plan) => { planes.push(plan); return { resultados: [{ url: URL_CAL, titulo: 'Tabela', contenido }] }; }, resumen: async () => ({ proveedor: 'Tavily', corrida: 1, mes: 1, limite: 800 }), usarPrevios: () => {} });
+  const hoy = () => new Date(AHORA).toISOString().slice(0, 10);
+  const enDias = (n) => new Date(AHORA + n * 864e5).toISOString().slice(0, 10);
+  const conPartido = (dias, cambios = {}) => cambiar('partidos.json', (d) => {
+    d.partidos = [partido({ id: `club-sesi-bauru-${enDias(dias)}`, inicio: `${enDias(dias)}T21:00:00-03:00`, ...cambios })];
+  });
+  const corre = (extra = {}, respuestas = {}, b = buscador('')) => {
+    const llamar = llamarCon(respuestas);
+    return correr({ dirDatos: dir, dirFotos: fotos, llamar, buscador: b, verificar: async () => null, ahora: AHORA, ...extra }).then((r) => ({ r, llamar, b }));
+  };
+  const fila = (dias, hora = '21:00') => `${enDias(dias).slice(8)}/${enDias(dias).slice(5, 7)} ${hora} Sesi Vôlei Bauru x Praia Clube`;
+  const guardados = async () => (await leer('partidos.json')).partidos;
+
+  it('el lunes coteja lo guardado aunque Gemini no lo reporte', async () => {
+    await conPartido(5);
+    const { r } = await corre({}, {}, buscador(fila(5)));
+    expect(r.resumen).toContain(`Verificado: Sesi Vôlei Bauru: ${enDias(5)} 21:00 vs Praia Clube`);
+  });
+  it('si la fuente ya no lo muestra lo avisa y lo conserva', async () => {
+    await conPartido(5);
+    const { r } = await corre({}, {}, buscador('Calendario sin esa fila'));
+    expect(r.resumen).toContain('**No verificado (se conserva):** Sesi Vôlei Bauru');
+    expect((await guardados()).some((p) => p.clubId === 'sesi-bauru')).toBe(true);
+  });
+  it('si la hora ya no aparece junto al rival lo avisa y la conserva', async () => {
+    await conPartido(5);
+    const { r } = await corre({}, {}, buscador(fila(5, '19:00')));
+    expect(r.resumen).toContain('**Hora sin verificar (se conserva):** Sesi Vôlei Bauru');
+    expect((await guardados()).find((p) => p.clubId === 'sesi-bauru').inicio).toContain('T21:00');
+  });
+  describe('con cualquiera de los dos equipos', () => {
+    const beijing = async (dias = 3) => cambiar('partidos.json', (d) => {
+      d.partidos = [partido({ id: `club-beijing-${enDias(dias)}`, clubId: 'beijing', ligaId: 'superliga-cn', inicio: `${enDias(dias)}T15:00:00+08:00`, zonaSede: 'Asia/Shanghai', local: 'Beijing Arctic Ocean', visitante: 'Tianjin Bohai Bank' })];
+    });
+    const chino = (dias, hora = '15:00') => `${Number(enDias(dias).slice(5, 7))}月${Number(enDias(dias).slice(8))}日 ${hora} 北京北冰洋 主场迎战 天津渤海银行`;
+
+    it('una fuente en chino se reconoce por el alias del club', async () => {
+      await beijing();
+      const { r } = await corre({}, {}, buscador(chino(3)));
+      expect(r.resumen).toContain('Verificado: Beijing Arctic Ocean');
+    });
+    it('el club con otra fecha no verifica', async () => {
+      await beijing();
+      const { r } = await corre({}, {}, buscador(chino(9)));
+      expect(r.resumen).toContain('**No verificado (se conserva):** Beijing');
+    });
+    it('el club con otra hora deja la hora sin verificar', async () => {
+      await beijing();
+      const { r } = await corre({}, {}, buscador(chino(3, '19:35')));
+      expect(r.resumen).toContain('**Hora sin verificar (se conserva):** Beijing');
+    });
+    it('también basta con el rival', async () => {
+      await conPartido(5);
+      const { r } = await corre({}, {}, buscador(`${enDias(5).slice(8)}/${enDias(5).slice(5, 7)} 21:00 Praia Clube`));
+      expect(r.resumen).toContain('Verificado: Sesi');
+    });
+    it('si una fila nombra a los dos, otra fila del club con esa fecha y hora no cuenta', async () => {
+      await conPartido(5);
+      const fecha = `${enDias(5).slice(8)}/${enDias(5).slice(5, 7)}`;
+      const { r } = await corre({}, {}, buscador(`${fecha} 19:00 Sesi Vôlei Bauru x Praia Clube\n${fecha} 21:00 Sesi Vôlei Bauru x Minas`));
+      expect(r.resumen).toContain('**Hora sin verificar (se conserva):** Sesi');
+    });
+    it('un partido nuevo sigue exigiendo al rival', async () => {
+      await cambiar('partidos.json', (d) => { d.partidos = []; });
+      const nuevo = { '03-partidos-club': (c) => (c === 'sesi-bauru' ? { clubId: c, partidos: [{ fecha: enDias(5), hora: '21:00', zonaHoraria: 'America/Sao_Paulo', zonaSede: 'America/Sao_Paulo', local: 'Sesi Vôlei Bauru', visitante: 'Praia Clube', nuestro: 'local', fuente: URL_CAL }] } : undefined) };
+      const { r } = await corre({}, nuevo, buscador(`${enDias(5).slice(8)}/${enDias(5).slice(5, 7)} 21:00 Sesi Vôlei Bauru x Minas`));
+      expect((await guardados()).some((p) => p.clubId === 'sesi-bauru')).toBe(false);
+      expect(r.comparacion.find((f) => f.club.startsWith('Sesi')).resultado).toBe('Sin evidencia');
+    });
+  });
+  it('un partido sin hora confirmada se verifica por su fecha', async () => {
+    await conPartido(5, { horaConfirmada: false });
+    const { r } = await corre({}, {}, buscador(fila(5, '19:00')));
+    expect(r.resumen).toContain('Verificado: Sesi Vôlei Bauru');
+  });
+  it('fuera de los 7 días no se verifica', async () => {
+    await conPartido(9);
+    const { r } = await corre({}, {}, buscador(fila(9)));
+    expect(r.resumen).not.toContain('Verificado');
+  });
+  it('el último día de la ventana cuenta', async () => {
+    await conPartido(7);
+    const { r } = await corre({}, {}, buscador(fila(7)));
+    expect(r.resumen).toContain('Verificado: Sesi');
+  });
+  it('un partido que acaba de cambiar no se reporta como no verificado', async () => {
+    await conPartido(5);
+    const respuesta = { '03-partidos-club': (c) => (c === 'sesi-bauru' ? { clubId: c, partidos: [{ fecha: enDias(5), hora: '19:00', zonaHoraria: 'America/Sao_Paulo', zonaSede: 'America/Sao_Paulo', local: 'Sesi Vôlei Bauru', visitante: 'Praia Clube', nuestro: 'local', fuente: URL_CAL }] } : undefined) };
+    const { r } = await corre({}, respuesta, buscador(fila(5, '19:00')));
+    expect((await guardados()).find((p) => p.clubId === 'sesi-bauru').inicio).toContain('T19:00');
+    expect(r.resumen).not.toContain('Hora sin verificar');
+    expect(r.resumen).not.toContain('No verificado');
+  });
+  it('relee la página de donde salió el partido', async () => {
+    await conPartido(5);
+    const { b } = await corre({}, {}, buscador(fila(5)));
+    expect(b.planes[0].paginas).toContain('https://cbv.com.br/nota');
+  });
+  it('lo que está por jugarse va antes que todo, aunque no alcance el presupuesto', async () => {
+    await conPartido(5);
+    const { llamar } = await corre({ maxLlamadas: 1 }, {}, buscador(fila(5)));
+    expect(llamar.llamadas.map((l) => [l.agente, l.clave])).toEqual([['03-partidos-club', 'sesi-bauru']]);
+  });
+  it('también verifica los partidos de la Selección', async () => {
+    await cambiar('partidos.json', (d) => {
+      d.partidos = [partido({ id: `seleccion-${enDias(3)}`, tipo: 'seleccion', clubId: null, ligaId: null, torneoId: 'copa-2026', inicio: `${enDias(3)}T19:00:00-05:00`, zonaSede: 'America/Lima', local: 'México', visitante: 'Perú', competencia: 'Copa' })];
+    });
+    const b = buscador(`${enDias(3).slice(8)}/${enDias(3).slice(5, 7)} 19:00 México vs Perú`);
+    const { r, llamar } = await corre({ soloVerificar: true }, {}, b);
+    expect(llamar.llamadas[0].agente).toBe('04-seleccion-torneos');
+    expect(r.resumen).toContain('Verificado: Selección');
+    expect(b.planes[0].consultas.map((c) => c.texto).join()).toContain('Copa México');
+    expect(b.planes[0].consultas.map((c) => c.texto).join()).not.toContain('Lima 2027');
+  });
+
+  describe('corrida del jueves', () => {
+    const agentes = (llamar) => [...new Set(llamar.llamadas.map((l) => l.agente))];
+
+    it('solo corre el club que juega en los próximos 4 días', async () => {
+      await conPartido(3);
+      const { llamar } = await corre({ soloVerificar: true }, {}, buscador(fila(3)));
+      expect(agentes(llamar)).toEqual(['03-partidos-club']);
+      expect(llamar.llamadas.map((l) => l.clave)).toEqual(['sesi-bauru']);
+    });
+    it('sin partidos en la ventana no gasta ninguna llamada', async () => {
+      await conPartido(6);
+      const { llamar, r } = await corre({ soloVerificar: true });
+      expect(llamar.llamadas).toEqual([]);
+      expect(r.cambiados.every((a) => ['partidos.json', 'estado-agentes.json'].includes(a))).toBe(true);
+    });
+    it('busca solo hasta el último día de la ventana', async () => {
+      await conPartido(3);
+      const { llamar } = await corre({ soloVerificar: true }, {}, buscador(fila(3)));
+      expect(JSON.parse(llamar.llamadas[0].mensaje)).toMatchObject({ desde: hoy(), hasta: enDias(4) });
+    });
+    it('aplica un cambio de hora de una fuente confiable', async () => {
+      await conPartido(3);
+      const respuesta = { '03-partidos-club': (c) => ({ clubId: c, partidos: [{ fecha: enDias(3), hora: '19:30', zonaHoraria: 'America/Sao_Paulo', zonaSede: 'America/Sao_Paulo', local: 'Sesi Vôlei Bauru', visitante: 'Praia Clube', nuestro: 'local', fuente: URL_CAL }] }) };
+      await corre({ soloVerificar: true }, respuesta, buscador(fila(3, '19:30')));
+      expect((await guardados()).find((p) => p.clubId === 'sesi-bauru').inicio).toContain('T19:30');
+    });
+    it('no toca nada fuera de la ventana, aunque Gemini lo reporte', async () => {
+      await cambiar('partidos.json', (d) => {
+        d.partidos = [partido({ id: `club-sesi-bauru-${enDias(3)}`, inicio: `${enDias(3)}T21:00:00-03:00` }), partido({ id: `club-sesi-bauru-${enDias(20)}`, inicio: `${enDias(20)}T21:00:00-03:00`, visitante: 'Minas' })];
+      });
+      const respuesta = { '03-partidos-club': (c) => ({ clubId: c, partidos: [{ fecha: enDias(20), hora: '18:00', zonaHoraria: 'America/Sao_Paulo', zonaSede: 'America/Sao_Paulo', local: 'Sesi Vôlei Bauru', visitante: 'Minas', nuestro: 'local', fuente: URL_CAL }] }) };
+      await corre({ soloVerificar: true }, respuesta, buscador(`${fila(3)}\n${fila(20, '18:00').replace('Praia Clube', 'Minas')}`));
+      expect((await guardados()).map((p) => p.inicio.slice(11, 16))).toEqual(['21:00', '21:00']);
+    });
+    it('conserva los pendientes del lunes y no atiende el PR', async () => {
+      const pendientes = [{ agente: '02-perfil', clave: 'uxue-guereca' }];
+      const propuestas = [{ clave: 'x', seccion: 'Perfiles', texto: 'y', fuente: null, fecha: hoy() }];
+      await cambiar('estado-agentes.json', (e) => { e.pendientes = pendientes; e.propuestas = propuestas; });
+      await conPartido(3);
+      const { llamar } = await corre({ soloVerificar: true, prEstado: 'CLOSED' }, {}, buscador(fila(3)));
+      expect(agentes(llamar)).toEqual(['03-partidos-club']);
+      expect(await leer('estado-agentes.json')).toMatchObject({ pendientes, propuestas, rechazos: [] });
+    });
+    it('no cambia lo que va por PR', async () => {
+      await conPartido(3);
+      const { r } = await corre({ soloVerificar: true }, {}, buscador(fila(3)));
+      expect(r.cambiados.filter((a) => ['jugadoras.json', 'clubes.json', 'ligas.json', 'torneos.json'].includes(a))).toEqual([]);
+    });
+    it('el agente 04 no toca el próximo torneo ni los torneos', async () => {
+      const seleccion = (await leer('seleccion.json')).proximoTorneo;
+      await cambiar('partidos.json', (d) => {
+        d.partidos = [partido({ id: `seleccion-${enDias(3)}`, tipo: 'seleccion', clubId: null, ligaId: null, torneoId: 'copa-2026', inicio: `${enDias(3)}T19:00:00-05:00`, zonaSede: 'America/Lima', local: 'México', visitante: 'Perú' })];
+      });
+      const respuesta = { '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], proximoTorneo: { nombre: 'Copa Challenger', edicion: 2027, fuente: URL_CAL }, torneosMencionados: [{ nombre: 'Copa Challenger', edicion: 2026 }] } };
+      const { llamar } = await corre({ soloVerificar: true }, respuesta, buscador('x'));
+      expect(llamar.llamadas.filter((l) => l.agente === '04-seleccion-torneos')).toHaveLength(1);
+      expect((await leer('seleccion.json')).proximoTorneo).toEqual(seleccion);
+    });
   });
 });
 

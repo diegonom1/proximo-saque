@@ -7,7 +7,7 @@ import { evidenciaPartido } from '../lib/evidencia.mjs';
 import { normalizarUrl } from '../lib/busqueda.mjs';
 import { esDominio } from '../lib/fuentes.mjs';
 import { conMs, mismoCruce } from '../lib/fusion.mjs';
-import { fechaEnZona } from '../lib/tiempo.mjs';
+import { DURACION_MS, fechaEnZona } from '../lib/tiempo.mjs';
 import { esquemaPartido, convertir } from '../lib/validar.mjs';
 
 export const AGENTE = '03-partidos-club';
@@ -24,6 +24,13 @@ const esquemaTransmision = z.object({ nombre: z.string().min(1), url: z.url(), f
 // Clubes con seleccionadas activas y ya aprobados: partidos.json se guarda directo y clubes.json va por
 // PR, así que un club recién encontrado empieza a tener partidos cuando el PR se aprueba.
 export const clubesPorRevisar = (datos, aprobados) => [...new Set(datos.jugadoras.flatMap((j) => (j.estado === 'activa' && aprobados.has(j.clubId) ? [j.clubId] : [])))];
+
+// Partidos guardados que faltan por jugarse y caen hasta el día `hasta`, inclusive.
+export const proximos = (lista, ahora, hasta) => lista.map(conMs).filter((p) => p && p.ms + DURACION_MS > ahora && p.inicio.slice(0, 10) <= hasta);
+
+// Clubes con algo por jugarse en la ventana de verificación.
+export const clubesPorVerificar = (datos, aprobados, ahora, hasta) => clubesPorRevisar(datos, aprobados)
+  .filter((id) => proximos(datos.partidos.partidos.filter((p) => p.clubId === id), ahora, hasta).length > 0);
 
 // Compara un partido encontrado con los que ya hay: 'nuevo', 'coincide' o 'cambia'.
 export function clasificar(nuevo, previos, zona) {
@@ -47,14 +54,40 @@ export function revisarEvidencia(textos, crudo, partido, propio, sinHora) {
   return { evidencia, sinHora };
 }
 
+const RANGO = { nada: 0, sinHora: 1, completa: 2 };
+
+// Lo mejor que dicen las fuentes de un partido guardado. No depende de que Gemini lo haya reportado.
+// Vale cualquiera de los dos equipos junto a la fecha y la hora: en una fuente en otro idioma quizá
+// solo se reconozca uno (北京北冰洋 sí, "Tianjin Bohai Bank" no). Si una fila nombra a los dos, manda esa.
+function evidenciaGuardado(p, textos, propio) {
+  const dato = { fecha: p.inicio.slice(0, 10), hora: p.horaConfirmada ? p.inicio.slice(11, 16) : null };
+  const rival = rivalDe(p);
+  const consultas = [{ ...dato, rival, propio }, { ...dato, rival: propio, propio: rival }];
+  return [...textos.values()].flatMap((t) => consultas.map((c) => evidenciaPartido(t, c)))
+    .reduce((mejor, e) => (RANGO[e] > RANGO[mejor] ? e : mejor), 'nada');
+}
+
+// Vuelve a cotejar lo que está por jugarse aunque ya esté guardado. Solo informa: lo que no se confirma se conserva.
+function verificarGuardados(ctx, agente, nombre, previos, reemplazados, { textos, propio, hasta }) {
+  if (textos.size === 0) return; // sin texto de las fuentes no hay nada que cotejar
+  for (const p of proximos(previos, ctx.ahora, hasta)) {
+    if (reemplazados.has(p.id)) continue;
+    const evidencia = evidenciaGuardado(p, textos, propio);
+    const estado = evidencia === 'nada' ? 'noVerificado' : evidencia === 'completa' || !p.horaConfirmada ? 'verificado' : 'horaSinVerificar';
+    ctx.reporte.verifico(agente, estado, `${nombre}: ${p.inicio.slice(0, 10)} ${horaDe(p)} vs ${rivalDe(p)}`);
+  }
+}
+
 export const textosDe = (resultados = []) => new Map(resultados.map((r) => [normalizarUrl(r.url), r.contenido]));
 
 // Un partido nuevo entra con cualquier fuente válida. Cambiar uno que ya existe exige la liga, el club o Volleybox.
 // Y ninguno de los dos pasa si su fuente no muestra al rival y la fecha juntos (`revisiones`).
-export function decidirPartidos(ctx, agente, nombre, nuevos, previosCrudos, zona, confiables, revisiones = new Map()) {
+// `verificacion` ({ textos, propio, hasta }) vuelve a cotejar lo guardado que está por jugarse.
+export function decidirPartidos(ctx, agente, nombre, nuevos, previosCrudos, zona, confiables, revisiones = new Map(), verificacion = null) {
   const previos = previosCrudos.map(conMs).filter(Boolean);
   const aceptados = [];
   const vistos = new Set();
+  const reemplazados = new Set();
   const anotar = (n, resultado, previo) => ctx.comparacion?.push({
     club: nombre, fecha: n.inicio.slice(0, 10), hora: horaDe(n), rival: rivalDe(n), fuente: n.fuente, resultado,
     guardado: previo ? `${previo.inicio.slice(0, 10)} ${horaDe(previo)} vs ${rivalDe(previo)}` : null,
@@ -86,6 +119,7 @@ export function decidirPartidos(ctx, agente, nombre, nuevos, previosCrudos, zona
       ctx.reporte.porRevisar(agente, `${nombre}: ${previo.inicio.slice(0, 10)} ${horaDe(previo)} vs ${rivalDe(previo)} → ${n.inicio.slice(0, 10)} ${horaDe(n)} vs ${rivalDe(n)} (${n.fuente})`);
     } else if (!(tipo === 'coincide' && !n.horaConfirmada)) {
       aceptados.push(n);
+      if (tipo === 'cambia') reemplazados.add(previo.id);
     }
     anotar(n, horaDudosa ? `${resultado} (hora sin verificar)` : resultado, previo);
   }
@@ -93,6 +127,7 @@ export function decidirPartidos(ctx, agente, nombre, nuevos, previosCrudos, zona
     if (vistos.has(p.id)) continue;
     ctx.comparacion?.push({ club: nombre, fecha: p.inicio.slice(0, 10), hora: horaDe(p), rival: rivalDe(p), fuente: p.fuente, resultado: 'Sin confirmar', guardado: 'ya estaba' });
   }
+  if (verificacion) verificarGuardados(ctx, agente, nombre, previos, reemplazados, verificacion);
   return aceptados;
 }
 
@@ -112,18 +147,20 @@ export async function correr(ctx, clubId) {
   if (!club) throw new Error(`no existe el club ${clubId}`);
   const liga = club.ligaId ? datos.ligas[club.ligaId] : null;
   const hasta = sumarDias(ctx.hoy, ctx.diasAdelante);
+  const hastaVerificar = sumarDias(ctx.hoy, ctx.diasVerificar);
+  const previos = datos.partidos.partidos.filter((p) => p.clubId === clubId);
   const textoPagina = await pagina(ctx, club);
   const entrada = {
     club: { id: clubId, nombre: club.nombre, alias: club.alias, liga: liga?.nombre ?? null, pais: club.pais, ciudad: club.ciudad, zona: club.zona, calendarioUrl: club.calendarioUrl },
     jugadoras: datos.jugadoras.filter((j) => j.clubId === clubId && j.estado === 'activa').map((j) => j.nombre),
     desde: ctx.hoy,
     hasta,
-    conocidos: datos.partidos.partidos.filter((p) => p.clubId === clubId).map((p) => ({
+    conocidos: previos.filter((p) => p.inicio.slice(0, 10) <= hasta).map((p) => ({
       fecha: p.inicio.slice(0, 10), rival: p.nuestro === 'visita' ? p.local : p.visitante, hora: p.horaConfirmada ? p.inicio.slice(11, 16) : null,
     })),
     ...(textoPagina ? { textoPagina, urlPagina: club.calendarioUrl } : {}),
   };
-  const { respuesta, verificar, resultados } = await consultar(ctx, AGENTE, clubId, entrada, esquema, planPartidos(ctx, club, liga));
+  const { respuesta, verificar, resultados } = await consultar(ctx, AGENTE, clubId, entrada, esquema, planPartidos(ctx, club, liga, proximos(previos, ctx.ahora, hastaVerificar)));
   const textos = textosDe(resultados);
   if (textoPagina) textos.set(normalizarUrl(club.calendarioUrl), textoPagina);
   const revisiones = new Map();
@@ -147,6 +184,7 @@ export async function correr(ctx, clubId) {
       ctx.reporte.descarto(AGENTE, etiqueta, 'fecha, zona horaria o equipos inválidos');
       continue;
     }
+    if (ctx.soloVerificar && partido.inicio.slice(0, 10) > hasta) continue; // fuera de la ventana no se toca nada
     nuevos.push(partido);
     const sinHora = convertir({ ...p, hora: null, fuente, transmision }, { id: clubId, ...club }, 'ia', ctx.ahora);
     revisiones.set(partido, revisarEvidencia(textos, p, partido, [club.nombre, ...club.alias], sinHora));
@@ -162,6 +200,6 @@ export async function correr(ctx, clubId) {
   }
 
   ctx.reporte.encontro(AGENTE, `${club.nombre}: ${nuevos.length} partido(s)${respuesta.motivo ? ` (${respuesta.motivo})` : ''}`);
-  const previos = datos.partidos.partidos.filter((p) => p.clubId === clubId);
-  ctx.nuevos[clubId] = decidirPartidos(ctx, AGENTE, club.nombre, nuevos, previos, club.zona, dominiosConfiables(club, liga, club.ligaId), revisiones);
+  const propio = [club.nombre, ...club.alias];
+  ctx.nuevos[clubId] = decidirPartidos(ctx, AGENTE, club.nombre, nuevos, previos, club.zona, dominiosConfiables(club, liga, club.ligaId), revisiones, { textos, propio, hasta: hastaVerificar });
 }
