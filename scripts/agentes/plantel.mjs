@@ -1,8 +1,9 @@
 // Agente 01: listas oficiales, altas y bajas. El agente reporta; estas reglas deciden.
 
 import { z } from 'zod';
-import { confianza, consultar, fechaN, restarMeses, textoN, validos } from './comun.mjs';
+import { confianza, consultar, fechaN, proponer, restarMeses, textoN, validos } from './comun.mjs';
 import { dominio } from '../lib/fuentes.mjs';
+import { normal } from '../lib/fusion.mjs';
 import { resolverJugadora, slugDe } from '../lib/nombres.mjs';
 
 export const AGENTE = '01-plantel';
@@ -66,13 +67,16 @@ const jugadoraNueva = (slug, i, lista, fuente) => ({
 });
 
 function registrarLista(ctx, j, i, lista, fuente) {
-  if (i.nombre.trim().split(/\s+/).length > j.nombre.trim().split(/\s+/).length) {
-    ctx.reporte.agregarPr('Dudas', `Se confirmó el nombre de ${j.nombre}: ${i.nombre}. Falta renombrar su slug y su carpeta de fotos.`, fuente);
+  const masLargo = i.nombre.trim().split(/\s+/).length > j.nombre.trim().split(/\s+/).length;
+  if (masLargo && proponer(ctx, AGENTE, { clave: `nombre:${j.slug}:${normal(i.nombre)}`, seccion: 'Perfiles', texto: `Se confirmó el nombre de ${j.nombre}: ${i.nombre}. Falta renombrar su slug y su carpeta de fotos.`, fuente })) {
     j.nombre = i.nombre;
   }
   if (!esOficial(fuente)) return;
   const previa = j.ultimaListaOficial?.fecha;
   if (previa && previa > lista.fechaFin) return;
+  const igual = j.ultimaListaOficial?.torneo === lista.torneo && previa === lista.fechaFin && (i.numero ?? j.numero) === j.numero && (i.posicion ?? j.posicion) === j.posicion;
+  if (igual && j.estado !== 'exseleccionada') return;
+  if (!proponer(ctx, AGENTE, { clave: `lista:${j.slug}:${slugDe(lista.torneo)}`, seccion: j.estado === 'exseleccionada' ? 'Altas' : 'Perfiles', texto: `${j.nombre} aparece en ${lista.torneo}${j.estado === 'exseleccionada' ? ' y regresa a la plantilla' : ''}`, fuente })) return;
   j.ultimaListaOficial = { torneo: lista.torneo, fecha: lista.fechaFin, fuente };
   if (i.numero != null) {
     j.numero = i.numero;
@@ -82,10 +86,7 @@ function registrarLista(ctx, j, i, lista, fuente) {
     j.posicion = i.posicion;
     j.fuentes.posicion = fuente;
   }
-  if (j.estado === 'exseleccionada') {
-    j.estado = 'activa';
-    ctx.reporte.agregarPr('Altas', `${j.nombre} regresa: aparece en ${lista.torneo}`, fuente);
-  }
+  if (j.estado === 'exseleccionada') j.estado = 'activa';
 }
 
 function darDeAlta(ctx, i, lista, fuente) {
@@ -100,12 +101,12 @@ function darDeAlta(ctx, i, lista, fuente) {
   }
   const slug = slugDe(i.nombre);
   if (jugadoras.some((j) => j.slug === slug)) {
-    ctx.reporte.agregarPr('Dudas', `Ya existe el slug ${slug}; revisar a ${i.nombre}`, fuente);
+    ctx.reporte.duda(`Ya existe el slug ${slug}; revisar a ${i.nombre}`, fuente);
     return;
   }
+  if (!proponer(ctx, AGENTE, { clave: `alta:${slug}`, seccion: 'Altas', texto: `${i.nombre} (${lista.torneo})`, fuente })) return;
   jugadoras.push(jugadoraNueva(slug, i, lista, fuente));
   ctx.altas.push(slug);
-  ctx.reporte.agregarPr('Altas', `${i.nombre} (${lista.torneo})`, fuente);
 }
 
 async function procesarListas(ctx, crudas, verificar) {
@@ -121,7 +122,7 @@ async function procesarListas(ctx, crudas, verificar) {
     const integrantes = validos(lista.jugadoras, esquemaIntegrante, () => ctx.reporte.descarto(AGENTE, lista.torneo, 'integrante inválido'));
     for (const i of integrantes) {
       const r = resolverJugadora(i.nombre, i.slug, ctx.datos.jugadoras);
-      if (r.duda) ctx.reporte.agregarPr('Dudas', `${lista.torneo}: ${r.duda}`, fuente);
+      if (r.duda) ctx.reporte.duda(`${lista.torneo}: ${r.duda}`, fuente);
       else if (r.jugadora) registrarLista(ctx, r.jugadora, i, lista, fuente);
       else darDeAlta(ctx, i, lista, fuente);
     }
@@ -135,7 +136,10 @@ async function procesarApariciones(ctx, crudas, verificar) {
     const fuente = await verificar(a.fuente);
     if (!j || !fuente || !esOficial(fuente) || a.fechaFin > ctx.hoy) continue;
     const previa = j.ultimaListaOficial?.fecha;
-    if (!previa || previa < a.fechaFin) j.ultimaListaOficial = { torneo: a.torneo, fecha: a.fechaFin, fuente };
+    const nueva = !previa || previa < a.fechaFin;
+    if (nueva && proponer(ctx, AGENTE, { clave: `lista:${j.slug}:${slugDe(a.torneo)}`, seccion: 'Perfiles', texto: `${j.nombre} aparece en ${a.torneo}`, fuente })) {
+      j.ultimaListaOficial = { torneo: a.torneo, fecha: a.fechaFin, fuente };
+    }
   }
 }
 
@@ -149,10 +153,9 @@ async function procesarBajas(ctx, crudas, verificar) {
     } else if (!fuente || !b.evidencia?.trim()) {
       ctx.reporte.descarto(AGENTE, `baja de ${j.nombre}`, 'sin evidencia o sin fuente verificable');
     } else if (b.tipo === 'otra' || b.confianza === 'baja') {
-      ctx.reporte.agregarPr('Dudas', `Posible baja de ${j.nombre}: ${b.evidencia}`, fuente);
-    } else {
+      ctx.reporte.duda(`Posible baja de ${j.nombre}: ${b.evidencia}`, fuente);
+    } else if (proponer(ctx, AGENTE, { clave: `baja:${j.slug}`, seccion: 'Bajas', texto: `${j.nombre}: ${b.evidencia}`, fuente })) {
       j.estado = 'exseleccionada';
-      ctx.reporte.agregarPr('Bajas', `${j.nombre}: ${b.evidencia}`, fuente);
     }
   }
 }
@@ -163,8 +166,8 @@ function bajasPorInactividad(ctx) {
     const fecha = j.ultimaListaOficial?.fecha;
     // Sin fecha nunca hay baja por inactividad.
     if (j.estado === 'activa' && fecha && fecha < limite) {
-      j.estado = 'exseleccionada';
-      ctx.reporte.agregarPr('Bajas', `${j.nombre}: 24 meses sin aparecer en listas oficiales (última: ${j.ultimaListaOficial.torneo})`);
+      const texto = `${j.nombre}: 24 meses sin aparecer en listas oficiales (última: ${j.ultimaListaOficial.torneo})`;
+      if (proponer(ctx, AGENTE, { clave: `baja:${j.slug}`, seccion: 'Bajas', texto })) j.estado = 'exseleccionada';
     }
   }
 }
@@ -188,5 +191,5 @@ export async function correr(ctx) {
     if (fuente) datos.seleccion.entrenador = { nombre: entrenador.nombre, fuente };
     else ctx.reporte.descarto(AGENTE, 'entrenador', 'sin fuente verificable');
   }
-  for (const d of respuesta.dudas ?? []) ctx.reporte.agregarPr('Dudas', `${d.nombre ?? 'Sin nombre'}: ${d.motivo ?? 'sin motivo'}`);
+  for (const d of respuesta.dudas ?? []) ctx.reporte.duda(`${d.nombre ?? 'Sin nombre'}: ${d.motivo ?? 'sin motivo'}`);
 }

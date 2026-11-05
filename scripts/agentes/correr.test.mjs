@@ -476,11 +476,18 @@ describe('orquestador', () => {
     expect(r.cambiados).toContain('rankings.json');
     expect(await readFile(join(dir, 'rankings.json'), 'utf8')).toBe(antes);
   });
+  it('sin novedades no hay PR, aunque los agentes hayan revisado', async () => {
+    const r = await ejecutar();
+    expect(r.llamadas).toBeGreaterThan(0);
+    expect(r.hayPr).toBe(false);
+    expect(r.cambiados).toEqual(expect.arrayContaining(['partidos.json', 'estado-agentes.json']));
+    expect(r.cambiados).not.toContain('jugadoras.json');
+    expect(r.cambiados).not.toContain('ligas.json');
+  });
   it('separa lo que va a Pull Request', async () => {
-    expect((await ejecutar()).hayPr).toBe(true); // revisado cambia en jugadoras.json
-    const soloRanking = await correr({ dirDatos: dir, dirFotos: fotos, llamar: null, verificar: crearVerificador({ red: false }), ahora: AHORA + 36e5 });
-    expect(soloRanking.hayPr).toBe(false);
-    expect(soloRanking.cambiados).toContain('partidos.json');
+    const r = await ejecutar({ '05-donde-ver': { temporada: '2026-27', plataformas: [] } });
+    expect(r.hayPr).toBe(true);
+    expect(r.cambiados).toContain('ligas.json');
   });
   it('lo que se guarda directo sigue siendo válido con los archivos del PR sin aprobar', async () => {
     const original = Object.fromEntries(await Promise.all(['jugadoras', 'clubes', 'ligas', 'torneos'].map(async (n) => [n, await leer(`${n}.json`)])));
@@ -497,6 +504,155 @@ describe('orquestador', () => {
     const nombres = ['jugadoras', 'clubes', 'ligas', 'partidos', 'seleccion', 'torneos', 'rankings'];
     const crudos = Object.fromEntries(await Promise.all(nombres.map(async (n) => [n, await leer(`${n}.json`)])));
     expect(() => validarDatos(crudos)).not.toThrow();
+  });
+});
+
+describe('Pull Request que acumula', () => {
+  const nueva = { nombre: 'Rosa Hernández', numero: 9, posicion: 'Central', capitana: false, club: null, slug: null };
+  const conAlta = (fuente = OFICIAL) => plantel({ listas: [lista([nueva], { fuente })] });
+  const baja = (fuente) => plantel({ bajas: [{ slug: 'jocelyn-urias', tipo: 'retiro', evidencia: 'Anunció su retiro', fuente, confianza: 'alta' }] });
+  const semana = (n) => AHORA + n * 7 * 864e5;
+  const vuelveAMain = async (original) => writeFile(join(dir, 'jugadoras.json'), original);
+  const original = () => readFile(new URL('../../data/jugadoras.json', import.meta.url), 'utf8');
+
+  it('guarda lo propuesto en estado-agentes con su fuente', async () => {
+    await ejecutar(conAlta());
+    expect((await leer('estado-agentes.json')).propuestas).toEqual([
+      { clave: 'alta:rosa-hernandez', seccion: 'Altas', texto: 'Rosa Hernández (NORCECA Final Six 2026)', fuente: OFICIAL, fecha: '2026-11-05' },
+    ]);
+  });
+  it('con el PR abierto acumula: el cuerpo trae lo de la semana pasada', async () => {
+    await ejecutar(conAlta());
+    const r = await ejecutar(baja(OFICIAL), { prEstado: 'OPEN', ahora: semana(1) });
+    expect(r.cuerpoPr).toContain('Rosa Hernández');
+    expect(r.cuerpoPr).toContain('Jocelyn Urías');
+    expect(await jugadora('rosa-hernandez')).toBeTruthy();
+    expect((await jugadora('jocelyn-urias')).estado).toBe('exseleccionada');
+  });
+  it('con el PR abierto una propuesta sigue sin aprobarse', async () => {
+    await ejecutar(conAlta());
+    await ejecutar({}, { prEstado: 'OPEN', ahora: semana(1) });
+    expect((await jugadora('rosa-hernandez')).estado).toBe('propuesta');
+  });
+  it('no repite una propuesta que ya está en el PR', async () => {
+    await ejecutar(conAlta());
+    await ejecutar(conAlta(), { prEstado: 'OPEN', ahora: semana(1) });
+    expect((await leer('estado-agentes.json')).propuestas).toHaveLength(1);
+  });
+  it('un PR aprobado limpia las propuestas y activa las altas', async () => {
+    await ejecutar(conAlta());
+    await ejecutar({}, { prEstado: 'MERGED', ahora: semana(1) });
+    expect((await leer('estado-agentes.json')).propuestas).toEqual([]);
+    expect((await jugadora('rosa-hernandez')).estado).toBe('activa');
+  });
+  it('un PR cerrado pasa lo propuesto a rechazos', async () => {
+    const base = await original();
+    await ejecutar(conAlta());
+    await vuelveAMain(base);
+    await ejecutar({}, { prEstado: 'CLOSED', ahora: semana(1) });
+    const e = await leer('estado-agentes.json');
+    expect(e.propuestas).toEqual([]);
+    expect(e.rechazos).toEqual([{ clave: 'alta:rosa-hernandez', texto: 'Rosa Hernández (NORCECA Final Six 2026)', evidencias: [OFICIAL], fecha: '2026-11-12' }]);
+  });
+  it('lo rechazado no se vuelve a proponer con la misma evidencia', async () => {
+    const base = await original();
+    await ejecutar(conAlta());
+    await vuelveAMain(base);
+    const r = await ejecutar(conAlta(), { prEstado: 'CLOSED', ahora: semana(1) });
+    expect(await jugadora('rosa-hernandez')).toBeUndefined();
+    expect(r.resumen).toContain('se rechazó en un PR');
+    await ejecutar(conAlta(), { ahora: semana(2) });
+    expect(await jugadora('rosa-hernandez')).toBeUndefined();
+  });
+  it('con evidencia nueva sí vuelve', async () => {
+    const base = await original();
+    await ejecutar(conAlta());
+    await vuelveAMain(base);
+    await ejecutar({}, { prEstado: 'CLOSED', ahora: semana(1) });
+    await ejecutar(conAlta('https://www.fivb.com/x'), { ahora: semana(2) });
+    expect((await jugadora('rosa-hernandez')).estado).toBe('propuesta');
+  });
+  it('rechazar dos veces junta las evidencias', async () => {
+    const base = await original();
+    await ejecutar(conAlta());
+    await vuelveAMain(base);
+    await ejecutar({}, { prEstado: 'CLOSED', ahora: semana(1) });
+    await ejecutar(conAlta('https://www.fivb.com/x'), { ahora: semana(2) });
+    await vuelveAMain(base);
+    await ejecutar({}, { prEstado: 'CLOSED', ahora: semana(3) });
+    expect((await leer('estado-agentes.json')).rechazos[0].evidencias).toEqual([OFICIAL, 'https://www.fivb.com/x']);
+  });
+  it('una baja por inactividad rechazada no vuelve sola', async () => {
+    const vieja = (l) => { l.find((j) => j.slug === 'jocelyn-urias').ultimaListaOficial.fecha = '2024-10-01'; };
+    await cambiar('jugadoras.json', vieja);
+    await ejecutar();
+    await cambiar('jugadoras.json', (l) => { const j = l.find((x) => x.slug === 'jocelyn-urias'); j.estado = 'activa'; });
+    await ejecutar({}, { prEstado: 'CLOSED', ahora: semana(1) });
+    expect((await jugadora('jocelyn-urias')).estado).toBe('activa');
+  });
+  it('un cambio de club rechazado no vuelve', async () => {
+    const club = { '02-perfil': (clave) => (clave === 'uxue-guereca' ? { slug: clave, club: { valor: { nombre: 'Sesi Vôlei Bauru' }, fuente: 'https://volleybox.net/x', confianza: 'alta' } } : undefined) };
+    const base = await original();
+    await ejecutar(club);
+    await vuelveAMain(base);
+    await ejecutar({}, { prEstado: 'CLOSED', ahora: semana(1) });
+    await cambiar('estado-agentes.json', (e) => { e.revisado = {}; });
+    await ejecutar(club, { ahora: semana(2) });
+    expect((await jugadora('uxue-guereca')).clubId).toBe('lovb-miami');
+  });
+  it('un dato de perfil rechazado no vuelve, pero otro valor sí', async () => {
+    const estatura = (valor) => ({ '02-perfil': (clave) => (clave === 'uxue-guereca' ? { slug: clave, estaturaCm: { valor, fuente: 'https://volleybox.net/x' } } : undefined) });
+    const base = await original();
+    await ejecutar(estatura(183));
+    await vuelveAMain(base);
+    await ejecutar({}, { prEstado: 'CLOSED', ahora: semana(1) });
+    await cambiar('estado-agentes.json', (e) => { e.revisado = {}; });
+    await ejecutar(estatura(183), { ahora: semana(2) });
+    expect((await jugadora('uxue-guereca')).estaturaCm).toBeNull();
+    await cambiar('estado-agentes.json', (e) => { e.revisado = {}; });
+    await ejecutar(estatura(185), { ahora: semana(3) });
+    expect((await jugadora('uxue-guereca')).estaturaCm).toBe(185);
+  });
+  it('una tarea que falla no deja propuestas', async () => {
+    const verificar = crearVerificador({ red: false });
+    const conFallo = async (url, fuentes) => {
+      if (url === 'https://norceca.info/explota') throw new Error('red caída');
+      return verificar(url, fuentes);
+    };
+    const respuestas = plantel({ listas: [lista([nueva])], bajas: [{ slug: 'jocelyn-urias', tipo: 'retiro', evidencia: 'x', fuente: 'https://norceca.info/explota', confianza: 'alta' }] });
+    await correr({ dirDatos: dir, dirFotos: fotos, llamar: llamarCon(respuestas), verificar: conFallo, ahora: AHORA });
+    expect((await leer('estado-agentes.json')).propuestas).toEqual([]);
+  });
+
+  describe('partiendo de la rama del PR', () => {
+    let aprobados;
+    beforeEach(async () => {
+      aprobados = await mkdtemp(join(tmpdir(), 'aprobados-'));
+      await cp(dir, aprobados, { recursive: true });
+    });
+    afterEach(() => rm(aprobados, { recursive: true, force: true }));
+
+    it('un club que solo está en el PR no recibe partidos', async () => {
+      await cambiar('clubes.json', (c) => { c['club-nuevo'] = { ...c.uyba, nombre: 'Club Nuevo', alias: [] }; });
+      await cambiar('jugadoras.json', (l) => { l.find((j) => j.slug === 'uxue-guereca').clubId = 'club-nuevo'; });
+      const llamar = llamarCon();
+      await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA, prEstado: 'OPEN', dirAprobados: aprobados });
+      expect(llamar.llamadas.some((l) => l.clave === 'club-nuevo')).toBe(false);
+    });
+    it('una convocada que solo está en el PR no entra a partidos.json', async () => {
+      await ejecutar(conAlta());
+      const partido = { fecha: '2026-12-01', hora: '19:00', zonaHoraria: 'America/Lima', local: 'México', visitante: 'Perú', mexico: 'local', torneo: 'Copa', fuente: OFICIAL };
+      const r = await ejecutar({ '04-seleccion-torneos': { partidos: [partido], convocadas: { fuente: OFICIAL, jugadoras: ['Rosa Hernández', 'Sofía Maldonado'] } } }, { prEstado: 'OPEN', dirAprobados: aprobados, ahora: semana(1) });
+      expect((await leer('partidos.json')).partidos.find((p) => p.tipo === 'seleccion').convocadas).toEqual(['sofia-maldonado']);
+      expect(r.cuerpoPr).toContain('Rosa Hernández');
+    });
+    it('no escribe si lo directo no funcionaría en main', async () => {
+      await cambiar('clubes.json', (c) => { c['club-nuevo'] = { ...c.uyba, nombre: 'Club Nuevo', alias: [] }; });
+      await cambiar('partidos.json', (d) => { d.partidos.push({ ...d.partidos[0], id: 'club-club-nuevo-2026-12-01', clubId: 'club-nuevo', inicio: '2026-12-01T20:00:00+01:00', zonaSede: 'Europe/Rome' }); });
+      const antes = await readFile(join(dir, 'rankings.json'), 'utf8');
+      await expect(correr({ dirDatos: dir, dirFotos: fotos, llamar: null, verificar: crearVerificador({ red: false }), ahora: AHORA, dirAprobados: aprobados })).rejects.toThrow('club desconocido');
+      expect(await readFile(join(dir, 'rankings.json'), 'utf8')).toBe(antes);
+    });
   });
 });
 

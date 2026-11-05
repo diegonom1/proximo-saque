@@ -174,6 +174,9 @@ export const esquemaEstadoAgentes = z.strictObject({
   ultimaCorrida: instante.nullable(),
   revisado: z.record(z.string(), fecha),
   pendientes: z.array(z.unknown()),
+  // Lo que está en el PR abierto. Si se cierra sin aprobar, pasa a `rechazos`.
+  propuestas: z.array(z.strictObject({ clave: texto, seccion: texto, texto, fuente: urlN, fecha })).default([]),
+  rechazos: z.array(z.strictObject({ clave: texto, texto, evidencias: z.array(url), fecha })).default([]),
 });
 
 export const esquemaManual = z.strictObject({

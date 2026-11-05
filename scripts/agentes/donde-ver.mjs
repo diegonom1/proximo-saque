@@ -1,7 +1,7 @@
 // Agente 05: dónde ver una liga o el próximo torneo desde México.
 
 import { z } from 'zod';
-import { confianza, consultar, textoN, validos } from './comun.mjs';
+import { confianza, consultar, proponer, textoN, validos } from './comun.mjs';
 
 export const AGENTE = '05-donde-ver';
 export const MAXIMO = 2;
@@ -58,6 +58,7 @@ export async function correr(ctx, id) {
   const clubes = esTorneo ? [] : Object.values(datos.clubes).filter((c) => c.ligaId === id).map((c) => c.nombre);
   const { respuesta, verificar } = await consultar(ctx, AGENTE, id, { competencia, clubes, espectador: 'México' }, esquema);
 
+  const destino = esTorneo ? datos.seleccion : liga;
   const plataformas = [];
   for (const p of validos(respuesta.plataformas, esquemaPlataforma, (x) => ctx.reporte.descarto(AGENTE, x?.nombre ?? 'plataforma', 'formato inválido'))) {
     const fuente = await verificar(p.fuente);
@@ -65,21 +66,39 @@ export async function correr(ctx, id) {
       ctx.reporte.descarto(AGENTE, p.nombre, 'sin fuente verificable');
       continue;
     }
-    plataformas.push({
-      nombre: p.nombre, tipo: p.tipo, url: p.url, alcance: p.alcance ?? null, costo: p.costo ?? null, notas: p.notas ?? null, fuente, revisado: ctx.hoy,
-    });
+    const guardada = destino.plataformas.find((x) => x.url === p.url);
+    if (guardada) {
+      plataformas.push(guardada);
+      continue;
+    }
+    // seleccion.json va directo; solo lo de las ligas pasa por el PR.
+    const pasa = esTorneo || proponer(ctx, AGENTE, { clave: `plataforma:${id}:${p.url}`, seccion: 'Plataformas nuevas', texto: `${liga.nombre}: ${p.nombre}`, fuente });
+    if (pasa) {
+      plataformas.push({
+        nombre: p.nombre, tipo: p.tipo, url: p.url, alcance: p.alcance ?? null, costo: p.costo ?? null, notas: p.notas ?? null, fuente, revisado: ctx.hoy,
+      });
+    }
   }
 
-  const destino = esTorneo ? datos.seleccion : liga;
-  const nuevas = plataformas.filter((p) => !destino.plataformas.some((x) => x.url === p.url));
-  if (plataformas.length) destino.plataformas = plataformas;
-  destino.revisado = ctx.hoy;
+  let cambio = false;
+  const igual = (a, b) => a.length === b.length && a.every((x) => b.some((y) => y.url === x.url));
+  if (plataformas.length && !igual(plataformas, destino.plataformas)) {
+    destino.plataformas = plataformas;
+    cambio = true;
+  }
   datos.estado.revisado[`dondever:${id}`] = ctx.hoy;
   if (!esTorneo) {
-    if (respuesta.temporada) liga.temporada = respuesta.temporada;
+    if (respuesta.temporada && respuesta.temporada !== liga.temporada && proponer(ctx, AGENTE, { clave: `temporada:${id}:${respuesta.temporada}`, seccion: 'Plataformas nuevas', texto: `${liga.nombre}: temporada ${respuesta.temporada}` })) {
+      liga.temporada = respuesta.temporada;
+      cambio = true;
+    }
     const calendario = await verificar(respuesta.calendarioOficialUrl);
-    if (calendario) liga.calendarioOficialUrl = calendario;
-    for (const p of nuevas) ctx.reporte.agregarPr('Plataformas nuevas', `${liga.nombre}: ${p.nombre}`, p.fuente);
+    if (calendario && calendario !== liga.calendarioOficialUrl && proponer(ctx, AGENTE, { clave: `calendario:${id}:${calendario}`, seccion: 'Plataformas nuevas', texto: `${liga.nombre}: calendario oficial`, fuente: calendario })) {
+      liga.calendarioOficialUrl = calendario;
+      cambio = true;
+    }
   }
+  // `revisado` solo cambia si hubo novedades: la rotación usa estado-agentes.json.
+  if (cambio) destino.revisado = ctx.hoy;
   ctx.reporte.encontro(AGENTE, `${competencia.nombre}: ${plataformas.length} plataforma(s)`);
 }

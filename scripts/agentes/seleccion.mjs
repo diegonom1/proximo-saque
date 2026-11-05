@@ -1,7 +1,7 @@
 // Agente 04: próximo compromiso de la Selección y torneos terminados.
 
 import { z } from 'zod';
-import { confianza, consultar, fechaN, textoN, validos } from './comun.mjs';
+import { confianza, consultar, fechaN, proponer, textoN, validos } from './comun.mjs';
 import { resolverJugadora } from '../lib/nombres.mjs';
 import { idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
 import { convertirSeleccion, esquemaPartido, esquemaTorneo } from '../lib/validar.mjs';
@@ -34,11 +34,11 @@ const esquema = z.object({
   motivo: textoN,
 });
 
-function resolverNombres(ctx, nombres, contexto) {
+function resolverNombres(ctx, nombres, contexto, jugadoras = ctx.datos.jugadoras) {
   return nombres.flatMap((nombre) => {
-    const r = resolverJugadora(nombre, null, ctx.datos.jugadoras);
+    const r = resolverJugadora(nombre, null, jugadoras);
     if (r.jugadora) return [r.jugadora.slug];
-    ctx.reporte.agregarPr('Dudas', `${contexto}: ${r.duda ?? `"${nombre}" no está en la plantilla`}`);
+    ctx.reporte.duda(`${contexto}: ${r.duda ?? `"${nombre}" no está en la plantilla`}`);
     return [];
   });
 }
@@ -79,7 +79,9 @@ async function partidos(ctx, respuesta, verificar) {
   let convocadas = null;
   if (respuesta.convocadas?.jugadoras?.length) {
     if (await verificar(respuesta.convocadas.fuente)) {
-      convocadas = resolverNombres(ctx, respuesta.convocadas.jugadoras, 'Convocadas');
+      // partidos.json va directo a main: solo puede citar a jugadoras ya aprobadas.
+      const aprobadas = ctx.datos.jugadoras.filter((j) => ctx.aprobados.jugadoras.has(j.slug));
+      convocadas = resolverNombres(ctx, respuesta.convocadas.jugadoras, 'Convocadas', aprobadas);
     } else {
       ctx.reporte.descarto(AGENTE, 'convocadas', 'sin fuente verificable');
     }
@@ -123,10 +125,13 @@ async function torneos(ctx, lista, verificar) {
     const guardado = doc.torneos.find((x) => mismoTorneo(x, t));
     if (guardado) {
       // Solo completa lo que faltaba; lo que ya estaba aprobado no se pisa.
-      guardado.record ??= t.record ?? null;
-      guardado.posicion ??= t.posicion ?? null;
-      guardado.medalla ??= t.medalla ?? null;
-      if (guardado.premios.length === 0) guardado.premios = premios;
+      const faltaba = (guardado.record === null && t.record) || (guardado.posicion === null && t.posicion) || (guardado.medalla === null && t.medalla) || (guardado.premios.length === 0 && premios.length);
+      if (faltaba && proponer(ctx, AGENTE, { clave: `torneo:${guardado.id}:completar`, seccion: 'Torneos nuevos', texto: `${guardado.nombre} ${guardado.edicion}: datos que faltaban`, fuente })) {
+        guardado.record ??= t.record ?? null;
+        guardado.posicion ??= t.posicion ?? null;
+        guardado.medalla ??= t.medalla ?? null;
+        if (guardado.premios.length === 0) guardado.premios = premios;
+      }
       continue;
     }
     const nuevo = {
@@ -137,8 +142,8 @@ async function torneos(ctx, lista, verificar) {
       ctx.reporte.descarto(AGENTE, t.nombre, 'no cumple el contrato');
       continue;
     }
-    doc.torneos.push(nuevo);
-    ctx.reporte.agregarPr('Torneos nuevos', `${t.nombre} ${t.edicion}: ${t.medalla ?? (t.posicion ? `lugar ${t.posicion}` : 'resultado por confirmar')}`, fuente);
+    const texto = `${nuevo.nombre} ${t.edicion}: ${t.medalla ?? (t.posicion ? `lugar ${t.posicion}` : 'resultado por confirmar')}`;
+    if (proponer(ctx, AGENTE, { clave: `torneo:${id}`, seccion: 'Torneos nuevos', texto, fuente })) doc.torneos.push(nuevo);
   }
   // Regla en código: los más recientes por fecha de fin.
   doc.torneos.sort((a, b) => b.fechaFin.localeCompare(a.fechaFin));

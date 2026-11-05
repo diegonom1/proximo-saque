@@ -95,7 +95,7 @@ Cualquier campo puede ser `null`. En pantalla, `null` se muestra como "Por confi
 - `redes`: `[{ "red": "instagram", "url": "https://...", "fuente": "https://..." }]`; solo cuentas verificadas (ver agente 02).
 - `fuentes`: URL por campo (`{ "clubId": "https://...", "fechaNacimiento": "https://..." }`).
 - `fotos.foco`: `object-position` para recortar bien en cualquier pantalla. Los créditos salen de `credito.txt`.
-- `revisado`: fecha en que el agente de perfil la revisó por última vez.
+- `revisado`: fecha del último cambio que trajo el agente de perfil. La rotación usa `estado-agentes.json`.
 
 ### `data/clubes.json` (objeto por id)
 
@@ -254,11 +254,13 @@ Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los ree
 {
   "ultimaCorrida": null,
   "revisado": { "perfil:sofia-maldonado": "2026-11-09", "dondever:superliga-br": "2026-11-09" },
-  "pendientes": []
+  "pendientes": [],
+  "propuestas": [{ "clave": "alta:rosa-hernandez", "seccion": "Altas", "texto": "Rosa Hernández (NORCECA Final Six 2026)", "fuente": "https://...", "fecha": "2026-11-09" }],
+  "rechazos": [{ "clave": "club:uxue-guereca:club ejemplo", "texto": "...", "evidencias": ["https://..."], "fecha": "2026-11-16" }]
 }
 ```
 
-`pendientes`: tareas que no cupieron en el presupuesto de la corrida; van primero la semana siguiente.
+`pendientes`: tareas que no cupieron en el presupuesto de la corrida; van primero la semana siguiente. `propuestas`: lo que está en el PR abierto. `rechazos`: lo de un PR cerrado sin aprobar; no se vuelve a proponer salvo que llegue con una fuente que no esté en `evidencias`.
 
 ### `data/manual.json`
 
@@ -415,8 +417,8 @@ Detalles técnicos:
 ### Qué se guarda solo y qué se aprueba
 
 - **Commit directo**: `partidos.json`, `rankings.json`, `seleccion.json`, `estado-agentes.json`.
-- **Pull Request de revisión semanal** (rama `revision-semanal`, uno abierto a la vez; si ya existe se actualiza): cambios en `jugadoras.json`, `clubes.json`, `ligas.json` y `torneos.json`. El cuerpo del PR resume altas, bajas, cambios de club, plataformas nuevas, torneos nuevos y dudas, cada uno con su fuente. Un alta crea también `src/assets/fotos/jugadoras/<slug>/.gitkeep`. Se aprueba desde la app de GitHub en el celular.
-- Lo que se guarda directo debe ser válido contra los archivos del PR sin aprobar: `partidos.json` no puede citar un club que solo existe en el PR. Por eso la rotación de los agentes 02 y 05 sale de `estado-agentes.json`, no de los `revisado` de `jugadoras.json` y `ligas.json`.
+- **Pull Request de revisión semanal** (rama `revision-semanal`, uno abierto a la vez; acumula lo de semanas anteriores: la corrida parte de la rama, después de integrarle `main`; si se cerró sin aprobar, parte de `main`): cambios en `jugadoras.json`, `clubes.json`, `ligas.json` y `torneos.json`. El cuerpo del PR resume altas, bajas, cambios de club, plataformas nuevas, torneos nuevos, datos de perfil y dudas, cada uno con su fuente. Un alta crea también `src/assets/fotos/jugadoras/<slug>/.gitkeep`. Se aprueba desde la app de GitHub en el celular.
+- Lo que se guarda directo debe ser válido contra lo aprobado en `main` (`DIR_APROBADOS`): `partidos.json` no puede citar un club o una convocada que solo existen en el PR. Si no lo es, la corrida falla sin escribir. Por eso la rotación de los agentes 02 y 05 sale de `estado-agentes.json`, no de los `revisado` de `jugadoras.json` y `ligas.json`.
 - Un alta entra como `propuesta` por el PR. Si la siguiente corrida la encuentra en `main`, el PR se aprobó y pasa a `activa`.
 - Cuando se confirma el nombre de `ovalle` o `tanguma`, el agente actualiza `nombre` y avisa en dudas; renombrar `slug` y carpeta es a mano.
 - El cuerpo del PR se escribe en `revision-semanal.md` (fuera del repo).

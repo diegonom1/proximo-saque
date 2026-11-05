@@ -1,10 +1,10 @@
 // Lo que encontró y descartó cada agente, para el resumen de la corrida y el cuerpo del PR.
 
-const SECCIONES = ['Altas', 'Bajas', 'Cambios de club', 'Plataformas nuevas', 'Torneos nuevos', 'Dudas'];
+export const SECCIONES = ['Altas', 'Bajas', 'Cambios de club', 'Plataformas nuevas', 'Torneos nuevos', 'Perfiles'];
 
 export function crearReporte() {
   const agentes = new Map();
-  const pr = Object.fromEntries(SECCIONES.map((s) => [s, []]));
+  const dudas = [];
   const de = (agente) => {
     if (!agentes.has(agente)) agentes.set(agente, { encontro: [], descarto: [], fallos: [] });
     return agentes.get(agente);
@@ -12,18 +12,17 @@ export function crearReporte() {
 
   return {
     agentes,
-    pr,
     encontro: (agente, texto) => de(agente).encontro.push(texto),
     descarto: (agente, texto, motivo) => de(agente).descarto.push(`${texto}: ${motivo}`),
     fallo: (agente, texto) => de(agente).fallos.push(texto),
-    agregarPr: (seccion, texto, fuente = null) => pr[seccion].push({ texto, fuente }),
+    duda: (texto, fuente = null) => dudas.push({ texto, fuente }),
     // Para deshacer lo que anotó una tarea que falló.
     marca: () => ({
-      pr: Object.fromEntries(SECCIONES.map((s) => [s, pr[s].length])),
+      dudas: dudas.length,
       agentes: new Map([...agentes].map(([a, r]) => [a, r.encontro.length])),
     }),
     volver(marca) {
-      for (const s of SECCIONES) pr[s].length = marca.pr[s];
+      dudas.length = marca.dudas;
       for (const [a, r] of agentes) r.encontro.length = marca.agentes.get(a) ?? 0;
     },
     resumen({ modo, llamadas, maximo, pendientes }) {
@@ -38,14 +37,15 @@ export function crearReporte() {
       if (pendientes.length) lineas.push(`Pendientes para la próxima corrida: ${pendientes.map((p) => `${p.agente} (${p.clave ?? 'general'})`).join(', ')}`, '');
       return lineas.join('\n');
     },
-    cuerpoPr() {
-      const lineas = ['Revisión semanal de los agentes. Revisa cada cambio con su fuente antes de aprobar.', ''];
+    // Sale de `propuestas`, no de esta corrida: el PR acumula lo de semanas anteriores.
+    cuerpoPr(propuestas) {
+      const linea = ({ texto, fuente }) => `- ${texto}${fuente ? ` ([fuente](${fuente}))` : ''}`;
+      const lineas = ['Revisión semanal de los agentes. Revisa cada cambio con su fuente antes de aprobar.', '', 'Si lo cierras sin aprobar, lo rechazado no se vuelve a proponer salvo que haya una fuente nueva.', ''];
       for (const s of SECCIONES) {
-        if (!pr[s].length) continue;
-        lineas.push(`## ${s}`, '');
-        for (const { texto, fuente } of pr[s]) lineas.push(`- ${texto}${fuente ? ` ([fuente](${fuente}))` : ''}`);
-        lineas.push('');
+        const lista = propuestas.filter((p) => p.seccion === s);
+        if (lista.length) lineas.push(`## ${s}`, '', ...lista.map(linea), '');
       }
+      if (dudas.length) lineas.push('## Dudas', '', ...dudas.map(linea), '');
       return lineas.join('\n');
     },
   };

@@ -1,7 +1,7 @@
 // Agente 02: ficha de una jugadora.
 
 import { z } from 'zod';
-import { confianza, consultar, textoN, validos } from './comun.mjs';
+import { confianza, consultar, proponer, textoN, validos } from './comun.mjs';
 import { normal } from '../lib/fusion.mjs';
 import { slugDe } from '../lib/nombres.mjs';
 import { zonaValida } from '../lib/tiempo.mjs';
@@ -79,40 +79,45 @@ function crearClub(ctx, valor) {
 }
 
 async function cambiarClub(ctx, j, c, verificar) {
-  if (!c?.valor) return;
+  if (!c?.valor) return false;
   const r = esquemaClub.safeParse(c.valor);
   const fuente = await verificar(c.fuente);
   if (!r.success || !fuente) {
     ctx.reporte.descarto(AGENTE, `club de ${j.nombre}`, !r.success ? 'formato inválido' : 'sin fuente verificable');
-    return;
+    return false;
   }
   const valor = r.data;
   const id = buscarClub(ctx.datos.clubes, valor.nombre);
-  if (id === j.clubId) {
-    j.fuentes.clubId = fuente;
-    return;
-  }
+  if (id === j.clubId) return false;
   if (c.confianza === 'baja') {
-    ctx.reporte.agregarPr('Dudas', `Posible cambio de club de ${j.nombre}: ${valor.nombre}`, fuente);
-    return;
+    ctx.reporte.duda(`Posible cambio de club de ${j.nombre}: ${valor.nombre}`, fuente);
+    return false;
   }
   if (!id && !zonaValida(valor.zonaHoraria)) {
-    ctx.reporte.agregarPr('Dudas', `${j.nombre} estaría en ${valor.nombre}, pero falta su zona horaria`, fuente);
-    return;
+    ctx.reporte.duda(`${j.nombre} estaría en ${valor.nombre}, pero falta su zona horaria`, fuente);
+    return false;
   }
   const antes = j.clubId ? ctx.datos.clubes[j.clubId]?.nombre : 'sin club';
+  if (!proponer(ctx, AGENTE, { clave: `club:${j.slug}:${normal(valor.nombre)}`, seccion: 'Cambios de club', texto: `${j.nombre}: ${antes} → ${valor.nombre}`, fuente })) return false;
   j.clubId = id ?? crearClub(ctx, valor);
   j.fuentes.clubId = fuente;
-  ctx.reporte.agregarPr('Cambios de club', `${j.nombre}: ${antes} → ${valor.nombre}`, fuente);
+  return true;
 }
 
-async function conFuente(lista, verificar) {
-  const salida = [];
-  for (const x of lista) {
+// Agrega a una lista lo que trae el agente; lo que ya estaba se conserva.
+async function agregar(ctx, j, { actual, nuevos, tipo, claveDe, etiqueta, formar, verificar }) {
+  const lista = [...actual];
+  let agregados = 0;
+  for (const x of nuevos) {
+    const clave = claveDe(x);
+    if (actual.some((a) => claveDe(a) === clave)) continue;
     const fuente = await verificar(x.fuente);
-    if (fuente) salida.push({ ...x, fuente });
+    if (fuente && proponer(ctx, AGENTE, { clave: `perfil:${j.slug}:${tipo}:${clave}`, seccion: 'Perfiles', texto: `${j.nombre}: ${etiqueta(x)}`, fuente })) {
+      lista.push(formar({ ...x, fuente }));
+      agregados += 1;
+    }
   }
-  return salida;
+  return { lista, agregados };
 }
 
 export async function correr(ctx, slug) {
@@ -141,22 +146,52 @@ export async function correr(ctx, slug) {
       ctx.reporte.descarto(AGENTE, `${nombre} de ${j.nombre}`, valor === null ? 'valor inválido' : 'sin fuente verificable');
       continue;
     }
+    if (JSON.stringify(valor) === JSON.stringify(j[nombre])) continue;
+    const texto = `${j.nombre}: ${nombre} ${typeof valor === 'object' ? JSON.stringify(valor) : valor}`;
+    if (!proponer(ctx, AGENTE, { clave: `perfil:${slug}:${nombre}:${JSON.stringify(valor)}`, seccion: 'Perfiles', texto, fuente })) continue;
     j[nombre] = valor;
     j.fuentes[nombre] = fuente;
     datosNuevos += 1;
   }
-  await cambiarClub(ctx, j, respuesta.club, verificar);
+  if (await cambiarClub(ctx, j, respuesta.club, verificar)) datosNuevos += 1;
 
   const descartar = (etiqueta) => () => ctx.reporte.descarto(AGENTE, `${etiqueta} de ${j.nombre}`, 'formato inválido');
-  const historial = await conFuente(validos(respuesta.historialClubes, esquemaHistorial, descartar('club')), verificar);
-  if (historial.length) j.historialClubes = historial.map((h) => ({ club: h.club, pais: h.pais ?? null, temporada: h.temporada ?? null, fuente: h.fuente }));
-  const redes = await conFuente(validos(respuesta.redes, esquemaRed, descartar('red')), verificar);
-  if (redes.length) j.redes = redes;
-  const destacados = await conFuente(validos(respuesta.destacados, esquemaDestacado, descartar('destacado')), verificar);
-  if (destacados.length) j.destacados = destacados.slice(0, 6).map((d) => ({ texto: d.texto, anio: d.anio ?? null, fuente: d.fuente }));
+  const historial = await agregar(ctx, j, {
+    actual: j.historialClubes,
+    nuevos: validos(respuesta.historialClubes, esquemaHistorial, descartar('club')),
+    tipo: 'club',
+    claveDe: (h) => `${normal(h.club)}|${h.temporada ?? ''}`,
+    etiqueta: (h) => `club ${h.club} (${h.temporada ?? 'temporada por confirmar'})`,
+    formar: (h) => ({ club: h.club, pais: h.pais ?? null, temporada: h.temporada ?? null, fuente: h.fuente }),
+    verificar,
+  });
+  // Una entrada sin temporada es la misma que la que ya trae temporada.
+  j.historialClubes = historial.lista.filter((h, _, todos) => h.temporada || !todos.some((o) => o.temporada && normal(o.club) === normal(h.club)));
+  const redes = await agregar(ctx, j, {
+    actual: j.redes,
+    nuevos: validos(respuesta.redes, esquemaRed, descartar('red')),
+    tipo: 'red',
+    claveDe: (r) => r.url,
+    etiqueta: (r) => `${r.red} ${r.url}`,
+    formar: (r) => r,
+    verificar,
+  });
+  j.redes = redes.lista;
+  const destacados = await agregar(ctx, j, {
+    actual: j.destacados,
+    nuevos: validos(respuesta.destacados, esquemaDestacado, descartar('destacado')),
+    tipo: 'destacado',
+    claveDe: (d) => normal(d.texto),
+    etiqueta: (d) => d.texto,
+    formar: (d) => ({ texto: d.texto, anio: d.anio ?? null, fuente: d.fuente }),
+    verificar,
+  });
+  j.destacados = destacados.lista.slice(0, 6);
+  datosNuevos += historial.agregados + redes.agregados + destacados.agregados;
 
-  for (const d of respuesta.dudas ?? []) ctx.reporte.agregarPr('Dudas', `${j.nombre}: ${typeof d === 'string' ? d : JSON.stringify(d)}`);
-  j.revisado = ctx.hoy;
+  for (const d of respuesta.dudas ?? []) ctx.reporte.duda(`${j.nombre}: ${typeof d === 'string' ? d : JSON.stringify(d)}`);
+  // `revisado` solo cambia si hubo novedades: si no, cada corrida abriría un PR sin nada que revisar.
+  if (datosNuevos > 0) j.revisado = ctx.hoy;
   ctx.datos.estado.revisado[`perfil:${slug}`] = ctx.hoy;
   ctx.reporte.encontro(AGENTE, `${j.nombre}: ${datosNuevos} dato(s) verificado(s)`);
 }

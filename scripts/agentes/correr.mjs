@@ -7,6 +7,8 @@
 //   MAX_LLAMADAS     presupuesto por corrida (por defecto 20).
 //   DIAS_ADELANTE    días hacia adelante para buscar partidos (por defecto 45).
 //   IA_SIMULADA      carpeta con respuestas guardadas; no gasta llamadas ni usa la red.
+//   PR_ESTADO        OPEN, MERGED o CLOSED: cómo quedó el último PR de revisión (lo da el workflow).
+//   DIR_APROBADOS    carpeta con los datos de main. Hace falta si se parte de la rama del PR.
 // Opción --seco: corre todo y muestra el resumen, pero no escribe nada.
 
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -61,6 +63,23 @@ async function cargar(dir) {
 // Una alta llega como `propuesta` por Pull Request: si ya está en main, el PR se aprobó.
 function aprobarPropuestas(datos) {
   for (const j of datos.jugadoras) if (j.estado === 'propuesta') j.estado = 'activa';
+}
+
+// Lo que le pasó al último PR. Abierto: se sigue acumulando. Aprobado: ya está en main.
+// Cerrado sin aprobar: se recuerda con su evidencia para no volver a proponerlo.
+export function atenderPr(estado, prEstado, hoy) {
+  if (prEstado === 'CLOSED') {
+    for (const p of estado.propuestas) {
+      const rechazo = estado.rechazos.find((r) => r.clave === p.clave);
+      if (rechazo) {
+        if (p.fuente && !rechazo.evidencias.includes(p.fuente)) rechazo.evidencias.push(p.fuente);
+        rechazo.fecha = hoy;
+      } else {
+        estado.rechazos.push({ clave: p.clave, texto: p.texto, evidencias: p.fuente ? [p.fuente] : [], fecha: hoy });
+      }
+    }
+  }
+  if (prEstado === 'CLOSED' || prEstado === 'MERGED') estado.propuestas = [];
 }
 
 function ejecutorDe(ctx, maximo, reporte) {
@@ -141,15 +160,24 @@ async function escribir(dir, datos, crudos, seco) {
   return cambiados;
 }
 
+// Lo que se guarda directo tiene que funcionar con lo que ya está aprobado en main.
+function validarContraAprobados(datos, aprobados) {
+  validarDatos({ ...aprobados, partidos: datos.partidos, seleccion: datos.seleccion, rankings: datos.rankings });
+}
+
 export async function correr({
   dirDatos, dirFotos, llamar, verificar, leerPagina = null, ahora = Date.now(), maxLlamadas = 20, diasAdelante = 45, seco = false, modo = 'real',
+  prEstado = null, dirAprobados = dirDatos,
 }) {
   const { datos, manual, crudos } = await cargar(dirDatos);
+  const archivosAprobados = Object.fromEntries(await Promise.all(['jugadoras', 'clubes', 'ligas', 'torneos'].map(async (k) => [k, await leerJSON(dirAprobados, ARCHIVOS[k])])));
   const reporte = crearReporte();
   const hoy = fechaEnZona(ahora, ZONA_SITIO);
-  const ctx = { datos, manual, llamar, verificar, leerPagina, ahora, hoy, diasAdelante, reporte, altas: [], nuevos: {} };
-  aprobarPropuestas(ctx.datos);
-  const clubesAprobados = new Set(Object.keys(crudos.clubes));
+  const aprobados = { clubes: new Set(Object.keys(archivosAprobados.clubes)), jugadoras: new Set(archivosAprobados.jugadoras.map((j) => j.slug)) };
+  const ctx = { datos, manual, llamar, verificar, leerPagina, ahora, hoy, diasAdelante, reporte, aprobados, altas: [], nuevos: {} };
+  atenderPr(ctx.datos.estado, prEstado, hoy);
+  // Con el PR abierto, una `propuesta` todavía no está aprobada.
+  if (prEstado !== 'OPEN') aprobarPropuestas(ctx.datos);
 
   const previos = ctx.datos.estado.pendientes;
   const { ejecutar, pendientes, estado } = ejecutorDe(ctx, maxLlamadas, reporte);
@@ -161,7 +189,7 @@ export async function correr({
     await ejecutar(seleccion.AGENTE);
     await ejecutar(plantel.AGENTE);
     for (const slug of perfil.porRevisar(ctx.datos.jugadoras, ctx.altas, ctx.datos.estado.revisado)) await ejecutar(perfil.AGENTE, slug);
-    for (const club of partidos.clubesPorRevisar(ctx.datos, clubesAprobados)) await ejecutar(partidos.AGENTE, club);
+    for (const club of partidos.clubesPorRevisar(ctx.datos, aprobados.clubes)) await ejecutar(partidos.AGENTE, club);
     for (const id of donde.porRevisar(ctx.datos, hoy)) await ejecutar(donde.AGENTE, id);
   }
 
@@ -170,6 +198,7 @@ export async function correr({
 
   const { estado: _, ...resto } = ctx.datos;
   validarDatos(resto);
+  validarContraAprobados(ctx.datos, archivosAprobados);
 
   const marcaDeTiempo = isoEnZona(ahora, ZONA_SITIO);
   ctx.datos.partidos.actualizado = marcaDeTiempo;
@@ -191,8 +220,8 @@ export async function correr({
     altas: ctx.altas,
     reporte,
     resumen: reporte.resumen({ modo, llamadas: estado.llamadas, maximo: maxLlamadas, pendientes }),
-    cuerpoPr: reporte.cuerpoPr(),
-    hayPr: cambiados.some((a) => ARCHIVOS_PR.includes(a)),
+    cuerpoPr: reporte.cuerpoPr(ctx.datos.estado.propuestas),
+    hayPr: ctx.datos.estado.propuestas.length > 0 || cambiados.some((a) => ARCHIVOS_PR.includes(a)),
   };
 }
 
@@ -228,14 +257,14 @@ async function main() {
     diasAdelante: Number(process.env.DIAS_ADELANTE || 45),
     seco,
     modo,
+    prEstado: process.env.PR_ESTADO || null,
+    dirAprobados: process.env.DIR_APROBADOS || undefined,
   });
 
   console.log(r.resumen);
   console.log(`Archivos con cambios${seco ? ' (no se escribieron)' : ''}: ${r.cambiados.join(', ') || 'ninguno'}`);
-  if (r.hayPr) {
-    if (!seco) await writeFile(join(RAIZ, 'revision-semanal.md'), r.cuerpoPr);
-    console.log(`\n${r.cuerpoPr}`);
-  }
+  if (!seco) await writeFile(join(RAIZ, 'revision-semanal.md'), r.cuerpoPr);
+  if (r.hayPr) console.log(`\n${r.cuerpoPr}`);
   if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, r.resumen);
 }
 

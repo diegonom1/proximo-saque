@@ -33,3 +33,19 @@ export function sumarDias(fecha, dias) {
   const [a, m, d] = fecha.split('-').map(Number);
   return new Date(Date.UTC(a, m - 1, d + dias)).toISOString().slice(0, 10);
 }
+
+// Todo cambio que va al PR pasa por aquí. Devuelve false si ya se rechazó con esa misma evidencia:
+// lo rechazado solo vuelve con una fuente nueva.
+export function proponer(ctx, agente, { clave, seccion, texto, fuente = null }) {
+  const { propuestas, rechazos } = ctx.datos.estado;
+  const rechazo = rechazos.find((r) => r.clave === clave);
+  if (rechazo && (!fuente || rechazo.evidencias.includes(fuente))) {
+    ctx.reporte.descarto(agente, texto, 'se rechazó en un PR y no hay evidencia nueva');
+    return false;
+  }
+  const propuesta = { clave, seccion, texto, fuente, fecha: ctx.hoy };
+  const i = propuestas.findIndex((p) => p.clave === clave);
+  if (i >= 0) propuestas[i] = propuesta;
+  else propuestas.push(propuesta);
+  return true;
+}
