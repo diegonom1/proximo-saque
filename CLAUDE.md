@@ -32,6 +32,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 ```
 /
 ├─ CLAUDE.md  LEEME.md
+├─ fotos-originales/        fotos sin procesar; no se sube al repo
 ├─ agentes/                 contextos (prompts) de cada agente; los lee el orquestador
 ├─ data/                    única fuente de verdad del sitio (JSON)
 │  ├─ jugadoras.json  clubes.json  ligas.json  partidos.json
@@ -42,7 +43,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  ├─ agentes/              correr.mjs (orquestador) + un módulo por agente
 │  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs
 │  ├─ pruebas/              respuestas simuladas por agente (IA_SIMULADA)
-│  └─ fotos/recortar.py     opcional: quita fondos con rembg, solo en local
+│  └─ fotos/                procesar.py (npm run fotos): prepara las fotos, solo en local
 ├─ src/
 │  ├─ assets/fotos/
 │  │  ├─ seleccion/         hero.jpg, hero-movil.jpg, credito.txt
@@ -359,7 +360,9 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 
 - Si falta una foto: tarjeta con iniciales y número en contorno; perfil con fondo de color y nombre gigante.
 - Si solo existe `fondo.jpg`, la tarjeta usa un recorte de esa misma foto con `fotos.foco`.
-- `scripts/fotos/recortar.py` (opcional, local): genera `recorte.png` con rembg a partir de `fondo.jpg`.
+- `npm run fotos` (`scripts/fotos/procesar.py`, solo en local, con `.venv`): toma `fotos-originales/<slug>/` y `fotos-originales/seleccion/` (cualquier nombre y formato) y genera en `src/assets/fotos/` `tarjeta.jpg` (cara en el tercio de arriba, con detección de rostro), `fondo.jpg`, `recorte.png`, `hero.jpg` y `hero-movil.jpg`. Crea `credito.txt` vacío si falta, avisa de lo que queda debajo del mínimo, no repite lo que no cambió y deja una hoja en `fotos-originales/vista-previa.jpg`. No quita marcas de agua.
+- Si una carpeta trae varias fotos, el script usa la más vertical para la tarjeta y la más horizontal para el fondo. Para decidirlo a mano, poner "tarjeta", "fondo" o "recorte" (en la Selección, "hero" o "movil") en el nombre del archivo.
+- `recorte.png` usa `birefnet-portrait`, que fue el que mejor recortó el cabello, pero puede morder lo que la jugadora trae en las manos. Si pasa con un balón: `FOTOS_MODELO=birefnet-general npm run fotos -- --solo <slug> --forzar`.
 - Las fotos viven en `src/assets/fotos/` porque Astro no procesa lo que está en `public/`. `src/lib/fotos.ts` las carga con `import.meta.glob` y lee `credito.txt` con `?raw`.
 - Astro genera los tamaños y formatos (WebP/AVIF) con `<Picture>` de `astro:assets`. El hero usa `getImage()` con un `<picture>` propio, porque `<Picture>` no admite un archivo distinto por pantalla.
 - No subir imágenes de más de 5 MB.

@@ -1,0 +1,6 @@
+rembg[cpu]==2.0.86
+pymatting==1.1.16
+pillow==13.0.0
+pillow-heif==1.8.1
+opencv-python-headless==5.0.0.93
+numpy==2.5.4

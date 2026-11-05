@@ -25,16 +25,27 @@
 
 ## Fotos
 
-Después de la fase 0 habrá una carpeta por jugadora en `src/assets/fotos/jugadoras/`. En cada una van:
+Dejen las fotos tal cual en `fotos-originales/<slug>/` (cualquier nombre y formato, incluso HEIC del iPhone) y las de la Selección en `fotos-originales/seleccion/`. El `slug` es el nombre de la carpeta de cada jugadora en `src/assets/fotos/jugadoras/`. Luego corran:
 
-- `tarjeta.jpg`: retrato vertical 4:5 (mínimo 1000 × 1250), con la cara en la parte de arriba.
-- `fondo.jpg`: foto horizontal grande (mínimo 2000 px de ancho), con la jugadora hacia un lado.
-- `recorte.png` (opcional): la jugadora sin fondo, para el efecto de profundidad.
-- `credito.txt`: de quién es la foto, por ejemplo `Foto: FMVB — https://...`.
+```
+npm run fotos
+```
 
-En `src/assets/fotos/seleccion/` van `hero.jpg` (horizontal, 2400 px de ancho) y `hero-movil.jpg` (vertical, 1080 × 1920).
+La primera vez crea un entorno de Python y descarga el modelo de recorte (cerca de 1 GB), así que tarda unos minutos. Después solo procesa las fotos que cambiaron.
 
-Si no tienen todas, no pasa nada: el sitio pone iniciales y número mientras tanto. También pueden darle las fotos a Claude Code tal cual y pedirle: "Acomódalas y recórtalas según CLAUDE.md".
+Genera en `src/assets/fotos/`:
+
+- `tarjeta.jpg`: retrato vertical 4:5 con la cara en la parte de arriba.
+- `fondo.jpg`: foto grande para el perfil.
+- `recorte.png`: la jugadora sin fondo, para el efecto de profundidad.
+- `hero.jpg` y `hero-movil.jpg`: para la portada, en `seleccion/`.
+- `credito.txt`: lo crea vacío. Escriban de quién es la foto, por ejemplo `Foto: FMVB — https://...`.
+
+Al terminar, abran `fotos-originales/vista-previa.jpg` y lean los avisos: dicen si una foto quedó con poca resolución y si falta un crédito. Revisen sobre todo que el recorte no se haya comido el balón.
+
+- Si una carpeta trae varias fotos, el script usa la más vertical para la tarjeta y la más horizontal para el fondo. Para elegir ustedes, pongan `tarjeta`, `fondo` o `recorte` en el nombre del archivo.
+- El script no quita marcas de agua, pero un recorte puede dejar fuera una que esté en la orilla. Respeten los permisos de cada foto.
+- Si no tienen todas las fotos, no pasa nada: el sitio pone iniciales y número mientras tanto.
 
 ## Antes de la fase 5
 
