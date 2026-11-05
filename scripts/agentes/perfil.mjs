@@ -113,6 +113,7 @@ async function agregar(ctx, j, { actual, nuevos, tipo, claveDe, etiqueta, formar
     const clave = claveDe(x);
     if (actual.some((a) => claveDe(a) === clave)) continue;
     const fuente = await verificar(x.fuente);
+    if (!fuente) ctx.reporte.descarto(AGENTE, `${tipo} de ${j.nombre}`, `la fuente no pasó (${x.fuente})`);
     if (fuente && proponer(ctx, AGENTE, { clave: `perfil:${j.slug}:${tipo}:${clave}`, seccion: 'Perfiles', texto: `${j.nombre}: ${etiqueta(x)}`, fuente })) {
       lista.push(formar({ ...x, fuente }));
       agregados += 1;
@@ -144,7 +145,7 @@ export async function correr(ctx, slug) {
     const valor = validar(c.valor, ctx);
     const fuente = await verificar(c.fuente);
     if (valor === null || !fuente) {
-      ctx.reporte.descarto(AGENTE, `${nombre} de ${j.nombre}`, valor === null ? 'valor inválido' : 'sin fuente verificable');
+      ctx.reporte.descarto(AGENTE, `${nombre} de ${j.nombre}`, valor === null ? 'valor inválido' : `la fuente no pasó (${c.fuente ?? 'sin fuente'})`);
       continue;
     }
     if (JSON.stringify(valor) === JSON.stringify(j[nombre])) continue;
@@ -156,7 +157,7 @@ export async function correr(ctx, slug) {
   }
   if (await cambiarClub(ctx, j, respuesta.club, verificar)) datosNuevos += 1;
 
-  const descartar = (etiqueta) => () => ctx.reporte.descarto(AGENTE, `${etiqueta} de ${j.nombre}`, 'formato inválido');
+  const descartar = (etiqueta) => (x, motivo) => ctx.reporte.descarto(AGENTE, `${etiqueta} de ${j.nombre}`, `formato inválido (${motivo})`);
   const historial = await agregar(ctx, j, {
     actual: j.historialClubes,
     nuevos: validos(respuesta.historialClubes, esquemaHistorial, descartar('club')),

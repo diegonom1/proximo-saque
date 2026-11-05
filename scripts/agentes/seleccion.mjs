@@ -1,8 +1,9 @@
 // Agente 04: próximo compromiso de la Selección y torneos terminados.
 
 import { z } from 'zod';
-import { planSeleccion } from './busquedas.mjs';
+import { FEDERACIONES, planSeleccion } from './busquedas.mjs';
 import { confianza, consultar, fechaN, proponer, textoN, validos } from './comun.mjs';
+import { decidirPartidos } from './partidos.mjs';
 import { resolverJugadora } from '../lib/nombres.mjs';
 import { idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
 import { convertirSeleccion, esquemaPartido, esquemaTorneo } from '../lib/validar.mjs';
@@ -53,7 +54,7 @@ async function proximoTorneo(ctx, crudo, verificar) {
 
   const r = esquemaProximo.safeParse(crudo);
   if (!r.success) {
-    ctx.reporte.descarto(AGENTE, 'proximoTorneo', 'formato inválido');
+    ctx.reporte.descarto(AGENTE, `proximoTorneo ${crudo?.nombre ?? ''}`.trim(), r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '));
     return;
   }
   const t = r.data;
@@ -105,12 +106,13 @@ async function partidos(ctx, respuesta, verificar) {
     nuevos.push(partido);
   }
   ctx.reporte.encontro(AGENTE, `${nuevos.length} partido(s) de la Selección`);
-  return nuevos;
+  const previos = ctx.datos.partidos.partidos.filter((p) => p.tipo === 'seleccion');
+  return decidirPartidos(ctx, AGENTE, 'Selección', nuevos, previos, 'America/Mexico_City', [...FEDERACIONES, 'volleybox.net']);
 }
 
 async function torneos(ctx, lista, verificar) {
   const { torneos: doc } = ctx.datos;
-  const terminados = validos(lista, esquemaTerminado, (x) => ctx.reporte.descarto(AGENTE, x?.nombre ?? 'torneo', 'formato inválido'));
+  const terminados = validos(lista, esquemaTerminado, (x, motivo) => ctx.reporte.descarto(AGENTE, `${x?.nombre ?? 'torneo'} ${x?.edicion ?? ''}`.trim(), `formato inválido (${motivo})`));
   for (const t of terminados) {
     if (t.fechaFin >= ctx.hoy) {
       ctx.reporte.descarto(AGENTE, t.nombre, 'todavía no termina');

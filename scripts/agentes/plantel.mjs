@@ -1,7 +1,7 @@
 // Agente 01: listas oficiales, altas y bajas. El agente reporta; estas reglas deciden.
 
 import { z } from 'zod';
-import { planPlantel } from './busquedas.mjs';
+import { planListas, planPlantel, planRetiros } from './busquedas.mjs';
 import { confianza, consultar, fechaN, proponer, restarMeses, textoN, validos } from './comun.mjs';
 import { dominio } from '../lib/fuentes.mjs';
 import { normal } from '../lib/fusion.mjs';
@@ -111,7 +111,7 @@ function darDeAlta(ctx, i, lista, fuente) {
 }
 
 async function procesarListas(ctx, crudas, verificar) {
-  const listas = validos(crudas, esquemaLista, () => ctx.reporte.descarto(AGENTE, 'lista', 'formato inválido'))
+  const listas = validos(crudas, esquemaLista, (x, motivo) => ctx.reporte.descarto(AGENTE, x?.torneo ?? 'lista', `formato inválido (${motivo})`))
     .filter((l) => l.fechaFin <= ctx.hoy)
     .sort((a, b) => a.fechaFin.localeCompare(b.fechaFin));
   for (const lista of listas) {
@@ -120,7 +120,7 @@ async function procesarListas(ctx, crudas, verificar) {
       ctx.reporte.descarto(AGENTE, lista.torneo, lista.fuente ? `no se pudo verificar ${lista.fuente}` : 'sin fuente');
       continue;
     }
-    const integrantes = validos(lista.jugadoras, esquemaIntegrante, () => ctx.reporte.descarto(AGENTE, lista.torneo, 'integrante inválido'));
+    const integrantes = validos(lista.jugadoras, esquemaIntegrante, (x, motivo) => ctx.reporte.descarto(AGENTE, `${lista.torneo}: ${x?.nombre ?? 'integrante'}`, motivo));
     for (const i of integrantes) {
       const r = resolverJugadora(i.nombre, i.slug, ctx.datos.jugadoras);
       if (r.duda) ctx.reporte.duda(`${lista.torneo}: ${r.duda}`, fuente);
@@ -146,7 +146,7 @@ async function procesarApariciones(ctx, crudas, verificar) {
 
 // Una baja necesita anuncio explícito. Faltar a un torneo nunca es baja.
 async function procesarBajas(ctx, crudas, verificar) {
-  for (const b of validos(crudas, esquemaBaja, () => ctx.reporte.descarto(AGENTE, 'baja', 'formato inválido'))) {
+  for (const b of validos(crudas, esquemaBaja, (x, motivo) => ctx.reporte.descarto(AGENTE, `baja de ${x?.slug ?? '?'}`, `formato inválido (${motivo})`))) {
     const j = ctx.datos.jugadoras.find((x) => x.slug === b.slug);
     const fuente = await verificar(b.fuente);
     if (!j) {
@@ -173,24 +173,39 @@ function bajasPorInactividad(ctx) {
   }
 }
 
+async function aplicar(ctx, respuesta, verificar) {
+  await procesarListas(ctx, respuesta.listas, verificar);
+  await procesarApariciones(ctx, respuesta.ultimasApariciones, verificar);
+  await procesarBajas(ctx, respuesta.bajas, verificar);
+
+  const { entrenador } = respuesta;
+  if (entrenador?.nombre) {
+    const fuente = await verificar(entrenador.fuente);
+    if (fuente) ctx.datos.seleccion.entrenador = { nombre: entrenador.nombre, fuente };
+    else ctx.reporte.descarto(AGENTE, 'entrenador', 'sin fuente verificable');
+  }
+  for (const d of respuesta.dudas ?? []) ctx.reporte.duda(`${d.nombre ?? 'Sin nombre'}: ${d.motivo ?? 'sin motivo'}`);
+}
+
 export async function correr(ctx) {
   const { datos } = ctx;
   const plantelActual = datos.jugadoras.filter((j) => j.estado !== 'exseleccionada').map((j) => ({
     slug: j.slug, nombre: j.nombre, ultimaLista: j.ultimaListaOficial?.torneo ?? null, fecha: j.ultimaListaOficial?.fecha ?? null,
   }));
   const listasConocidas = [...new Set(datos.jugadoras.flatMap((j) => (j.ultimaListaOficial ? [j.ultimaListaOficial.torneo] : [])))];
-  const { respuesta, verificar } = await consultar(ctx, AGENTE, null, { plantelActual, listasConocidas }, esquema, planPlantel(ctx));
+  const entrada = { plantelActual, listasConocidas };
 
-  await procesarListas(ctx, respuesta.listas, verificar);
-  await procesarApariciones(ctx, respuesta.ultimasApariciones, verificar);
-  await procesarBajas(ctx, respuesta.bajas, verificar);
-  bajasPorInactividad(ctx);
-
-  const { entrenador } = respuesta;
-  if (entrenador?.nombre) {
-    const fuente = await verificar(entrenador.fuente);
-    if (fuente) datos.seleccion.entrenador = { nombre: entrenador.nombre, fuente };
-    else ctx.reporte.descarto(AGENTE, 'entrenador', 'sin fuente verificable');
+  try {
+    const { respuesta, verificar } = await consultar(ctx, AGENTE, null, entrada, esquema, planPlantel(ctx));
+    await aplicar(ctx, respuesta, verificar);
+  } catch (error) {
+    if (!error.tiempo) throw error;
+    // Si ningún modelo alcanzó a responder, se divide en dos tareas más chicas.
+    ctx.reporte.encontro(AGENTE, 'se agotó el tiempo: se dividió en listas oficiales y anuncios de retiro');
+    for (const [enfoque, plan] of [['listas oficiales recientes', planListas(ctx)], ['anuncios de retiro', planRetiros(ctx)]]) {
+      const { respuesta, verificar } = await consultar(ctx, AGENTE, enfoque, { ...entrada, enfoque }, esquema, plan);
+      await aplicar(ctx, respuesta, verificar);
+    }
   }
-  for (const d of respuesta.dudas ?? []) ctx.reporte.duda(`${d.nombre ?? 'Sin nombre'}: ${d.motivo ?? 'sin motivo'}`);
+  bajasPorInactividad(ctx);
 }

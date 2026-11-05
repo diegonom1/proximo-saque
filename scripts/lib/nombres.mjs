@@ -6,6 +6,19 @@ export const slugDe = (nombre) => normal(nombre).replace(/\s+/g, '-');
 
 const palabras = (nombre) => normal(nombre).split(' ').filter(Boolean);
 
+// ¿La página habla de ella? Se busca su nombre en el título, la URL y el texto del resultado.
+export function mencionaA(resultado, nombre) {
+  const url = (() => {
+    try {
+      return decodeURIComponent(resultado.url);
+    } catch {
+      return resultado.url;
+    }
+  })();
+  const texto = new Set(palabras(`${resultado.titulo ?? ''} ${url} ${resultado.contenido ?? ''}`));
+  return palabras(nombre).every((p) => texto.has(p));
+}
+
 const apellidoDe = (j) => palabras(j.nombre).at(-1);
 
 // ¿Comparten apellido? La lista puede traer solo el apellido o el nombre completo.

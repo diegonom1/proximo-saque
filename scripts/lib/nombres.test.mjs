@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolverJugadora, slugDe } from './nombres.mjs';
+import { mencionaA, resolverJugadora, slugDe } from './nombres.mjs';
 
 const plantilla = [
   { slug: 'sofia-maldonado', nombre: 'Sofía Maldonado', nombreCompleto: 'Sofía Maldonado Díaz' },
@@ -48,5 +48,22 @@ describe('sin slug', () => {
   });
   it('alguien nueva de verdad', () => {
     expect(r('Rosa Hernández')).toEqual({ nueva: true });
+  });
+});
+
+describe('mencionaA', () => {
+  const nombre = 'Sofía Maldonado';
+  it('la encuentra en el título, la URL o el texto, sin importar acentos', () => {
+    expect(mencionaA({ titulo: 'Sofia MALDONADO, atacante', url: 'https://a.mx/x', contenido: '' }, nombre)).toBe(true);
+    expect(mencionaA({ titulo: '', url: 'https://women.volleybox.net/sofia-maldonado-p25224', contenido: '' }, nombre)).toBe(true);
+    expect(mencionaA({ titulo: null, url: 'https://a.mx/x', contenido: 'Hoy jugó Sofía Maldonado' }, nombre)).toBe(true);
+  });
+  it('sin su nombre completo no cuenta', () => {
+    expect(mencionaA({ titulo: 'Rosa Maldonado', url: 'https://a.mx/x', contenido: '' }, nombre)).toBe(false);
+    expect(mencionaA({ titulo: 'Sofía Pérez', url: 'https://a.mx/x', contenido: '' }, nombre)).toBe(false);
+    expect(mencionaA({ titulo: 'Liga', url: 'https://a.mx/players?country=MX', contenido: 'Lista de jugadoras' }, nombre)).toBe(false);
+  });
+  it('no se confunde con palabras que la contienen', () => {
+    expect(mencionaA({ titulo: 'Ovalles', url: 'https://a.mx/', contenido: '' }, 'Ovalle')).toBe(false);
   });
 });

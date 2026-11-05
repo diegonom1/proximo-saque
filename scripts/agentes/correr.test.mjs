@@ -522,6 +522,7 @@ describe('búsqueda hecha por el código', () => {
       planes,
       investigar: async (plan) => { planes.push(plan); return { resultados }; },
       resumen: async () => ({ proveedor: 'Tavily', corrida: planes.length, mes: 40, limite: 800 }),
+      usarPrevios: () => {},
     };
   };
   const partido = (fuente) => ({ fecha: '2026-12-01', hora: '21:00', zonaHoraria: 'America/Sao_Paulo', zonaSede: 'America/Sao_Paulo', local: 'Sesi Vôlei Bauru', visitante: 'Praia Clube', nuestro: 'local', fuente });
@@ -562,6 +563,14 @@ describe('búsqueda hecha por el código', () => {
     const { r } = await correrCon(buscadorFalso(), {});
     expect(r.resumen).toMatch(/Tavily: \d+ créditos en esta corrida · 40 de 800 este mes/);
   });
+  it('recuerda los créditos del mes en estado-agentes.json y los usa en la siguiente corrida', async () => {
+    const usados = [];
+    const b = { ...buscadorFalso(), usarPrevios: (n) => usados.push(n) };
+    await correrCon(b, {});
+    expect((await leer('estado-agentes.json')).tavily).toEqual({ mes: '2026-11', creditos: 40 });
+    await correrCon(b, {});
+    expect(usados).toEqual([40]);
+  });
   it('usa búsquedas con dominio para Volleybox y la liga', async () => {
     const b = buscadorFalso();
     await correrCon(b, {});
@@ -574,6 +583,117 @@ describe('búsqueda hecha por el código', () => {
     const porCorrida = b.planes.reduce((t, p) => t + p.consultas.length + 1, 0);
     expect(porCorrida).toBeLessThanOrEqual(60);
     expect(porCorrida * 5).toBeLessThanOrEqual(800); // un mes con 5 lunes
+  });
+});
+
+describe('cambios a partidos que ya existen', () => {
+  const LIGA = 'https://cbv.com.br/tabela';
+  const PRENSA2 = 'https://prensa.mx/nota';
+  const base = { zonaHoraria: 'America/Sao_Paulo', zonaSede: 'America/Sao_Paulo', local: 'Sesi Vôlei Bauru', visitante: 'E.C. Pinheiros', nuestro: 'local', competencia: 'Superliga', sede: 'Bauru' };
+  const sesi = (p) => ({ '03-partidos-club': (clave) => (clave === 'sesi-bauru' ? { clubId: clave, partidos: [{ ...base, ...p }] } : undefined) });
+  const guardado = async () => (await leer('partidos.json')).partidos.find((x) => x.clubId === 'sesi-bauru' && x.visitante === 'E.C. Pinheiros');
+  const fila = (r) => r.comparacion.find((c) => c.rival === 'E.C. Pinheiros');
+
+  it('la prensa no cambia la hora: queda igual y sale en Por revisar', async () => {
+    const r = await ejecutar(sesi({ fecha: '2026-11-07', hora: '19:00', fuente: PRENSA2 }));
+    expect((await guardado()).inicio).toBe('2026-11-07T21:00:00-03:00');
+    expect(r.resumen).toContain('Por revisar');
+    expect(fila(r).resultado).toBe('Por revisar');
+  });
+  it('la prensa no cambia la fecha', async () => {
+    await ejecutar(sesi({ fecha: '2026-11-09', hora: '21:00', fuente: PRENSA2 }));
+    expect((await guardado()).inicio).toBe('2026-11-07T21:00:00-03:00');
+  });
+  it('la prensa no reemplaza al rival de ese día', async () => {
+    await ejecutar(sesi({ fecha: '2026-11-07', hora: '21:00', visitante: 'Otro Club', fuente: PRENSA2 }));
+    expect((await guardado()).inicio).toBe('2026-11-07T21:00:00-03:00');
+  });
+  it('la liga sí cambia la hora', async () => {
+    const r = await ejecutar(sesi({ fecha: '2026-11-07', hora: '19:00', fuente: LIGA }));
+    expect((await guardado()).inicio).toBe('2026-11-07T19:00:00-03:00');
+    expect(fila(r).resultado).toBe('Cambia');
+  });
+  it('Volleybox sí cambia la fecha', async () => {
+    await ejecutar(sesi({ fecha: '2026-11-09', hora: '21:00', fuente: 'https://volleybox.net/x' }));
+    expect((await guardado()).inicio).toBe('2026-11-09T21:00:00-03:00');
+  });
+  it('un partido nuevo entra con cualquier fuente válida', async () => {
+    const r = await ejecutar(sesi({ fecha: '2026-12-20', hora: '21:00', visitante: 'Rival Nuevo', fuente: PRENSA2 }));
+    expect(r.comparacion.find((c) => c.rival === 'Rival Nuevo').resultado).toBe('Nuevo');
+    expect((await leer('partidos.json')).partidos.some((p) => p.visitante === 'Rival Nuevo')).toBe(true);
+  });
+  it('un partido igual coincide', async () => {
+    const r = await ejecutar(sesi({ fecha: '2026-11-07', hora: '21:00', fuente: PRENSA2 }));
+    expect(fila(r).resultado).toBe('Coincide');
+  });
+  it('sin hora no borra la hora que ya había', async () => {
+    const r = await ejecutar(sesi({ fecha: '2026-11-07', hora: null, fuente: LIGA }));
+    expect(await guardado()).toMatchObject({ inicio: '2026-11-07T21:00:00-03:00', horaConfirmada: true });
+    expect(fila(r).resultado).toBe('Coincide');
+  });
+  it('lo que el agente no confirma se conserva y se marca', async () => {
+    const r = await ejecutar({ '03-partidos-club': (clave) => (clave === 'sesi-bauru' ? { clubId: clave, partidos: [], noEncontrados: [{ fecha: '2026-11-07', rival: 'E.C. Pinheiros', motivo: 'no apareció' }] } : undefined) });
+    expect((await guardado())).toBeTruthy();
+    expect(r.resumen).toContain('No confirmado (se conserva)');
+    expect(r.resumen).not.toContain('Descartado: Sesi');
+    expect(fila(r).resultado).toBe('Sin confirmar');
+  });
+  it('tampoco la prensa cambia un partido de la Selección', async () => {
+    const p = { fecha: '2026-12-01', hora: '19:00', zonaHoraria: 'America/Lima', zonaSede: 'America/Lima', local: 'México', visitante: 'Perú', mexico: 'local', torneo: 'Copa', fuente: OFICIAL };
+    await ejecutar({ '04-seleccion-torneos': { partidos: [p] } });
+    await ejecutar({ '04-seleccion-torneos': { partidos: [{ ...p, hora: '15:00', fuente: PRENSA2 }] } });
+    expect((await leer('partidos.json')).partidos.find((x) => x.tipo === 'seleccion').inicio).toBe('2026-12-01T19:00:00-05:00');
+  });
+});
+
+describe('perfiles con búsqueda: la página debe mencionarla', () => {
+  const buscador = (resultados) => ({
+    investigar: async (plan) => ({ resultados: plan.intencion?.includes('Uxue') ? resultados : [{ url: 'https://a.mx/nada', titulo: 'x', contenido: 'y' }] }),
+    resumen: async () => ({ proveedor: 'Tavily', corrida: 0, mes: 0, limite: 800 }),
+    usarPrevios: () => {},
+  });
+  const respuesta = (fuente) => ({ '02-perfil': (clave) => (clave === 'uxue-guereca' ? { slug: clave, estaturaCm: { valor: 178, fuente } } : undefined) });
+  const correrCon = (resultados, fuente) => correr({ dirDatos: dir, dirFotos: fotos, llamar: llamarCon(respuesta(fuente)), buscador: buscador(resultados), verificar: async () => null, ahora: AHORA });
+
+  it('un listado que no la nombra no vale', async () => {
+    await correrCon([{ url: 'https://women.volleybox.net/players?country=MX', titulo: 'Jugadoras', contenido: 'México' }], 'https://women.volleybox.net/players?country=MX');
+    expect((await jugadora('uxue-guereca')).estaturaCm).toBeNull();
+  });
+  it('su ficha sí vale', async () => {
+    await correrCon([{ url: 'https://women.volleybox.net/uxue-guereca-p13878', titulo: 'Ficha', contenido: '' }], 'https://women.volleybox.net/uxue-guereca-p13878');
+    expect((await jugadora('uxue-guereca')).estaturaCm).toBe(178);
+  });
+});
+
+describe('agente 01 sin tiempo', () => {
+  const tiempo = Object.assign(new Error('tiempo agotado'), { tiempo: true });
+  const conClaves = (primera, segunda) => ({ '01-plantel': (clave) => (clave === null || clave === undefined ? primera : clave.startsWith('listas') ? segunda : VACIAS['01-plantel']) });
+
+  it('se divide en listas y retiros, y aplica lo que encuentre', async () => {
+    const llamar = llamarCon(conClaves(tiempo, { ...VACIAS['01-plantel'], listas: [lista([{ nombre: 'Rosa Hernández', slug: null }])] }));
+    const r = await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA });
+    expect(llamar.llamadas.filter((l) => l.agente === '01-plantel').map((l) => l.clave)).toEqual([null, 'listas oficiales recientes', 'anuncios de retiro']);
+    expect(await jugadora('rosa-hernandez')).toBeTruthy();
+    expect(r.resumen).toContain('se dividió');
+  });
+  it('otro error no se divide', async () => {
+    const llamar = llamarCon({ '01-plantel': new Error('otra cosa') });
+    await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA });
+    expect(llamar.llamadas.filter((l) => l.agente === '01-plantel')).toHaveLength(1);
+  });
+});
+
+describe('rankings una vez al mes', () => {
+  const corre = async (ahora) => {
+    const llamar = llamarCon();
+    await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora });
+    return llamar.llamadas.some((l) => l.agente === '06-rankings');
+  };
+  it('corre, descansa y vuelve a los 28 días', async () => {
+    expect(await corre(AHORA)).toBe(true);
+    expect(await corre(AHORA + 7 * 864e5)).toBe(false);
+    expect(await corre(AHORA + 27 * 864e5)).toBe(false);
+    expect(await corre(AHORA + 28 * 864e5)).toBe(true);
   });
 });
 

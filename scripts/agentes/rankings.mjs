@@ -5,6 +5,14 @@ import { planRankings } from './busquedas.mjs';
 import { consultar, confianza, fechaN, textoN } from './comun.mjs';
 
 export const AGENTE = '06-rankings';
+const DIAS_ENTRE_REVISIONES = 28;
+
+// Una vez al mes: los rankings cambian después de los torneos, no cada semana.
+export function toca(estado, hoy) {
+  const ultima = estado.revisado.rankings;
+  if (!ultima) return true;
+  return (Date.parse(`${hoy}T00:00:00Z`) - Date.parse(`${ultima}T00:00:00Z`)) / 864e5 >= DIAS_ENTRE_REVISIONES;
+}
 
 const esquemaRanking = z.object({
   posicion: z.number().int().positive().nullable().optional(),
@@ -20,6 +28,7 @@ export async function correr(ctx) {
   const { rankings } = ctx.datos;
   const { fivb, norceca } = rankings;
   const { respuesta, verificar } = await consultar(ctx, AGENTE, null, { guardado: { fivb, norceca } }, esquema, planRankings());
+  ctx.datos.estado.revisado.rankings = ctx.hoy;
 
   for (const clave of ['fivb', 'norceca']) {
     const nuevo = respuesta[clave];

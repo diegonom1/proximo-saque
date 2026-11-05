@@ -6,7 +6,7 @@ export function crearReporte() {
   const agentes = new Map();
   const dudas = [];
   const de = (agente) => {
-    if (!agentes.has(agente)) agentes.set(agente, { encontro: [], descarto: [], fallos: [] });
+    if (!agentes.has(agente)) agentes.set(agente, { encontro: [], descarto: [], fallos: [], noConfirmado: [], porRevisar: [], modelos: {} });
     return agentes.get(agente);
   };
 
@@ -15,6 +15,12 @@ export function crearReporte() {
     encontro: (agente, texto) => de(agente).encontro.push(texto),
     descarto: (agente, texto, motivo) => de(agente).descarto.push(`${texto}: ${motivo}`),
     fallo: (agente, texto) => de(agente).fallos.push(texto),
+    noConfirmado: (agente, texto) => de(agente).noConfirmado.push(texto),
+    porRevisar: (agente, texto) => de(agente).porRevisar.push(texto),
+    modelo(agente, modelo) {
+      const { modelos } = de(agente);
+      modelos[modelo] = (modelos[modelo] ?? 0) + 1;
+    },
     duda: (texto, fuente = null) => dudas.push({ texto, fuente }),
     // Para deshacer lo que anotó una tarea que falló.
     marca: () => ({
@@ -31,7 +37,11 @@ export function crearReporte() {
       lineas.push('');
       for (const [agente, r] of agentes) {
         lineas.push(`### ${agente}`, '');
+        const modelos = Object.entries(r.modelos).map(([m, n]) => `${m} ×${n}`).join(', ');
+        if (modelos) lineas.push(`Modelo: ${modelos}`, '');
         for (const t of r.encontro) lineas.push(`- ${t}`);
+        for (const t of r.porRevisar) lineas.push(`- **Por revisar:** ${t}`);
+        for (const t of r.noConfirmado) lineas.push(`- No confirmado (se conserva): ${t}`);
         for (const t of r.descarto) lineas.push(`- Descartado: ${t}`);
         for (const t of r.fallos) lineas.push(`- **Falló, se conservan los datos anteriores:** ${t}`);
         lineas.push('');

@@ -92,6 +92,22 @@ describe('crearClienteGemini', () => {
     const todos = await cliente(async () => respuesta(404, retirado))(llamada).catch((e) => e);
     expect(todos.message).toContain('This model is no longer available to new users.');
   });
+  it('un tiempo agotado pasa al siguiente modelo', async () => {
+    const pedir = vi.fn(async (url) => {
+      if (url.includes('2.5')) throw Object.assign(new Error('aborted'), { name: 'TimeoutError' });
+      return ok('{}');
+    });
+    expect((await cliente(pedir)(llamada)).modelo).toBe('gemini-3-flash');
+  });
+  it('si a todos se les agota el tiempo avisa, sin decir que no hay cuota', async () => {
+    const error = await cliente(async () => { throw Object.assign(new Error('x'), { name: 'TimeoutError' }); })(llamada).catch((e) => e);
+    expect(error.tiempo).toBe(true);
+    expect(error.sinCuota).toBe(false);
+  });
+  it('la saturación no detiene la corrida', async () => {
+    const error = await cliente(async () => respuesta(503, 'x'), { intentos: 1 })(llamada).catch((e) => e);
+    expect(error.sinCuota).toBe(false);
+  });
   it('un error de la petición no se reintenta', async () => {
     const pedir = vi.fn(async () => respuesta(400, 'mal'));
     await expect(cliente(pedir)(llamada)).rejects.toThrow('400');

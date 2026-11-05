@@ -177,6 +177,8 @@ export const esquemaEstadoAgentes = z.strictObject({
   // Lo que está en el PR abierto. Si se cierra sin aprobar, pasa a `rechazos`.
   propuestas: z.array(z.strictObject({ clave: texto, seccion: texto, texto, fuente: urlN, fecha })).default([]),
   rechazos: z.array(z.strictObject({ clave: texto, texto, evidencias: z.array(url), fecha })).default([]),
+  // Contador propio de Tavily: su /usage va atrasado y no sirve solo para respetar el límite.
+  tavily: z.strictObject({ mes: z.string().regex(/^\d{4}-\d{2}$/), creditos: z.number().int().nonnegative() }).nullable().default(null),
 });
 
 export const esquemaManual = z.strictObject({

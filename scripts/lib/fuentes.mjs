@@ -29,6 +29,20 @@ export function dominio(url) {
   }
 }
 
+export const REDES_SOCIALES = ['instagram.com', 'linkedin.com', 'x.com', 'twitter.com', 'facebook.com', 'tiktok.com'];
+
+export const esDominio = (url, lista) => {
+  const propio = dominio(url);
+  return Boolean(propio) && lista.some((d) => propio === d || propio.endsWith(`.${d}`));
+};
+
+// Ni las redes sociales ni la portada de un sitio sirven como fuente de un dato.
+export function fuenteAdmisible(url) {
+  if (!urlValida(url) || esDominio(url, REDES_SOCIALES)) return false;
+  const { pathname, search } = new URL(url);
+  return pathname.replace(/\/+$/, '') !== '' || search !== '';
+}
+
 const mismoDominio = (a, b) => a === b || a.endsWith(`.${b}`) || b.endsWith(`.${a}`);
 
 export const esRedireccionGoogle = (url) => dominio(url) === 'vertexaisearch.cloud.google.com';
@@ -81,7 +95,7 @@ export function crearVerificador({ fetch: pedir = globalThis.fetch, red = true }
     if (!urlValida(url)) return null;
     const final = red ? await urlFinal(url, pedir) : url;
     const propio = final ? dominio(final) : null;
-    if (!propio) return null;
+    if (!propio || !fuenteAdmisible(final)) return null;
     if ((await dominios(fuentes)).some((d) => mismoDominio(d, propio))) return final;
     return (await responde(final)) ? final : null;
   };

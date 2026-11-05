@@ -21,8 +21,11 @@ const CATALOGO = [
 // No distinguen un torneo de otro: el organizador, la rama, el año y las palabras sueltas.
 const VACIAS = new Set(['fivb', 'women', 'womens', 's', 'femenil', 'femenino', 'femenina', 'mayor', 'senior', 'voleibol', 'volleyball', 'de', 'del', 'la', 'el', 'y', 'and', 'the', 'of']);
 
+// "XXIII Copa Panamericana": el número de la edición no cambia de qué torneo se trata.
+const ORDINAL = /^(?=[ivxl])(l?x{0,3})(ix|iv|v?i{0,3})$/;
+
 const huella = (nombre) => normal(nombre).split(' ')
-  .filter((p) => p && !VACIAS.has(p) && !/^(19|20)\d\d$/.test(p))
+  .filter((p) => p && !VACIAS.has(p) && !/^(19|20)\d\d$/.test(p) && !ORDINAL.test(p))
   .sort()
   .join(' ');
 

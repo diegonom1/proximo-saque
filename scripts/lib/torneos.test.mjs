@@ -21,6 +21,11 @@ describe('nombreCanonico', () => {
     expect(nombreCanonico('Volleyball Nations League')).toBe('Liga de Naciones');
     expect(nombreCanonico('Central American and Caribbean Games')).toBe('Juegos Centroamericanos y del Caribe');
   });
+  it('ignora el número romano de la edición', () => {
+    expect(nombreCanonico('XXIII Copa Panamericana')).toBe('Copa Panamericana');
+    expect(nombreCanonico("XXII Women's Pan American Cup")).toBe('Copa Panamericana');
+    expect(idTorneo('XXIII Copa Panamericana', 2026)).toBe('copa-panamericana-2026');
+  });
   it('un torneo fuera del catálogo conserva su nombre', () => {
     expect(nombreCanonico('Copa Tokio')).toBe('Copa Tokio');
   });

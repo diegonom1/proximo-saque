@@ -11,16 +11,21 @@ export const confianza = z.enum(['alta', 'media', 'baja']).nullable().optional()
 // Pregunta a un agente y valida la forma de la respuesta. `verificar` devuelve la URL a guardar o null.
 // Con buscador, el código busca primero y una fuente vale solo si su URL vino en esos resultados.
 export async function consultar(ctx, agente, clave, entrada, esquema, plan) {
+  const registrar = (r, resultados) => {
+    const crudo = extraerJSON(r.texto);
+    ctx.reporte.modelo(agente, r.modelo);
+    ctx.diagnostico?.push({ agente, clave, modelo: r.modelo, urls: resultados?.map((x) => x.url) ?? null, respuesta: crudo });
+    return esquema.parse(crudo);
+  };
   if (ctx.buscador) {
     const { resultados } = await ctx.buscador.investigar(plan);
     if (resultados.length === 0) throw new Error('la búsqueda no trajo resultados');
     const mensaje = JSON.stringify({ ...entrada, resultadosBusqueda: resultados }, null, 2);
     const r = await ctx.llamar({ agente, clave, mensaje, conBusqueda: false });
-    return { respuesta: esquema.parse(extraerJSON(r.texto)), verificar: verificadorDeResultados(resultados) };
+    return { respuesta: registrar(r, resultados), verificar: verificadorDeResultados(resultados, plan.exige) };
   }
   const r = await ctx.llamar({ agente, clave, mensaje: JSON.stringify(entrada, null, 2) });
-  const respuesta = esquema.parse(extraerJSON(r.texto));
-  return { respuesta, verificar: (url) => ctx.verificar(url, r.fuentes) };
+  return { respuesta: registrar(r), verificar: (url) => ctx.verificar(url, r.fuentes) };
 }
 
 // Un elemento mal formado se descarta solo; no tira la respuesta completa.
@@ -28,7 +33,7 @@ export function validos(lista, esquema, alDescartar) {
   return (lista ?? []).flatMap((x) => {
     const r = esquema.safeParse(x);
     if (r.success) return [r.data];
-    alDescartar(x);
+    alDescartar(x, r.error.issues.map((i) => `${i.path.join('.') || 'elemento'}: ${i.message}`).join('; '));
     return [];
   });
 }

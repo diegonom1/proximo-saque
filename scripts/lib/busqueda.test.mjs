@@ -35,6 +35,16 @@ describe('verificadorDeResultados', () => {
   it('rechaza lo que no es URL', async () => {
     expect(await verificar(null)).toBeNull();
   });
+  it('rechaza redes y portadas aunque vengan en los resultados', async () => {
+    const v = verificadorDeResultados([{ url: 'https://www.instagram.com/x' }, { url: 'https://cbv.com.br/' }]);
+    expect(await v('https://www.instagram.com/x')).toBeNull();
+    expect(await v('https://cbv.com.br/')).toBeNull();
+  });
+  it('aplica la condición extra', async () => {
+    const v = verificadorDeResultados([{ url: 'https://a.mx/1', titulo: 'sí' }, { url: 'https://a.mx/2', titulo: 'no' }], (r) => r.titulo === 'sí');
+    expect(await v('https://a.mx/1')).toBe('https://a.mx/1');
+    expect(await v('https://a.mx/2')).toBeNull();
+  });
 });
 
 describe('investigar', () => {
@@ -76,6 +86,18 @@ describe('investigar', () => {
     expect(e.urls).toHaveLength(5);
     expect(e).toMatchObject({ extract_depth: 'basic', query: 'y' });
     expect(cuerpos(pedir, '/extract')).toHaveLength(1);
+  });
+  it('nunca le muestra redes sociales a Gemini', async () => {
+    const pedir = api({ resultados: [{ url: 'https://www.instagram.com/p/1', content: 'x' }, { url: 'https://a.mx/1', content: 'y' }] });
+    const { resultados } = await buscador(pedir).investigar({ consultas: [{ texto: 'q' }], mejores: 0 });
+    expect(resultados.map((r) => r.url)).toEqual(['https://a.mx/1']);
+  });
+  it('la lectura avanzada cuesta 2 créditos', async () => {
+    const pedir = api();
+    const b = buscador(pedir);
+    await b.investigar({ consultas: [{ texto: 'q' }], avanzado: true });
+    expect(cuerpos(pedir, '/extract')[0].extract_depth).toBe('advanced');
+    expect((await b.resumen()).corrida).toBe(3);
   });
   it('recorta el contenido largo', async () => {
     const pedir = api({ extraidos: [{ url: 'https://a.mx/1', raw_content: 'x'.repeat(50000) }] });
@@ -131,6 +153,21 @@ describe('créditos', () => {
   it('un error pasajero falla solo esa tarea', async () => {
     const error = await buscador(api({ status: { '/search': 500 } })).investigar(unaBusqueda).catch((e) => e);
     expect(error.sinCuota).toBeUndefined();
+  });
+  it('si /usage va atrasado manda el contador propio', async () => {
+    const pedir = api({ usados: 9 });
+    const b = buscador(pedir, { creditosPrevios: 800 });
+    await expect(b.investigar(unaBusqueda)).rejects.toThrow('800');
+    expect(cuerpos(pedir, '/search')).toHaveLength(0);
+  });
+  it('usarPrevios sube el contador, nunca lo baja', async () => {
+    const b = buscador(api({ usados: 9 }), { creditosPrevios: 100 });
+    b.usarPrevios(50);
+    await b.investigar(unaBusqueda);
+    expect((await b.resumen()).mes).toBe(101);
+    const c = buscador(api({ usados: 9 }));
+    c.usarPrevios(800);
+    await expect(c.investigar(unaBusqueda)).rejects.toThrow('800');
   });
   it('el resumen usa el consumo real de Tavily', async () => {
     const pedir = api({ usados: 100 });

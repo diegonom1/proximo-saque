@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { crearVerificador, dominio } from './fuentes.mjs';
+import { crearVerificador, dominio, fuenteAdmisible } from './fuentes.mjs';
 
 const http = (status, location) => ({ status, headers: { get: () => location ?? null } });
 const REDIRECCION = 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc';
@@ -56,5 +56,24 @@ describe('verificar', () => {
     await v('https://a.mx/x');
     await v('https://a.mx/x');
     expect(pedir).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('fuenteAdmisible', () => {
+  it('rechaza redes sociales', () => {
+    for (const u of ['https://www.instagram.com/samybricio', 'https://linkedin.com/in/x', 'https://x.com/a/status/1', 'https://twitter.com/a', 'https://m.facebook.com/a']) expect(fuenteAdmisible(u)).toBe(false);
+  });
+  it('rechaza portadas', () => {
+    expect(fuenteAdmisible('https://cbv.com.br/')).toBe(false);
+    expect(fuenteAdmisible('https://cbv.com.br')).toBe(false);
+  });
+  it('acepta páginas internas y consultas', () => {
+    expect(fuenteAdmisible('https://cbv.com.br/tabela')).toBe(true);
+    expect(fuenteAdmisible('https://agorarn.com.br/?p=2408078')).toBe(true);
+  });
+  it('un verificador con red tampoco las deja pasar', async () => {
+    const v = crearVerificador({ red: false });
+    expect(await v('https://www.instagram.com/x', [{ uri: 'https://www.instagram.com/x', titulo: null }])).toBeNull();
+    expect(await v('https://cbv.com.br/', [{ uri: 'https://cbv.com.br/x', titulo: null }])).toBeNull();
   });
 });

@@ -12,6 +12,7 @@
 //   IA_SIMULADA      carpeta con respuestas guardadas; no gasta llamadas ni usa la red.
 //   PR_ESTADO        OPEN, MERGED o CLOSED: cómo quedó el último PR de revisión (lo da el workflow).
 //   DIR_APROBADOS    carpeta con los datos de main. Hace falta si se parte de la rama del PR.
+//   DIAGNOSTICO      archivo donde guardar respuestas crudas y la comparación de partidos.
 // Opción --seco: corre todo y muestra el resumen, pero no escribe nada.
 
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -184,18 +185,22 @@ export async function correr({
   const reporte = crearReporte();
   const hoy = fechaEnZona(ahora, ZONA_SITIO);
   const aprobados = { clubes: new Set(Object.keys(archivosAprobados.clubes)), jugadoras: new Set(archivosAprobados.jugadoras.map((j) => j.slug)) };
-  const ctx = { datos, manual, llamar, verificar, buscador, leerPagina, ahora, hoy, diasAdelante, reporte, aprobados, altas: [], nuevos: {} };
+  const diagnostico = [];
+  const comparacion = [];
+  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, ahora, hoy, diasAdelante, reporte, aprobados, altas: [], nuevos: {} };
   atenderPr(ctx.datos.estado, prEstado, hoy);
   // Con el PR abierto, una `propuesta` todavía no está aprobada.
   if (prEstado !== 'OPEN') aprobarPropuestas(ctx.datos);
 
+  const contador = ctx.datos.estado.tavily;
+  if (buscador && contador?.mes === hoy.slice(0, 7)) buscador.usarPrevios(contador.creditos);
   const previos = ctx.datos.estado.pendientes;
   const { ejecutar, pendientes, estado } = ejecutorDe(ctx, maxLlamadas, reporte);
 
   if (llamar) {
     // Lo que no cupo la semana pasada va primero.
     for (const { agente, clave } of previos) if (MODULOS[agente]) await ejecutar(agente, clave);
-    await ejecutar(rankings.AGENTE);
+    if (rankings.toca(ctx.datos.estado, hoy)) await ejecutar(rankings.AGENTE);
     await ejecutar(seleccion.AGENTE);
     await ejecutar(plantel.AGENTE);
     for (const slug of perfil.porRevisar(ctx.datos.jugadoras, ctx.altas, ctx.datos.estado.revisado)) await ejecutar(perfil.AGENTE, slug);
@@ -210,6 +215,9 @@ export async function correr({
   validarDatos(resto);
   validarContraAprobados(ctx.datos, archivosAprobados);
 
+  const busqueda = buscador ? await buscador.resumen() : null;
+  if (busqueda) ctx.datos.estado.tavily = { mes: hoy.slice(0, 7), creditos: busqueda.mes };
+
   const marcaDeTiempo = isoEnZona(ahora, ZONA_SITIO);
   ctx.datos.partidos.actualizado = marcaDeTiempo;
   ctx.datos.estado.ultimaCorrida = marcaDeTiempo;
@@ -223,11 +231,12 @@ export async function correr({
       await writeFile(join(carpeta, '.gitkeep'), '');
     }
   }
-  const busqueda = buscador ? await buscador.resumen() : null;
   return {
     cambiados,
     pendientes,
     busqueda,
+    diagnostico,
+    comparacion,
     llamadas: estado.llamadas,
     altas: ctx.altas,
     reporte,
@@ -235,6 +244,18 @@ export async function correr({
     cuerpoPr: reporte.cuerpoPr(ctx.datos.estado.propuestas),
     hayPr: ctx.datos.estado.propuestas.length > 0 || cambiados.some((a) => ARCHIVOS_PR.includes(a)),
   };
+}
+
+// --seco no escribe en data/, pero los créditos sí se gastan: se anotan aparte, fuera del repo.
+const CONTADOR_LOCAL = join(RAIZ, '.tavily-creditos.json');
+
+async function creditosLocales(hoy) {
+  try {
+    const { mes, creditos } = JSON.parse(await readFile(CONTADOR_LOCAL, 'utf8'));
+    return mes === hoy.slice(0, 7) ? creditos : 0;
+  } catch {
+    return 0;
+  }
 }
 
 async function main() {
@@ -256,7 +277,7 @@ async function main() {
     const proveedor = process.env.BUSQUEDA || 'tavily';
     if (!['tavily', 'google'].includes(proveedor)) throw new Error(`BUSQUEDA debe ser tavily o google, no ${proveedor}`);
     llamar = crearClienteGemini({ clave, modelos, hoy, dirAgentes });
-    if (proveedor === 'tavily') buscador = crearBuscadorTavily({ clave: process.env.TAVILY_API_KEY });
+    if (proveedor === 'tavily') buscador = crearBuscadorTavily({ clave: process.env.TAVILY_API_KEY, creditosPrevios: await creditosLocales(hoy) });
     modo = `Gemini (${modelos.join(', ')}) · búsqueda: ${proveedor}`;
   } else {
     console.log('Sin GEMINI_API_KEY: solo limpio partidos pasados y aplico data/manual.json.');
@@ -279,7 +300,9 @@ async function main() {
     dirAprobados: process.env.DIR_APROBADOS || undefined,
   });
 
+  if (r.busqueda) await writeFile(CONTADOR_LOCAL, JSON.stringify({ mes: hoy.slice(0, 7), creditos: r.busqueda.mes }));
   console.log(r.resumen);
+  if (process.env.DIAGNOSTICO) await writeFile(process.env.DIAGNOSTICO, JSON.stringify({ tareas: r.diagnostico, comparacion: r.comparacion }, null, 2));
   console.log(`Archivos con cambios${seco ? ' (no se escribieron)' : ''}: ${r.cambiados.join(', ') || 'ninguno'}`);
   if (!seco) await writeFile(join(RAIZ, 'revision-semanal.md'), r.cuerpoPr);
   if (r.hayPr) console.log(`\n${r.cuerpoPr}`);

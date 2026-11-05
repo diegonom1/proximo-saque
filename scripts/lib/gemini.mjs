@@ -41,7 +41,7 @@ function mensajeDe(crudo) {
 const generacion = (modelo) => (modelo.startsWith('gemini-2') ? { temperature: 0 } : {});
 
 export function crearClienteGemini({
-  clave, modelos, hoy, dirAgentes, fetch: pedir = globalThis.fetch, dormir = dormirReal, pausaMs = 8000, esperaMs = 30000, intentos = 3,
+  clave, modelos, hoy, dirAgentes, fetch: pedir = globalThis.fetch, dormir = dormirReal, pausaMs = 8000, esperaMs = 30000, intentos = 3, limiteMs = 180000,
 }) {
   let primera = true;
 
@@ -55,13 +55,20 @@ export function crearClienteGemini({
     });
     let ultimo = '';
     for (let intento = 1; intento <= intentos; intento += 1) {
-      const r = await pedir(url, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-goog-api-key': clave },
-        body: cuerpo,
-        signal: AbortSignal.timeout(180000),
-      });
-      const crudo = await r.text();
+      let r;
+      let crudo;
+      try {
+        r = await pedir(url, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-goog-api-key': clave },
+          body: cuerpo,
+          signal: AbortSignal.timeout(limiteMs),
+        });
+        crudo = await r.text();
+      } catch (error) {
+        if (error.name === 'TimeoutError' || error.name === 'AbortError') return { agotado: `${modelo}: tiempo agotado`, tipo: 'tiempo' };
+        return { agotado: `${modelo}: ${error.message}`, tipo: 'red' };
+      }
       if (r.ok) {
         const c = JSON.parse(crudo).candidates?.[0];
         return {
@@ -71,12 +78,12 @@ export function crearClienteGemini({
         };
       }
       ultimo = `${r.status}`;
-      if (r.status === 429 && cuotaAgotada(crudo)) return { agotado: `${modelo}: sin cuota (${mensajeDe(crudo)})` };
-      if (r.status === 404) return { agotado: `${modelo}: no disponible (${mensajeDe(crudo)})` };
+      if (r.status === 429 && cuotaAgotada(crudo)) return { agotado: `${modelo}: sin cuota (${mensajeDe(crudo)})`, tipo: 'cuota' };
+      if (r.status === 404) return { agotado: `${modelo}: no disponible (${mensajeDe(crudo)})`, tipo: 'cuota' };
       if (r.status !== 429 && r.status < 500) throw new Error(`Gemini respondió ${r.status}: ${mensajeDe(crudo)}`);
       if (intento < intentos) await dormir(esperaMs * intento);
     }
-    return { agotado: `${modelo}: respondió ${ultimo} después de ${intentos} intentos` };
+    return { agotado: `${modelo}: respondió ${ultimo} después de ${intentos} intentos`, tipo: ultimo === '429' ? 'cuota' : 'saturado' };
   }
 
   // `conBusqueda: false`: los resultados ya vienen en el mensaje y Gemini no usa herramientas.
@@ -88,10 +95,12 @@ export function crearClienteGemini({
     for (const modelo of modelos) {
       const r = await preguntar(modelo, sistema, mensaje, conBusqueda);
       if (!r.agotado) return r;
-      motivos.push(r.agotado);
+      motivos.push(r);
     }
-    const error = new Error(`ningún modelo respondió (${motivos.join('; ')})`);
-    error.sinCuota = true;
+    const error = new Error(`ningún modelo respondió (${motivos.map((m) => m.agotado).join('; ')})`);
+    // Sin cuota, las demás llamadas fallarían igual. Por tiempo, una tarea más chica puede pasar.
+    error.sinCuota = motivos.every((m) => m.tipo === 'cuota');
+    error.tiempo = motivos.some((m) => m.tipo === 'tiempo');
     throw error;
   };
 }

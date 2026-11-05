@@ -11,3 +11,4 @@ fotos-originales/
 __pycache__/
 *.pyc
 revision-semanal.md
+.tavily-creditos.json

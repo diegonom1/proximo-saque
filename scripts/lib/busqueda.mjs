@@ -1,13 +1,13 @@
 // Búsqueda hecha por el código. Gemini recibe lo que se encontró y solo extrae el JSON.
 // Tavily: 1 crédito por búsqueda básica y 1 por cada 5 páginas extraídas con éxito.
 
-import { urlValida } from './fuentes.mjs';
+import { REDES_SOCIALES, esDominio, fuenteAdmisible, urlValida } from './fuentes.mjs';
 
 const API = 'https://api.tavily.com';
 const MAX_PAGINAS = 5; // una sola extracción: 1 crédito
 const MAX_CONTENIDO = 6000;
 // Las reglas comunes prohíben usarlos como fuente: ni siquiera se le muestran a Gemini.
-const EXCLUIDOS = ['wikipedia.org', 'reddit.com', 'facebook.com', 'tiktok.com', 'quora.com'];
+const EXCLUIDOS = ['wikipedia.org', 'reddit.com', 'quora.com', ...REDES_SOCIALES];
 
 export const LIMITE_MENSUAL = 800;
 export const LIMITE_CORRIDA = 180; // el mes tiene más de 4 corridas
@@ -31,12 +31,13 @@ function sinCuota(mensaje) {
 
 const recortar = (texto) => (texto ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_CONTENIDO);
 
-export function crearBuscadorTavily({ clave, fetch: pedir = globalThis.fetch, limiteMensual = LIMITE_MENSUAL, limiteCorrida = LIMITE_CORRIDA }) {
+export function crearBuscadorTavily({ clave, fetch: pedir = globalThis.fetch, limiteMensual = LIMITE_MENSUAL, limiteCorrida = LIMITE_CORRIDA, creditosPrevios = 0 }) {
   if (!clave) throw new Error('falta TAVILY_API_KEY');
   const encabezados = { authorization: `Bearer ${clave}`, 'content-type': 'application/json' };
   const guardadas = new Map();
   let usadosAlInicio = null;
   let creditos = 0;
+  let previos = creditosPrevios;
 
   async function consumo() {
     const r = await pedir(`${API}/usage`, { headers: encabezados, signal: AbortSignal.timeout(20000) });
@@ -49,7 +50,8 @@ export function crearBuscadorTavily({ clave, fetch: pedir = globalThis.fetch, li
   async function preparar() {
     if (usadosAlInicio !== null) return;
     try {
-      usadosAlInicio = await consumo();
+      // /usage va atrasado (marcó 9 con 107 gastados): vale el mayor de los dos.
+      usadosAlInicio = Math.max(await consumo(), previos);
     } catch (error) {
       throw sinCuota(`no pude leer los créditos de Tavily: ${error.message}`);
     }
@@ -82,26 +84,27 @@ export function crearBuscadorTavily({ clave, fetch: pedir = globalThis.fetch, li
     return results;
   }
 
-  async function extraer(urls, intencion) {
+  // `avanzado` lee tablas y contenido incrustado; cuesta el doble.
+  async function extraer(urls, intencion, avanzado) {
     if (urls.length === 0) return { results: [] };
-    reservar(1);
-    return post('/extract', { urls, extract_depth: 'basic', format: 'text', query: intencion, chunks_per_source: 5 });
+    reservar(avanzado ? 2 : 1);
+    return post('/extract', { urls, extract_depth: avanzado ? 'advanced' : 'basic', format: 'text', query: intencion, chunks_per_source: 5 });
   }
 
   // plan: { consultas: [{ texto, dominios, max }], paginas: [url], mejores: n, intencion }
-  async function investigar({ consultas = [], paginas = [], mejores = 2, intencion }) {
+  async function investigar({ consultas = [], paginas = [], mejores = 2, intencion, avanzado = false }) {
     await preparar();
     const porUrl = new Map();
     for (const consulta of consultas) {
       for (const r of await buscar(consulta)) {
         const id = normalizarUrl(r.url);
-        if (id && !porUrl.has(id)) porUrl.set(id, { url: r.url, titulo: r.title ?? null, contenido: recortar(r.content) });
+        if (id && !esDominio(r.url, REDES_SOCIALES) && !porUrl.has(id)) porUrl.set(id, { url: r.url, titulo: r.title ?? null, contenido: recortar(r.content) });
       }
     }
     const fijas = paginas.filter(urlValida);
     const encontradas = [...porUrl.values()].slice(0, mejores).map((r) => r.url);
     const urls = [...new Set([...fijas, ...encontradas])].slice(0, MAX_PAGINAS);
-    const { results = [] } = await extraer(urls, intencion ?? consultas[0]?.texto);
+    const { results = [] } = await extraer(urls, intencion ?? consultas[0]?.texto, avanzado);
     for (const r of results) {
       const id = normalizarUrl(r.url);
       const contenido = recortar(r.raw_content);
@@ -116,11 +119,21 @@ export function crearBuscadorTavily({ clave, fetch: pedir = globalThis.fetch, li
     return { proveedor: 'Tavily', corrida: creditos, mes: Math.max(mes, estimado), limite: limiteMensual };
   }
 
-  return { investigar, resumen };
+  return {
+    investigar,
+    resumen,
+    usarPrevios(n) {
+      previos = Math.max(previos, n);
+    },
+  };
 }
 
-// Una fuente vale solo si su URL vino en los resultados. Devuelve la URL tal como llegó.
-export function verificadorDeResultados(resultados) {
-  const validas = new Map(resultados.map((r) => [normalizarUrl(r.url), r.url]));
-  return async (url) => (urlValida(url) ? validas.get(normalizarUrl(url)) ?? null : null);
+// Una fuente vale solo si su URL vino en los resultados y es admisible; `exige` agrega una condición
+// sobre el resultado (por ejemplo, que mencione a la jugadora). Devuelve la URL tal como llegó.
+export function verificadorDeResultados(resultados, exige = () => true) {
+  const validos = new Map(resultados.filter(exige).map((r) => [normalizarUrl(r.url), r.url]));
+  return async (url) => {
+    const final = urlValida(url) ? validos.get(normalizarUrl(url)) ?? null : null;
+    return final && fuenteAdmisible(final) ? final : null;
+  };
 }

@@ -61,10 +61,10 @@ export async function correr(ctx, id) {
 
   const destino = esTorneo ? datos.seleccion : liga;
   const plataformas = [];
-  for (const p of validos(respuesta.plataformas, esquemaPlataforma, (x) => ctx.reporte.descarto(AGENTE, x?.nombre ?? 'plataforma', 'formato inválido'))) {
+  for (const p of validos(respuesta.plataformas, esquemaPlataforma, (x, motivo) => ctx.reporte.descarto(AGENTE, x?.nombre ?? 'plataforma', `formato inválido (${motivo})`))) {
     const fuente = await verificar(p.fuente);
     if (!fuente) {
-      ctx.reporte.descarto(AGENTE, p.nombre, 'sin fuente verificable');
+      ctx.reporte.descarto(AGENTE, p.nombre, `la fuente no pasó (${p.fuente})`);
       continue;
     }
     const guardada = destino.plataformas.find((x) => x.url === p.url);
