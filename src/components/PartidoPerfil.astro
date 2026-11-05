@@ -1,0 +1,164 @@
+---
+// Un partido en el perfil. El navegador decide cuál es el próximo y mueve cada uno a su lugar.
+import IconoSvg from './IconoSvg.astro';
+import LineaPartido from './LineaPartido.astro';
+import type { Partido } from '../lib/datos';
+import { dondeVer, jugadorasDe, ligas } from '../lib/datos';
+import { enlaceGoogleCalendar } from '../lib/calendario';
+import { iconoPlataforma } from '../lib/iconos';
+import { diaCorto, horaDelLugar, msDe } from '../lib/tiempo';
+import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
+
+interface Props {
+  partido: Partido;
+  oculto?: boolean;
+}
+
+const { partido: p, oculto = false } = Astro.props;
+const plataformas = dondeVer(p);
+const calendario = enlaceGoogleCalendar(p, { jugadoras: jugadorasDe(p).map((j) => j.nombre), dondeVer: plataformas.map((x) => x.nombre) });
+const alla = p.horaConfirmada ? horaDelLugar(p) : null;
+const liga = p.ligaId ? ligas[p.ligaId] : null;
+---
+
+<article class="ficha" data-partido data-inicio={p.inicio} data-confirmada={String(p.horaConfirmada)} hidden={oculto}>
+  <p class="ficha__cabeza">
+    <time class="dato" datetime={p.inicio} data-dia>{diaCorto(msDe(p), ZONA_SITIO)}</time>
+    {p.tipo === 'seleccion' && <span class="etiqueta">Selección</span>}
+    <span class="etiqueta etiqueta--juego" data-en-juego hidden>En juego</span>
+  </p>
+  <LineaPartido partido={p} />
+  <p class="ficha__nota">{[p.competencia, p.sede].filter(Boolean).join(' · ') || 'Competencia por confirmar'}</p>
+  {alla && <p class="ficha__nota">Allá serán las {alla}</p>}
+
+  <div class="ficha__mas">
+    <div class="cuenta" role="timer" aria-label="Cuenta regresiva" data-cuenta hidden>
+      <p data-unidad="dias"><span>--</span> días</p>
+      <p data-unidad="horas"><span>--</span> horas</p>
+      <p data-unidad="minutos"><span>--</span> min</p>
+      <p data-unidad="segundos"><span>--</span> seg</p>
+    </div>
+    <div class="acciones">
+      <a class="boton" href={calendario} target="_blank" rel="noopener">Agregar a Google Calendar</a>
+      {liga?.calendarioOficialUrl && <a class="enlace" href={liga.calendarioOficialUrl} target="_blank" rel="noopener">Calendario oficial de la liga</a>}
+    </div>
+    <div class="donde">
+      <p class="dato">Dónde verlo</p>
+      {
+        plataformas.length > 0 ? (
+          <ul>
+            {plataformas.map((x) => (
+              <li>
+                <a href={x.url} target="_blank" rel="noopener" aria-label={x.nombre} title={x.nombre}>
+                  <IconoSvg icono={iconoPlataforma(x)} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="ficha__nota">Por confirmar</p>
+        )
+      }
+    </div>
+  </div>
+</article>
+
+<style>
+  .ficha__cabeza {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-bottom: 6px;
+  }
+
+  .ficha__nota {
+    margin-top: 2px;
+    color: var(--gris);
+    font-size: 0.875rem;
+  }
+
+  .etiqueta {
+    padding: 2px 10px;
+    background: var(--rojo);
+    border-radius: 999px;
+    color: var(--papel);
+    font-family: var(--fuente-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .etiqueta--juego {
+    background: var(--tinta);
+  }
+
+  .ficha__mas {
+    display: none;
+  }
+
+  :global([data-proximo]) .ficha__mas {
+    display: block;
+  }
+
+  .cuenta {
+    display: flex;
+    gap: clamp(16px, 4vw, 36px);
+    margin-top: 20px;
+    font-family: var(--fuente-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .cuenta span {
+    display: block;
+    font-family: var(--fuente-display);
+    font-size: clamp(2.5rem, 10vw, 4rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+
+  .acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    margin-top: 20px;
+  }
+
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding-inline: 20px;
+    background: var(--rojo);
+    border-radius: 999px;
+    color: var(--papel);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .donde {
+    margin-top: 20px;
+  }
+
+  .donde ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .donde a {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 1px solid var(--linea);
+    border-radius: 50%;
+  }
+</style>

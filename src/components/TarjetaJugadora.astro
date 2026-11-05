@@ -2,7 +2,7 @@
 import { Picture } from 'astro:assets';
 import type { Jugadora } from '../lib/datos';
 import { clubes } from '../lib/datos';
-import { fotosJugadora } from '../lib/fotos';
+import { anchosPara, fotosJugadora } from '../lib/fotos';
 import { iniciales } from '../lib/tiempo';
 import { POR_CONFIRMAR, ruta } from '../lib/presentacion';
 
@@ -24,7 +24,7 @@ const club = j.clubId ? clubes[j.clubId]?.nombre : null;
           src={foto}
           alt=""
           formats={['avif', 'webp']}
-          widths={[320, 480, 640, 800].filter((a) => a <= foto.width)}
+          widths={anchosPara(foto, [320, 480, 640, 800])}
           sizes="(min-width: 1024px) 23vw, (min-width: 640px) 40vw, 72vw"
           style={j.fotos.foco ? `object-position: ${j.fotos.foco}` : undefined}
         />

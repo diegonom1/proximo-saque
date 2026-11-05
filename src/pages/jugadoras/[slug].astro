@@ -1,0 +1,568 @@
+---
+import { Picture } from 'astro:assets';
+import Base from '../../components/Base.astro';
+import IconoSvg from '../../components/IconoSvg.astro';
+import PartidoPerfil from '../../components/PartidoPerfil.astro';
+import type { Jugadora } from '../../lib/datos';
+import { activas, clubes, estados, ligas, partidosDe } from '../../lib/datos';
+import { anchosPara, fotosJugadora } from '../../lib/fotos';
+import { iconoRed } from '../../lib/iconos';
+import { apellido, edad, estaturaTexto, fechaLarga, fuentesDe, origenTexto } from '../../lib/perfil';
+import { POR_CONFIRMAR, fechaLegible, ruta } from '../../lib/presentacion';
+import { vigentes } from '../../lib/tiempo';
+
+export function getStaticPaths() {
+  // `exseleccionada` y `propuesta` no generan página.
+  return activas.map((jugadora) => ({ params: { slug: jugadora.slug }, props: { jugadora } }));
+}
+
+interface Props {
+  jugadora: Jugadora;
+}
+
+const SIGUIENTES = 3;
+
+const { jugadora: j } = Astro.props;
+const ahora = Date.now();
+const { fondo, recorte } = fotosJugadora(j.slug);
+const club = j.clubId ? clubes[j.clubId] : null;
+const liga = club?.ligaId ? ligas[club.ligaId] : null;
+const estado = j.clubId ? estados[j.clubId] : null;
+
+// Van de más: el navegador recorre la lista cuando un partido termina antes de la siguiente construcción.
+const [proximo, ...resto] = vigentes(partidosDe(j.slug), ahora).slice(0, 8);
+
+const clubTexto = club ? [club.nombre, [liga?.nombre, club.pais].filter(Boolean).join(', ')].filter(Boolean).join(' · ') : 'Club por confirmar';
+const datos = [
+  { rotulo: 'Nombre completo', valor: j.nombreCompleto },
+  { rotulo: 'Nacimiento', valor: j.fechaNacimiento ? `${fechaLarga(j.fechaNacimiento)} (${edad(j.fechaNacimiento, ahora)} años)` : null },
+  { rotulo: 'Lugar de origen', valor: origenTexto(j.origen) },
+  { rotulo: 'Estatura', valor: j.estaturaCm ? estaturaTexto(j.estaturaCm) : null },
+  { rotulo: 'Posición', valor: j.posicion },
+  { rotulo: 'Número', valor: j.numero === null ? null : String(j.numero) },
+];
+const redes = j.redes.flatMap((r) => {
+  const icono = iconoRed(r.red);
+  return icono ? [{ ...r, icono }] : [];
+});
+const fuentes = fuentesDe(j);
+const apellidoGrande = apellido(j.nombre);
+const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
+---
+
+<Base titulo={`${j.nombre} | Próximo Saque`} descripcion={`Próximo partido, club y logros de ${j.nombre}, seleccionada mexicana de voleibol.`}>
+  <section class="portada" data-modo={modo} style={`--letras: ${apellidoGrande.length}`} aria-labelledby="nombre">
+    {j.numero !== null && <span class="portada__numero" aria-hidden="true">{j.numero}</span>}
+    {modo !== 'fondo' && <span class="portada__apellido" aria-hidden="true">{apellidoGrande}</span>}
+    {
+      recorte ? (
+        <Picture
+          class="portada__recorte"
+          src={recorte}
+          alt={`Foto de ${j.nombre}`}
+          formats={['avif', 'webp']}
+          widths={anchosPara(recorte, [480, 800, 1200])}
+          sizes="(min-width: 768px) 50vw, 100vw"
+          loading="eager"
+          fetchpriority="high"
+        />
+      ) : (
+        fondo && (
+          <Picture
+            class="portada__fondo"
+            src={fondo}
+            alt={`Foto de ${j.nombre}`}
+            formats={['avif', 'webp']}
+            widths={anchosPara(fondo, [640, 1024, 1600, 2400])}
+            sizes="100vw"
+            loading="eager"
+            fetchpriority="high"
+            style={j.fotos.foco ? `object-position: ${j.fotos.foco}` : undefined}
+          />
+        )
+      )
+    }
+    <div class="marco portada__texto">
+      {j.capitana && <p class="dato portada__capitana">Capitana</p>}
+      <h1 id="nombre">{j.nombre}</h1>
+      <p class="dato">{[j.posicion, j.numero === null ? null : `#${j.numero}`].filter(Boolean).join(' · ')}</p>
+    </div>
+  </section>
+
+  <section class="seccion datos" aria-label="Datos de la jugadora">
+    <div class="marco">
+      <dl class="ficha-datos">
+        <div class="ficha-datos__club">
+          <dt class="dato">Club</dt>
+          <dd>{clubTexto}</dd>
+        </div>
+        {
+          datos.map((d) => (
+            <div>
+              <dt class="dato">{d.rotulo}</dt>
+              <dd>{d.valor ?? POR_CONFIRMAR}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      {
+        redes.length > 0 && (
+          <ul class="redes" aria-label="Redes sociales">
+            {redes.map((r) => (
+              <li>
+                <a href={r.url} target="_blank" rel="noopener" aria-label={r.icono.titulo} title={r.icono.titulo}>
+                  <IconoSvg icono={r.icono} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="seccion seccion--hueso" aria-labelledby="proximo-titulo">
+    <div class="marco">
+      <h2 id="proximo-titulo" class="titulo-seccion">Próximo partido</h2>
+      <div class="caja" data-proximo hidden={!proximo}>
+        {proximo && <PartidoPerfil partido={proximo} />}
+      </div>
+      <div class="caja" data-sin-partidos hidden={Boolean(proximo)}>
+        <p>{!club ? 'Club por confirmar' : estado?.texto ?? 'Sin partidos programados por ahora.'}</p>
+        {estado?.fuente && <a class="enlace" href={estado.fuente} target="_blank" rel="noopener">Fuente</a>}
+      </div>
+
+      <div class="siguientes" data-siguientes-seccion hidden={resto.length === 0}>
+        <h3 class="siguientes__titulo">Siguientes</h3>
+        <div data-siguientes data-maximo={SIGUIENTES}>
+          {resto.map((p, i) => <PartidoPerfil partido={p} oculto={i >= SIGUIENTES} />)}
+        </div>
+        <a class="enlace" href={`${ruta('agenda')}?j=${j.slug}`}>Ver todos en la agenda</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion" aria-labelledby="plus-titulo">
+    <div class="marco">
+      <h2 id="plus-titulo" class="titulo-seccion">Trayectoria</h2>
+      <div class="columnas">
+        <div>
+          <h3 class="subtitulo">Destacados</h3>
+          {
+            j.destacados.length > 0 ? (
+              <ul class="destacados">
+                {j.destacados.map((d) => (
+                  <li>
+                    {d.anio && <span class="dato">{d.anio}</span>}
+                    <a href={d.fuente} target="_blank" rel="noopener">{d.texto}</a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p class="nota">{POR_CONFIRMAR}</p>
+            )
+          }
+        </div>
+        <div>
+          <h3 class="subtitulo">Clubes</h3>
+          {
+            club || j.historialClubes.length > 0 ? (
+              <ol class="clubes">
+                {club && (
+                  <li>
+                    <span class="dato">Actual</span>
+                    <strong>{club.nombre}</strong>
+                    <span class="nota">{club.pais}</span>
+                  </li>
+                )}
+                {j.historialClubes.map((h) => (
+                  <li>
+                    <span class="dato">{h.temporada ?? 'Temporada por confirmar'}</span>
+                    <strong>{h.club}</strong>
+                    {h.pais && <span class="nota">{h.pais}</span>}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p class="nota">{POR_CONFIRMAR}</p>
+            )
+          }
+        </div>
+        <div>
+          <h3 class="subtitulo">Última lista oficial</h3>
+          {
+            j.ultimaListaOficial ? (
+              <p>
+                <strong>{j.ultimaListaOficial.torneo}</strong>
+                <br />
+                <span class="nota">{j.ultimaListaOficial.fecha ? fechaLegible(j.ultimaListaOficial.fecha) : `Fecha ${POR_CONFIRMAR.toLowerCase()}`}</span>
+              </p>
+            ) : (
+              <p class="nota">{POR_CONFIRMAR}</p>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {
+    fuentes.length > 0 && (
+      <section class="seccion seccion--hueso" aria-labelledby="fuentes-titulo">
+        <div class="marco">
+          <h2 id="fuentes-titulo" class="titulo-seccion">Fuentes</h2>
+          <ul class="fuentes">
+            {fuentes.map((f) => (
+              <li>
+                <a href={f.url} target="_blank" rel="noopener">{f.sitio}</a>
+                <span class="nota">{f.temas.join(', ')}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<script>
+  import { cuentaRegresiva, diaCorto, diasHasta, enJuego, hora } from '../../lib/tiempo';
+  import { DURACION_MS } from '../../../scripts/lib/tiempo.mjs';
+
+  const proximo = document.querySelector<HTMLElement>('[data-proximo]');
+  const sinPartidos = document.querySelector<HTMLElement>('[data-sin-partidos]');
+  const siguientes = document.querySelector<HTMLElement>('[data-siguientes]');
+  const seccionSiguientes = document.querySelector<HTMLElement>('[data-siguientes-seccion]');
+  const maximo = Number(siguientes?.dataset.maximo ?? 3);
+  const partidos = [...document.querySelectorAll<HTMLElement>('[data-partido]')];
+  const dos = (n: number) => String(n).padStart(2, '0');
+
+  // Pone la hora y el día del visitante; no depende del segundo, así que corre una vez.
+  for (const el of partidos) {
+    const ms = Date.parse(el.dataset.inicio ?? '');
+    const dia = el.querySelector('[data-dia]');
+    const horaEl = el.querySelector('[data-hora]');
+    if (dia) dia.textContent = diaCorto(ms);
+    if (horaEl && el.dataset.confirmada === 'true') horaEl.textContent = hora(ms);
+  }
+
+  function unidad(raiz: HTMLElement, nombre: string, valor: string | null) {
+    const el = raiz.querySelector<HTMLElement>(`[data-unidad="${nombre}"]`);
+    if (!el) return;
+    el.hidden = valor === null;
+    const numero = el.querySelector('span');
+    if (numero && valor !== null && numero.textContent !== valor) numero.textContent = valor;
+  }
+
+  function pintarCuenta(el: HTMLElement, ahora: number) {
+    const inicio = { inicio: el.dataset.inicio ?? '' };
+    const ms = Date.parse(inicio.inicio);
+    const jugando = enJuego(inicio, ahora);
+    const cuenta = el.querySelector<HTMLElement>('[data-cuenta]');
+    const juego = el.querySelector<HTMLElement>('[data-en-juego]');
+    if (juego) juego.hidden = !jugando;
+    if (!cuenta) return;
+    cuenta.hidden = jugando;
+    if (jugando) return;
+    if (el.dataset.confirmada === 'true') {
+      const r = cuentaRegresiva(ms, ahora);
+      unidad(cuenta, 'dias', String(r.dias));
+      unidad(cuenta, 'horas', dos(r.horas));
+      unidad(cuenta, 'minutos', dos(r.minutos));
+      unidad(cuenta, 'segundos', dos(r.segundos));
+    } else {
+      unidad(cuenta, 'dias', String(diasHasta(ms, ahora)));
+      for (const nombre of ['horas', 'minutos', 'segundos']) unidad(cuenta, nombre, null);
+    }
+  }
+
+  let actual: HTMLElement | null = null;
+
+  function acomodar(ahora: number) {
+    const pendientes = partidos.filter((el) => Date.parse(el.dataset.inicio ?? '') + DURACION_MS > ahora);
+    for (const el of partidos) el.hidden = !pendientes.includes(el);
+    const [primero, ...resto] = pendientes;
+    if (primero !== actual) {
+      actual = primero ?? null;
+      if (primero) proximo?.replaceChildren(primero);
+      else proximo?.replaceChildren();
+      resto.forEach((el) => siguientes?.append(el));
+    }
+    resto.forEach((el, i) => {
+      el.hidden = i >= maximo;
+    });
+    if (proximo) proximo.hidden = !primero;
+    if (sinPartidos) sinPartidos.hidden = Boolean(primero);
+    if (seccionSiguientes) seccionSiguientes.hidden = resto.length === 0;
+  }
+
+  function pintar() {
+    const ahora = Date.now();
+    acomodar(ahora);
+    if (actual) pintarCuenta(actual, ahora);
+  }
+
+  pintar();
+  setInterval(pintar, 1000);
+</script>
+
+<style>
+  .portada {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    height: 86svh;
+    min-height: 480px;
+    overflow: hidden;
+    background: var(--tinta);
+    color: var(--papel);
+  }
+
+  /* Sin foto no hay nada que mostrar en medio: la portada se acorta. */
+  .portada[data-modo='sin-foto'] {
+    height: 62svh;
+    min-height: 420px;
+  }
+
+  .portada__numero {
+    position: absolute;
+    right: -0.04em;
+    bottom: -0.1em;
+    color: transparent;
+    font-family: var(--fuente-display);
+    font-size: clamp(16rem, 62vw, 44rem);
+    font-weight: 900;
+    line-height: 1;
+    -webkit-text-stroke: 2px var(--rojo);
+  }
+
+  .portada[data-modo='fondo'] .portada__numero {
+    display: none;
+  }
+
+  /* El apellido llena el ancho sin importar cuántas letras tenga. */
+  .portada__apellido {
+    position: absolute;
+    top: 72px;
+    left: 50%;
+    font-family: var(--fuente-display);
+    font-size: min(calc(92vw / (var(--letras) * 0.46)), 26rem);
+    font-weight: 900;
+    line-height: 0.9;
+    text-transform: uppercase;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  .portada :global(.portada__fondo) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .portada[data-modo='fondo']::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(14 14 16 / 85%) 0%, rgb(14 14 16 / 20%) 45%, rgb(14 14 16 / 35%) 100%);
+    content: '';
+  }
+
+  .portada :global(.portada__recorte) {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: auto;
+    max-width: 100%;
+    height: 80%;
+    object-fit: contain;
+    object-position: bottom;
+    transform: translateX(-50%);
+  }
+
+  .portada[data-modo='recorte']::after {
+    position: absolute;
+    inset: auto 0 0;
+    height: 34%;
+    background: linear-gradient(to top, rgb(14 14 16 / 90%), transparent);
+    content: '';
+  }
+
+  .portada__texto {
+    position: relative;
+    z-index: 1;
+    padding-block: 24px;
+  }
+
+  h1 {
+    font-family: var(--fuente-display);
+    font-size: clamp(3rem, 13vw, 7rem);
+    font-weight: 900;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .portada[data-modo='recorte'] h1 {
+    font-size: clamp(2.25rem, 8vw, 4rem);
+  }
+
+  .portada__capitana {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 2px 10px;
+    background: var(--rojo);
+    border-radius: 999px;
+  }
+
+  .datos {
+    padding-block: 32px;
+  }
+
+  .ficha-datos {
+    display: grid;
+    gap: 16px 24px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .ficha-datos__club {
+    grid-column: 1 / -1;
+  }
+
+  dt {
+    color: var(--gris);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .redes {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .redes a {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 1px solid var(--linea);
+    border-radius: 50%;
+  }
+
+  .caja {
+    margin-top: 24px;
+    padding: clamp(20px, 4vw, 32px);
+    background: var(--papel);
+  }
+
+  .siguientes {
+    margin-top: 32px;
+  }
+
+  .siguientes__titulo {
+    margin-bottom: 8px;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  [data-siguientes] > :global(*) {
+    padding-block: 16px;
+    border-top: 1px solid var(--linea);
+  }
+
+  [data-siguientes] {
+    margin-bottom: 16px;
+  }
+
+  .columnas {
+    display: grid;
+    gap: 32px;
+    margin-top: 24px;
+  }
+
+  .subtitulo {
+    margin-bottom: 12px;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .nota {
+    color: var(--gris);
+    font-size: 0.875rem;
+  }
+
+  .destacados li {
+    padding-block: 10px;
+    border-top: 1px solid var(--linea);
+  }
+
+  .destacados .dato {
+    display: block;
+    color: var(--gris);
+  }
+
+  .destacados a {
+    text-underline-offset: 3px;
+  }
+
+  .clubes {
+    border-left: 2px solid var(--tinta);
+  }
+
+  .clubes li {
+    position: relative;
+    display: grid;
+    padding: 0 0 16px 16px;
+  }
+
+  .clubes li::before {
+    position: absolute;
+    top: 6px;
+    left: -6px;
+    width: 10px;
+    height: 10px;
+    background: var(--rojo);
+    border-radius: 50%;
+    content: '';
+  }
+
+  .clubes .dato {
+    color: var(--gris);
+  }
+
+  .fuentes {
+    margin-top: 16px;
+  }
+
+  .fuentes li {
+    display: grid;
+    padding-block: 8px;
+    border-top: 1px solid var(--linea);
+  }
+
+  .fuentes a {
+    font-weight: 600;
+    text-underline-offset: 3px;
+  }
+
+  @media (min-width: 768px) {
+    .ficha-datos {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .columnas {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .portada :global(.portada__recorte) {
+      max-width: 60%;
+      height: 84%;
+    }
+  }
+</style>

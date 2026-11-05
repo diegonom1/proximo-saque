@@ -1,0 +1,11 @@
+---
+import type { Icono } from '../lib/iconos';
+
+interface Props {
+  icono: Icono;
+}
+
+const { icono } = Astro.props;
+---
+
+<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d={icono.path} /></svg>

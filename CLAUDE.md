@@ -50,7 +50,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  │  └─ jugadoras/<slug>/  tarjeta.jpg, fondo.jpg, recorte.png (opcional), credito.txt
 │  ├─ pages/                index.astro, agenda.astro, jugadoras/[slug].astro, torneos.astro
 │  ├─ components/
-│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, compromiso.ts, presentacion.ts
+│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, compromiso.ts, presentacion.ts, partido.ts, perfil.ts, iconos.ts
 ├─ v1/                      sitio anterior (referencia)
 └─ .github/workflows/       actualizar.yml (semanal), deploy.yml (push a main)
 ```
@@ -301,6 +301,8 @@ En todo el sitio (hero, "Esta semana", perfil, agenda) un partido se escribe igu
 3. **Siguientes**: los 3 partidos posteriores (sin cuenta regresiva) y "Ver todos en la agenda" (`/agenda?j=<slug>`).
 4. **Un plus**: destacados (premios, MVP, equipos ideales), línea de tiempo de clubes y última lista oficial en la que apareció.
 5. **Fuentes**: enlaces de donde salió cada dato.
+
+Los partidos del perfil son los de su club y los de la Selección donde aparece en `convocadas`; el navegador decide cuál es el próximo, porque el sitio se construye una vez por semana.
 
 Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin empezar, en pausa o terminada). Si no tiene club confirmado: "Club por confirmar".
 

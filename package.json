@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "astro": "^7.4.5",
+    "simple-icons": "^16.36.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {

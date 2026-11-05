@@ -3,7 +3,7 @@ import { getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import { partidos, paraCliente, seleccion } from '../lib/datos';
 import { elegirCompromiso, vistaHero } from '../lib/compromiso';
-import { fotosHero } from '../lib/fotos';
+import { anchosPara, fotosHero } from '../lib/fotos';
 import { SELECCION, separador } from '../lib/partido';
 import { ruta } from '../lib/presentacion';
 import { vigentes } from '../lib/tiempo';
@@ -17,13 +17,9 @@ const datosCliente = JSON.stringify({ lista, torneo }).replace(/</g, '\\u003c');
 
 // <Picture> no admite un archivo distinto por pantalla: aquí hay uno vertical para celular.
 const { escritorio, movil } = fotosHero();
-const anchosDe = (foto: ImageMetadata, anchos: number[]) => {
-  const utiles = anchos.filter((a) => a < foto.width);
-  return [...utiles, foto.width];
-};
 const fuentes = async (foto: ImageMetadata, anchos: number[], media: string) => Promise.all(
   (['avif', 'webp'] as const).map(async (format) => {
-    const imagen = await getImage({ src: foto, format, widths: anchosDe(foto, anchos) });
+    const imagen = await getImage({ src: foto, format, widths: anchosPara(foto, anchos) });
     return { media, type: `image/${format}`, srcset: imagen.srcSet.attribute };
   }),
 );

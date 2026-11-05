@@ -23,6 +23,9 @@ export const fotosJugadora = (slug: string) => ({
   recorte: foto(`jugadoras/${slug}/recorte.png`),
 });
 
+// Anchos que tiene sentido generar: nunca más que la foto original.
+export const anchosPara = (foto: ImageMetadata, anchos: number[]) => [...anchos.filter((a) => a < foto.width), foto.width];
+
 export interface Credito {
   texto: string;
   url: string | null;
