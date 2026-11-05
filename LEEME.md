@@ -41,9 +41,19 @@ Genera en `src/assets/fotos/`:
 - `hero.jpg` y `hero-movil.jpg`: para la portada, en `seleccion/`.
 - `credito.txt`: lo crea vacío. Escriban de quién es la foto, por ejemplo `Foto: FMVB — https://...`. **Sin crédito la foto no se publica**: en `npm run dev` se ve, pero en el sitio real sale con iniciales.
 
-Al terminar, abran `fotos-originales/vista-previa.jpg` y lean los avisos: dicen si una foto quedó con poca resolución y si falta un crédito. La hoja muestra los dos recortes de cada jugadora lado a lado. Revisen sobre todo el cabello y que no se haya comido el balón.
+El script muestra el avance y cuánto tardó cada foto. Al terminar, abran `fotos-originales/vista-previa.jpg` y lean los avisos: dicen si una foto quedó con poca resolución y si falta un crédito. Revisen sobre todo el cabello y que no se haya comido el balón.
 
-Para cambiar de recorte, creen `fotos-originales/<slug>/modelo.txt` con la palabra `general` (o `portrait`) y corran `npm run fotos` otra vez; tarda un segundo.
+| Comando | Qué hace |
+|---|---|
+| `npm run fotos` | Procesa lo que cambió, con un solo modelo. |
+| `npm run fotos -- --comparar` | Recorta con los dos modelos y los pone lado a lado en la hoja. Tarda el doble. |
+| `npm run fotos -- --solo <slug>` | Procesa solo esa carpeta. |
+| `npm run fotos -- --forzar` | Vuelve a procesar aunque nada haya cambiado. |
+| `npm run fotos -- --help` | Muestra estas opciones. |
+
+Se pueden combinar: `npm run fotos -- --comparar --solo samantha-bricio`.
+
+El recorte usa `birefnet-general`. Para cambiarlo en una jugadora, creen `fotos-originales/<slug>/modelo.txt` con la palabra `portrait` (o `general`) y corran `npm run fotos`: recorta esa foto sola, sin `--forzar`.
 
 - Si una carpeta trae varias fotos, el script usa la más vertical para la tarjeta y la más horizontal para el fondo. Para elegir ustedes, pongan `tarjeta`, `fondo` o `recorte` en el nombre del archivo.
 - El script no quita marcas de agua, pero un recorte puede dejar fuera una que esté en la orilla. Respeten los permisos de cada foto.

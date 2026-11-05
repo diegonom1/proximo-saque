@@ -6,9 +6,8 @@ Si una carpeta trae varias fotos, el script elige: la más vertical para tarjeta
 horizontal para fondo.jpg. Para decidirlo tú, pon en el nombre del archivo "tarjeta", "fondo" o
 "recorte" (en la Selección, "hero" o "movil").
 
-Cada jugadora se recorta con los dos modelos y la hoja los muestra lado a lado. Por defecto
-recorte.png usa birefnet-portrait; para usar el otro, escribe "general" en
-fotos-originales/<slug>/modelo.txt. Cambiar ese archivo no repite el recorte.
+Modelo del recorte: birefnet-general, o el que diga fotos-originales/<slug>/modelo.txt
+("general" o "portrait"). Si cambias modelo.txt, la siguiente corrida recorta esa foto sola.
 
 Salida: src/assets/fotos/, una hoja fotos-originales/vista-previa.jpg y un resumen con avisos.
 
@@ -25,6 +24,7 @@ import os
 import resource
 import shutil
 import sys
+import time
 from pathlib import Path
 import urllib.request
 
@@ -53,9 +53,10 @@ MODELOS = RAIZ / ".venv/modelos"
 
 # Súbelo si cambia el proceso, para que todo se vuelva a generar.
 VERSION = 2
-# birefnet-portrait se concentra en la persona y puede morder lo que trae en las manos (un balón).
-MODELO_DEFECTO = "birefnet-portrait"
-MODELOS_RECORTE = (MODELO_DEFECTO, "birefnet-general")
+# birefnet-general dio el borde más nítido en una foto real. birefnet-portrait se concentra en la
+# persona y puede morder lo que trae en las manos (un balón).
+MODELO_DEFECTO = "birefnet-general"
+MODELOS_RECORTE = (MODELO_DEFECTO, "birefnet-portrait")
 
 # Memoria: no se carga un modelo con menos de esto disponible. Medido en 14 GB de RAM: cada modelo
 # llega a 9.1 GB en la inferencia, sin importar hilos, arena ni tamaño de la foto, porque la red
@@ -247,34 +248,66 @@ def falta_memoria(disponible, modelo):
             "Cierra Chrome u otros programas y corre npm run fotos otra vez.")
 
 
+class MemoriaInsuficiente(Exception):
+    pass
+
+
+_sesion = None
+
+
 def _mascara(png, modelo):
-    """Corre en un proceso aparte. Devuelve la máscara en PNG y el pico de memoria en GB."""
+    """Corre en un proceso aparte, que conserva el modelo entre fotos.
+    Devuelve la máscara en PNG y el pico de memoria en GB."""
+    global _sesion
     import onnxruntime as ort
     from rembg import new_session, remove
 
-    opciones = ort.SessionOptions()
-    opciones.enable_cpu_mem_arena = False
-    opciones.enable_mem_pattern = False
-    opciones.intra_op_num_threads = ONNX_HILOS
-    opciones.inter_op_num_threads = 1
-    sesion = new_session(modelo, opciones, providers=["CPUExecutionProvider"])
-    mascara = remove(Image.open(io.BytesIO(png)), session=sesion, only_mask=True).convert("L")
+    if _sesion is None:
+        opciones = ort.SessionOptions()
+        opciones.enable_cpu_mem_arena = False
+        opciones.enable_mem_pattern = False
+        opciones.intra_op_num_threads = ONNX_HILOS
+        opciones.inter_op_num_threads = 1
+        _sesion = new_session(modelo, opciones, providers=["CPUExecutionProvider"])
+    mascara = remove(Image.open(io.BytesIO(png)), session=_sesion, only_mask=True).convert("L")
     salida = io.BytesIO()
     mascara.save(salida, "PNG")
     return salida.getvalue(), resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024**2
 
 
-def calcular_mascara(imagen, modelo):
-    """Un modelo ocupa varios GB: cada uno corre en su propio proceso, que al terminar los libera.
-    Tener los dos cargados a la vez agotó la memoria de una máquina de 14 GB."""
-    entrada = io.BytesIO()
-    imagen.save(entrada, "PNG")
-    print(f"  Recortando con {modelo} (la primera vez se descarga, cerca de 1 GB)...", flush=True)
-    contexto = multiprocessing.get_context("spawn")
-    with ProcessPoolExecutor(max_workers=1, mp_context=contexto) as proceso:
-        png, pico = proceso.submit(_mascara, entrada.getvalue(), modelo).result()
-    print(f"  {modelo}: pico de memoria {pico:.2f} GB", flush=True)
-    return Image.open(io.BytesIO(png)).convert("L")
+class Recortador:
+    """Un solo modelo en memoria. Cada modelo corre en su propio proceso, que se cierra antes de
+    cargar otro: tener los dos a la vez agotó la memoria de una máquina de 14 GB.
+    Mientras no cambie el modelo, el proceso sigue vivo y no se vuelve a cargar."""
+
+    def __init__(self):
+        self.modelo = None
+        self.proceso = None
+
+    def mascara(self, imagen, modelo):
+        if modelo != self.modelo:
+            self.cerrar()
+            aviso = falta_memoria(psutil.virtual_memory().available, modelo)
+            if aviso:
+                raise MemoriaInsuficiente(aviso)
+            print(f"  Cargando {modelo} (la primera vez se descarga, cerca de 1 GB)...", flush=True)
+            self.proceso = ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
+            self.modelo = modelo
+        entrada = io.BytesIO()
+        imagen.save(entrada, "PNG")
+        try:
+            png, pico = self.proceso.submit(_mascara, entrada.getvalue(), modelo).result()
+        except BrokenProcessPool:
+            self.cerrar()
+            raise
+        print(f"  Recorte con {modelo} (pico de memoria {pico:.2f} GB)", flush=True)
+        return Image.open(io.BytesIO(png)).convert("L")
+
+    def cerrar(self):
+        if self.proceso:
+            self.proceso.shutdown()
+        self.proceso = None
+        self.modelo = None
 
 
 def limpiar_bordes(imagen, mascara):
@@ -341,8 +374,8 @@ def hacer_fondo(foto, destino, avisos):
         avisos.append(f"Sugerencia para fotos.foco: \"{foco_sugerido(*foto.imagen.size, foto.cara)}\".")
 
 
-def hacer_recortes(foto, nombre, avisos):
-    """Recorta con los dos modelos y deja los resultados en .comparar/<slug>/.
+def hacer_recortes(foto, nombre, modelos, recortador, avisos):
+    """Deja en .comparar/<slug>/ un recorte por modelo.
 
     La inferencia usa una copia reducida (el modelo trabaja a 1024 px de todos modos) y la máscara
     se aplica sobre la foto original. Los bordes se limpian ya recortados, que es mucho menos área.
@@ -353,13 +386,12 @@ def hacer_recortes(foto, nombre, avisos):
     carpeta.mkdir(parents=True, exist_ok=True)
     original = foto.imagen.convert("RGB")
     copia = reducir(original, INFERENCIA_LADO, INFERENCIA_LADO)
-    for modelo in MODELOS_RECORTE:
-        aviso = falta_memoria(psutil.virtual_memory().available, modelo)
-        if aviso:
-            avisos.append(aviso)
-            continue
+    for modelo in modelos:
         try:
-            mascara = calcular_mascara(copia, modelo)
+            mascara = recortador.mascara(copia, modelo)
+        except MemoriaInsuficiente as error:
+            avisos.append(str(error))
+            continue
         except BrokenProcessPool:
             avisos.append(f"{modelo}: el proceso murió, seguramente por falta de memoria. Cierra programas y corre de nuevo.")
             continue
@@ -393,10 +425,12 @@ def hacer_jugadora(fotos, nombre, avisos):
     carpeta = destino_de(nombre)
     tarjeta = elegir(fotos, "tarjeta", lambda f: (f.cara is not None, -f.proporcion))
     fondo = elegir(fotos, "fondo", lambda f: (f.proporcion, f.imagen.width))
-    recorte = elegir(fotos, "recorte", lambda f: (len(f.personas()) == 1, f.cara.alto if f.cara else 0))
     hacer_tarjeta(tarjeta, carpeta / "tarjeta.jpg", avisos)
     hacer_fondo(fondo, carpeta / "fondo.jpg", avisos)
-    hacer_recortes(recorte, nombre, avisos)
+
+
+def foto_de_recorte(fotos):
+    return elegir(fotos, "recorte", lambda f: (len(f.personas()) == 1, f.cara.alto if f.cara else 0))
 
 
 def hacer_seleccion(fotos, nombre, avisos):
@@ -460,10 +494,14 @@ def miniatura(ruta, alto=300):
     return imagen
 
 
-def piezas_de(nombre, carpeta):
+def piezas_de(nombre, carpeta, comparar):
     """Lo que va en la fila de una carpeta: (rótulo, ruta, ¿resaltar?)."""
     piezas = [(n, carpeta / n, False) for n in ("hero.jpg", "hero-movil.jpg", "tarjeta.jpg", "fondo.jpg") if (carpeta / n).exists()]
     actual = modelo_de(ORIGINALES / nombre, [])
+    if not comparar:
+        if (carpeta / "recorte.png").exists():
+            piezas.append((f"recorte ({actual.removeprefix('birefnet-')})", carpeta / "recorte.png", False))
+        return piezas
     for modelo in MODELOS_RECORTE:
         ruta = COMPARAR / nombre / f"{modelo}.png"
         if ruta.exists():
@@ -472,10 +510,10 @@ def piezas_de(nombre, carpeta):
     return piezas
 
 
-def hoja_vista_previa(carpetas, avisos):
+def hoja_vista_previa(carpetas, avisos, comparar):
     filas = []
     for nombre, carpeta in carpetas:
-        piezas = piezas_de(nombre, carpeta)
+        piezas = piezas_de(nombre, carpeta, comparar)
         if piezas:
             filas.append((nombre, [(rotulo, miniatura(ruta), marca) for rotulo, ruta, marca in piezas], avisos.get(nombre, [])))
     if not filas:
@@ -536,19 +574,8 @@ def modelo_de(origen, avisos):
     return modelo
 
 
-def procesar_carpeta(nombre, archivos, cache, forzar):
-    """Devuelve (avisos, ¿se saltó?)."""
-    carpeta = destino_de(nombre)
-    carpeta.mkdir(parents=True, exist_ok=True)
-    firma = huella(archivos)
-    previo = cache.get(nombre, {})
-    completo = all((carpeta / s).exists() for s in salidas_de(nombre))
-    if nombre != "seleccion":
-        completo = completo and all((COMPARAR / nombre / f"{m}.png").exists() for m in MODELOS_RECORTE)
-    if not forzar and previo.get("huella") == firma and completo:
-        return list(previo.get("avisos", [])), True
-
-    avisos, fotos = [], []
+def abrir_fotos(archivos, avisos):
+    fotos = []
     for ruta in archivos:
         try:
             imagen = abrir(ruta)
@@ -556,17 +583,73 @@ def procesar_carpeta(nombre, archivos, cache, forzar):
             avisos.append(f"No pude abrir {ruta.name}; ¿está dañada o en un formato raro?")
             continue
         fotos.append(Foto(ruta, imagen, detectar_caras(imagen)))
-    if not fotos:
-        return avisos, False
+    return fotos
 
-    (hacer_seleccion if nombre == "seleccion" else hacer_jugadora)(fotos, nombre, avisos)
-    if nombre == "seleccion" or all((COMPARAR / nombre / f"{m}.png").exists() for m in MODELOS_RECORTE):
+
+def procesar_seleccion(archivos, firma, previo, cache, forzar):
+    nombre = "seleccion"
+    completo = all((destino_de(nombre) / s).exists() for s in salidas_de(nombre))
+    if not forzar and previo.get("huella") == firma and completo:
+        return list(previo.get("avisos", [])), True
+    avisos = []
+    fotos = abrir_fotos(archivos, avisos)
+    if fotos:
+        hacer_seleccion(fotos, nombre, avisos)
         cache[nombre] = {"huella": firma, "avisos": list(avisos)}
     return avisos, False
 
 
+def procesar_carpeta(nombre, archivos, cache, recortador, forzar=False, comparar=False):
+    """Hace solo lo que falta. Devuelve (avisos, ¿no hubo nada que hacer?)."""
+    carpeta = destino_de(nombre)
+    carpeta.mkdir(parents=True, exist_ok=True)
+    firma = huella(archivos)
+    previo = cache.get(nombre, {})
+    if nombre == "seleccion":
+        return procesar_seleccion(archivos, firma, previo, cache, forzar)
+
+    avisos_modelo = []
+    modelo = modelo_de(ORIGINALES / nombre, avisos_modelo)
+    cambio_foto = forzar or previo.get("huella") != firma or not all((carpeta / s).exists() for s in salidas_de(nombre))
+    if cambio_foto:
+        for viejo in (COMPARAR / nombre).glob("*.png"):
+            viejo.unlink()
+    pedidos = MODELOS_RECORTE if comparar else (modelo,)
+    faltan = [m for m in pedidos if not (COMPARAR / nombre / f"{m}.png").exists()]
+
+    if not cambio_foto and not faltan:
+        avisos = list(previo.get("avisos", [])) + avisos_modelo
+        aplicar_recorte(nombre, modelo, avisos)
+        sin_cambios = previo.get("modelo") == modelo
+        cache[nombre] = {**previo, "modelo": modelo}
+        return avisos, sin_cambios
+
+    avisos = [] if cambio_foto else list(previo.get("avisos", []))
+    fotos = abrir_fotos(archivos, avisos)
+    if not fotos:
+        return avisos + avisos_modelo, False
+    if cambio_foto:
+        hacer_jugadora(fotos, nombre, avisos)
+    hacer_recortes(foto_de_recorte(fotos), nombre, faltan, recortador, avisos)
+    guardados = [a for a in avisos if "no lo cargué" not in a]
+    if (COMPARAR / nombre / f"{modelo}.png").exists():
+        cache[nombre] = {"huella": firma, "modelo": modelo, "avisos": guardados}
+    avisos += avisos_modelo
+    aplicar_recorte(nombre, modelo, avisos)
+    return avisos, False
+
+
+def segundos(inicio):
+    return f"{time.monotonic() - inicio:.1f} s"
+
+
 def main():
-    argumentos = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    argumentos = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="Ejemplos:\n  npm run fotos\n  npm run fotos -- --comparar --solo samantha-bricio\n  npm run fotos -- --forzar",
+    )
+    argumentos.add_argument("--comparar", action="store_true", help="recorta con los dos modelos y los pone lado a lado en la hoja de vista previa")
     argumentos.add_argument("--forzar", action="store_true", help="vuelve a procesar aunque nada haya cambiado")
     argumentos.add_argument("--solo", metavar="SLUG", help="procesa solo esa carpeta")
     opciones = argumentos.parse_args()
@@ -582,33 +665,40 @@ def main():
         print(f"No hay fotos: deja las originales en {ORIGINALES.relative_to(RAIZ)}/<slug>/ o en seleccion/.")
         return
 
+    inicio_total = time.monotonic()
+    recortador = Recortador()
     avisos, procesadas, saltadas = {}, [], []
-    for origen in carpetas:
-        nombre = origen.name
-        if nombre != "seleccion" and nombre not in slugs:
-            avisos[nombre] = [f"La carpeta {nombre} no coincide con ningún slug de data/jugadoras.json; la salté."]
-            continue
-        archivos = sorted(p for p in origen.iterdir() if p.suffix.lower() in EXTENSIONES)
-        if not archivos:
-            avisos[nombre] = ["La carpeta no tiene fotos."]
-            continue
-        print(f"> {nombre}", flush=True)
-        lista, salto = procesar_carpeta(nombre, archivos, cache, opciones.forzar)
-        (saltadas if salto else procesadas).append(nombre)
-        avisos[nombre] = list(lista)
-        CACHE.write_text(json.dumps(cache, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        if nombre != "seleccion" and (COMPARAR / nombre).exists():
-            aplicar_recorte(nombre, modelo_de(origen, avisos[nombre]), avisos[nombre])
-        if credito_pendiente(destino_de(nombre)):
-            avisos[nombre].append("credito.txt está vacío: sin crédito la foto no se publica. Escribe \"Foto: autor o cuenta — URL\".")
+    try:
+        for numero, origen in enumerate(carpetas, 1):
+            nombre = origen.name
+            print(f"[{numero}/{len(carpetas)}] {nombre}", flush=True)
+            if nombre != "seleccion" and nombre not in slugs:
+                avisos[nombre] = [f"La carpeta {nombre} no coincide con ningún slug de data/jugadoras.json; la salté."]
+                print("  saltada: no es un slug", flush=True)
+                continue
+            archivos = sorted(p for p in origen.iterdir() if p.suffix.lower() in EXTENSIONES)
+            if not archivos:
+                avisos[nombre] = ["La carpeta no tiene fotos."]
+                print("  saltada: sin fotos", flush=True)
+                continue
+            inicio = time.monotonic()
+            lista, salto = procesar_carpeta(nombre, archivos, cache, recortador, opciones.forzar, opciones.comparar)
+            (saltadas if salto else procesadas).append(nombre)
+            avisos[nombre] = list(lista)
+            CACHE.write_text(json.dumps(cache, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            if credito_pendiente(destino_de(nombre)):
+                avisos[nombre].append("credito.txt está vacío: sin crédito la foto no se publica. Escribe \"Foto: autor o cuenta — URL\".")
+            print(f"  {'sin cambios' if salto else 'lista'} en {segundos(inicio)}", flush=True)
+    finally:
+        recortador.cerrar()
 
     todas = [("seleccion", destino_de("seleccion"))] if (SALIDA / "seleccion").exists() else []
     todas += [(s, destino_de(s)) for s in sorted(slugs)]
-    hoja = hoja_vista_previa(todas, avisos)
+    hoja = hoja_vista_previa(todas, avisos, opciones.comparar)
 
-    print(f"\nProcesadas: {len(procesadas)} · sin cambios: {len(saltadas)}")
+    print(f"\nProcesadas: {len(procesadas)} · sin cambios: {len(saltadas)} · total: {segundos(inicio_total)}")
     if procesadas:
-        print("Compara los recortes en la vista previa: revisa cabello, balón y personas de atrás.")
+        print("Revisa en la vista previa el cabello, el balón y a las personas de atrás.")
     for nombre, textos in avisos.items():
         for texto in textos:
             print(f"  ! {nombre}: {texto}")
