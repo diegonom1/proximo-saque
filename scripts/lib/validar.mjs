@@ -120,12 +120,14 @@ export const esquemaPartidos = z.strictObject({
 
 /* ---------- Selección, torneos y rankings ---------- */
 
+const esquemaProximoTorneo = z.strictObject({
+  id: texto, nombre: texto, edicion: z.number().int().nullable(), ciudad: textoN, pais: textoN,
+  fechaInicio: fechaN, fechaFin: fechaN, fuente: url,
+});
+
 export const esquemaSeleccion = z.strictObject({
   entrenador: z.strictObject({ nombre: textoN, fuente: urlN }).nullable(),
-  proximoTorneo: z.strictObject({
-    id: texto, nombre: texto, edicion: z.number().int().nullable(), ciudad: textoN, pais: textoN,
-    fechaInicio: fechaN, fechaFin: fechaN, fuente: url,
-  }).nullable(),
+  proximoTorneo: esquemaProximoTorneo.nullable(),
   plataformas: z.array(esquemaPlataforma),
   revisado: fechaN,
 });
@@ -185,6 +187,10 @@ export const esquemaEstadoAgentes = z.strictObject({
 export const esquemaManual = z.strictObject({
   partidos: z.array(z.looseObject({})), // pasan por convertir(), que decide si sirven
   jugadoras: z.record(slug, esquemaJugadora.partial()),
+  // Solo hacen falta nombre, edicion y fuente; el id se calcula y lo demás queda por confirmar.
+  seleccion: z.strictObject({
+    proximoTorneo: esquemaProximoTorneo.partial({ id: true, ciudad: true, pais: true, fechaInicio: true, fechaFin: true }).nullable(),
+  }).default({ proximoTorneo: null }),
 });
 
 /* ---------- Todo junto ---------- */

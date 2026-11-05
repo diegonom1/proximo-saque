@@ -10,7 +10,8 @@ const CATALOGO = [
   { nombre: 'Campeonato Mundial', alias: ['Mundial', 'World Championship', 'World Championships', 'Campeonato del Mundo', 'Copa Mundial'] },
   { nombre: 'Liga de Naciones', alias: ['Nations League', 'VNL'] },
   { nombre: 'Copa Challenger', alias: ['Challenger Cup'] },
-  { nombre: 'Juegos Panamericanos', alias: ['Pan American Games', 'Panamericanos', 'Pan Am Games'] },
+  // Fechas que anunció Panam Sports el 30 de enero de 2026.
+  { nombre: 'Juegos Panamericanos', alias: ['Pan American Games', 'Panamericanos', 'Pan Am Games'], ediciones: { 2027: { fechaInicio: '2027-07-23', fechaFin: '2027-08-08' } } },
   { nombre: 'Juegos Centroamericanos y del Caribe', alias: ['Central American and Caribbean Games', 'Centroamericanos', 'CAC Games'] },
   { nombre: 'Copa Panamericana', alias: ['Pan American Cup', 'Pan-American Cup', 'Panamericana'] },
   { nombre: 'Campeonato NORCECA', alias: ['NORCECA Championship', 'Continental Championship NORCECA'] },
@@ -32,6 +33,9 @@ const huella = (nombre) => normal(nombre).split(' ')
 const CANONICOS = new Map(CATALOGO.flatMap(({ nombre, alias }) => [nombre, ...alias].map((a) => [huella(a), nombre])));
 
 export const nombreCanonico = (nombre) => CANONICOS.get(huella(nombre)) ?? nombre.trim();
+
+// Las fechas de una edición, si el catálogo las sabe.
+export const fechasDeCatalogo = (nombre, edicion) => CATALOGO.find((t) => t.nombre === nombreCanonico(nombre))?.ediciones?.[edicion] ?? null;
 
 export const delCatalogo = (nombre) => CANONICOS.has(huella(nombre));
 

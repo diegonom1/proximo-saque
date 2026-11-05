@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { idTorneo, mismoTorneo, nombreCanonico } from './torneos.mjs';
+import { fechasDeCatalogo } from './torneos.mjs';
 
 describe('nombreCanonico', () => {
   it.each([
@@ -69,5 +70,15 @@ describe('mismoTorneo', () => {
   });
   it('sin fechas solo decide el nombre', () => {
     expect(mismoTorneo(t('A', 2026, null, null), t('B', 2026, null, null))).toBe(false);
+  });
+});
+
+describe('fechasDeCatalogo', () => {
+  it('reconoce la edición por cualquiera de sus nombres', () => {
+    expect(fechasDeCatalogo('Pan American Games', 2027)).toEqual({ fechaInicio: '2027-07-23', fechaFin: '2027-08-08' });
+  });
+  it('sin esa edición no inventa fechas', () => {
+    expect(fechasDeCatalogo('Juegos Panamericanos', 2023)).toBeNull();
+    expect(fechasDeCatalogo('Torneo desconocido', 2027)).toBeNull();
   });
 });
