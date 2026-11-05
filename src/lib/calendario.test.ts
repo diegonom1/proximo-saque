@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { enlaceGoogleCalendar } from './calendario';
 
 const partido = {
-  inicio: '2026-11-07T21:00:00-03:00', horaConfirmada: true, local: 'Sesi Vôlei Bauru', visitante: 'E.C. Pinheiros',
+  tipo: 'club' as const, inicio: '2026-11-07T21:00:00-03:00', horaConfirmada: true, local: 'Sesi Vôlei Bauru', visitante: 'E.C. Pinheiros',
   competencia: 'Superliga Feminina · Rodada 4', sede: 'Bauru', fuente: 'https://cbv.com.br/tabela',
 };
 const leer = (enlace: string) => new URL(enlace).searchParams;
@@ -16,10 +16,14 @@ describe('enlaceGoogleCalendar', () => {
   });
   it('lleva título, competencia, dónde verlo y fuente', () => {
     const q = leer(enlaceGoogleCalendar(partido, { jugadoras: ['Sofía Maldonado'], dondeVer: ['Canal Vôlei Brasil'] }));
-    expect(q.get('text')).toBe('Sesi Vôlei Bauru vs E.C. Pinheiros (Sofía Maldonado)');
+    expect(q.get('text')).toBe('Sofía Maldonado · Sesi Vôlei Bauru vs E.C. Pinheiros');
     expect(q.get('details')).toBe([
-      'Superliga Feminina · Rodada 4', 'Seleccionadas: Sofía Maldonado', 'Dónde verlo: Canal Vôlei Brasil', 'Fuente: https://cbv.com.br/tabela',
+      'Superliga Feminina · Rodada 4', 'Dónde verlo: Canal Vôlei Brasil', 'Fuente: https://cbv.com.br/tabela',
     ].join('\n'));
+  });
+  it('en la Selección el título dice Selección Mexicana', () => {
+    const q = leer(enlaceGoogleCalendar({ ...partido, tipo: 'seleccion', local: 'México', visitante: 'Estados Unidos' }));
+    expect(q.get('text')).toBe('Selección Mexicana · México vs Estados Unidos');
   });
   it('avisa si la hora no está confirmada y tolera campos vacíos', () => {
     const q = leer(enlaceGoogleCalendar({ ...partido, horaConfirmada: false, competencia: null, sede: null, fuente: null }));

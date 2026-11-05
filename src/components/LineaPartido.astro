@@ -1,0 +1,71 @@
+---
+// "21:00 · Sofía Maldonado · Sesi Vôlei Bauru vs E.C. Pinheiros". El navegador cambia [data-hora] por la hora del visitante.
+import type { Partido } from '../lib/datos';
+import { jugadorasDe } from '../lib/datos';
+import { SELECCION, separador } from '../lib/partido';
+import { ruta } from '../lib/presentacion';
+import { hora, msDe } from '../lib/tiempo';
+import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
+
+interface Props {
+  partido: Partido;
+}
+
+const { partido: p } = Astro.props;
+const quienes = jugadorasDe(p);
+const esSeleccion = p.tipo === 'seleccion';
+---
+
+<p class="linea">
+  <span class="linea__hora" data-hora>{p.horaConfirmada ? hora(msDe(p), ZONA_SITIO) : 'Hora por confirmar'}</span>
+  {' · '}
+  {esSeleccion && <strong>{SELECCION}{' · '}</strong>}
+  {
+    !esSeleccion && quienes.length > 0 && (
+      <strong>
+        {quienes.map((j, i) => (
+          <>
+            {separador(i, quienes.length)}
+            <a href={ruta(`jugadoras/${j.slug}`)}>{j.nombre}</a>
+          </>
+        ))}
+        {' · '}
+      </strong>
+    )
+  }
+  <span class="linea__equipos">
+    <span class:list={{ nuestro: p.nuestro === 'local' }}>{p.local}</span> vs <span class:list={{ nuestro: p.nuestro === 'visita' }}>{p.visitante}</span>
+  </span>
+</p>
+
+<style>
+  .linea {
+    font-size: 1.125rem;
+    line-height: 1.35;
+  }
+
+  .linea__hora {
+    font-family: var(--fuente-display);
+    font-size: 1.625rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  strong {
+    font-weight: 700;
+  }
+
+  strong a {
+    text-underline-offset: 3px;
+  }
+
+  .linea__equipos {
+    color: var(--gris);
+  }
+
+  .nuestro {
+    color: var(--tinta);
+    font-weight: 600;
+  }
+</style>

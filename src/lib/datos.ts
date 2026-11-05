@@ -3,6 +3,7 @@
 
 import type { z } from 'zod';
 import type { PartidoCliente } from './compromiso';
+import { porNombre } from './partido';
 import { validarDatos, esquemaClub, esquemaJugadora, esquemaLiga, esquemaPartido, esquemaPlataforma, esquemaTorneo } from '../../scripts/lib/validar.mjs';
 import jugadorasJson from '../../data/jugadoras.json';
 import clubesJson from '../../data/clubes.json';
@@ -45,11 +46,10 @@ export const paraCliente = (p: Partido): PartidoCliente => ({
   visitante: p.visitante,
   competencia: p.competencia,
   sede: p.sede,
-  club: p.clubId ? clubes[p.clubId]?.nombre ?? null : null,
-  jugadoras: jugadorasDe(p).map((j) => j.nombre),
+  jugadoras: jugadorasDe(p).map(({ nombre, slug }) => ({ nombre, slug })),
 });
 
 // Seleccionadas de un partido: las de su club o, en la Selección, las convocadas.
-export const jugadorasDe = (p: Partido): Jugadora[] => (p.tipo === 'seleccion'
+export const jugadorasDe = (p: Partido): Jugadora[] => porNombre(p.tipo === 'seleccion'
   ? activas.filter((j) => p.convocadas?.includes(j.slug))
   : activas.filter((j) => j.clubId && j.clubId === p.clubId));

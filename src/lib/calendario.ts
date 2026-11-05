@@ -1,6 +1,9 @@
 // Enlace de plantilla de Google Calendar.
 
+import { tituloPartido } from './partido';
+
 interface EventoPartido {
+  tipo: 'club' | 'seleccion';
   inicio: string;
   horaConfirmada: boolean;
   local: string;
@@ -20,16 +23,13 @@ const formatoGoogle = (ms: number) => new Date(ms).toISOString().replace(/[-:]/g
 
 export function enlaceGoogleCalendar(p: EventoPartido, { jugadoras = [], dondeVer = [] }: Extras = {}) {
   const ms = Date.parse(p.inicio);
-  const nombres = jugadoras.join(', ');
-  const titulo = `${p.local} vs ${p.visitante}${nombres ? ` (${nombres})` : ''}`;
   const detalles = [
     p.competencia,
     !p.horaConfirmada && 'Hora por confirmar',
-    nombres && `Seleccionadas: ${nombres}`,
     dondeVer.length > 0 && `Dónde verlo: ${dondeVer.join(', ')}`,
     p.fuente && `Fuente: ${p.fuente}`,
   ].filter(Boolean).join('\n');
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE'
-    + `&text=${encodeURIComponent(titulo)}&dates=${formatoGoogle(ms)}/${formatoGoogle(ms + DOS_HORAS)}`
+    + `&text=${encodeURIComponent(tituloPartido(p, jugadoras))}&dates=${formatoGoogle(ms)}/${formatoGoogle(ms + DOS_HORAS)}`
     + `&details=${encodeURIComponent(detalles)}&location=${encodeURIComponent(p.sede ?? '')}`;
 }

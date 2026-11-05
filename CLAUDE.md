@@ -270,12 +270,22 @@ Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los ree
 
 ## Páginas
 
+### Texto de un partido
+
+En todo el sitio (hero, "Esta semana", perfil, agenda) un partido se escribe igual: hora, jugadora y equipos, separados por `·`.
+
+- Club: `21:00 · Sofía Maldonado · Sesi Vôlei Bauru vs E.C. Pinheiros`.
+- Dos del mismo club, en orden alfabético: `Argentina Ung y Uxue Guereca`.
+- Selección: `Selección Mexicana · México vs Estados Unidos`.
+- Cada nombre lleva a su perfil. Se arma con `src/components/LineaPartido.astro` y `src/lib/partido.ts`.
+- El título del evento de Google Calendar usa el mismo texto, sin la hora.
+
 ### Inicio `/`
 
 1. **Hero**: foto de la Selección a pantalla completa (`hero.jpg`; en celular `hero-movil.jpg`, vertical). Encima, la fecha grande del próximo compromiso (formato `21.09.26`) y la cuenta regresiva. Qué cuenta, en este orden:
    1. el próximo partido de la Selección;
    2. si no hay partido, el inicio del próximo torneo (cuenta en días);
-   3. si no hay torneo confirmado: "Próximo torneo por confirmar" y abajo "Mientras, la próxima en jugar: [jugadora] con [club]" con su cuenta regresiva.
+   3. si no hay torneo confirmado: "Próximo torneo por confirmar" y abajo "Mientras, la próxima en jugar:", el texto del partido y su cuenta regresiva.
 2. **Esta semana**: los 3 próximos partidos de cualquier tipo, con enlace "Ver agenda completa".
 3. **Rankings**: FIVB y NORCECA en dos bloques grandes: lugar (número grande), puntos, fecha de actualización y flecha si subió o bajó contra el registro anterior. La FMVB solo muestra los puntos; nosotros mostramos más.
 4. **Plantel**: tarjetas con retrato (`tarjeta.jpg`), nombre, número, posición y club. Toca una y abre su perfil.
@@ -285,7 +295,7 @@ Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los ree
 ### Perfil `/jugadoras/[slug]`
 
 1. **Hero**: `fondo.jpg` (o `recorte.png` encima de su apellido gigante si existe). Datos estilo Volleybox: nombre, fecha de nacimiento y edad, lugar de origen, estatura, club actual con liga y país, posición, número, capitana, redes (iconos solo si hay URL).
-2. **Próximo partido**: rivales, competencia, hora del visitante y "allá serán las…" (si hay `zonaSede`), cuenta regresiva, botón de Google Calendar, iconos de "Dónde verlo" (de la liga o del torneo; cada icono abre el canal o la plataforma) y enlace "Calendario oficial de la liga".
+2. **Próximo partido**: texto del partido, competencia, "allá serán las…" (si hay `zonaSede`), cuenta regresiva, botón de Google Calendar, iconos de "Dónde verlo" (de la liga o del torneo; cada icono abre el canal o la plataforma) y enlace "Calendario oficial de la liga".
 3. **Siguientes**: los 3 partidos posteriores (sin cuenta regresiva) y "Ver todos en la agenda" (`/agenda?j=<slug>`).
 4. **Un plus**: destacados (premios, MVP, equipos ideales), línea de tiempo de clubes y última lista oficial en la que apareció.
 5. **Fuentes**: enlaces de donde salió cada dato.
@@ -296,7 +306,7 @@ Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin 
 
 - Todos los partidos futuros (clubes y Selección) en orden, agrupados por día en la hora del visitante.
 - Cuenta regresiva solo en el primero, en una tarjeta destacada arriba.
-- Cada partido: hora, "allá" (si hay `zonaSede`), equipos con el lado mexicano resaltado, competencia, etiqueta roja "Selección" cuando aplique, chips de jugadoras (llevan a su perfil), iconos de dónde verlo, botón de Google Calendar y enlace "Fuente". Si no hay fuente, enlace "Verificar en el calendario oficial".
+- Cada partido: texto del partido (con el lado mexicano resaltado), "allá" (si hay `zonaSede`), competencia, etiqueta roja "Selección" cuando aplique, iconos de dónde verlo, botón de Google Calendar y enlace "Fuente". Si no hay fuente, enlace "Verificar en el calendario oficial".
 - Al final, "Sin partidos por ahora": jugadoras cuyo club no tiene partidos en el rango, con el estado de su temporada.
 - Filtros: Todas, Selección, por jugadora y por liga. `?j=<slug>` preselecciona una jugadora. El filtro se recuerda en `localStorage` (con try/catch).
 - Plus opcional: el build genera `calendario.ics` (todos) y `calendario/<slug>.ics` (por jugadora) para suscribirse desde Google Calendar y recibir los cambios solos.
@@ -312,7 +322,7 @@ Los 7 torneos con más detalle: resultado, récord y premios.
 - Un partido se considera "en juego" durante 150 minutos desde su inicio; después desaparece de las listas.
 - `horaConfirmada: false` → "Hora por confirmar" y la cuenta regresiva solo en días.
 - La cuenta regresiva corre en el cliente; el resto de la página es estático. Lo que depende de la hora (qué cuenta el hero, los partidos de "Esta semana", el botón flotante y las horas del visitante) se recalcula en el navegador con las mismas funciones del build (`src/lib/compromiso.ts`), porque el sitio se construye una vez por semana.
-- Google Calendar: enlace de plantilla (`calendar.google.com/calendar/render?action=TEMPLATE…`) con título, 2 horas de duración, competencia, dónde verlo y fuente en los detalles.
+- Google Calendar: enlace de plantilla (`calendar.google.com/calendar/render?action=TEMPLATE…`) con título (texto del partido sin la hora), 2 horas de duración, competencia, dónde verlo y fuente en los detalles.
 
 ## Diseño
 

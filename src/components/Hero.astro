@@ -4,6 +4,8 @@ import type { ImageMetadata } from 'astro';
 import { partidos, paraCliente, seleccion } from '../lib/datos';
 import { elegirCompromiso, vistaHero } from '../lib/compromiso';
 import { fotosHero } from '../lib/fotos';
+import { SELECCION, separador } from '../lib/partido';
+import { ruta } from '../lib/presentacion';
 import { vigentes } from '../lib/tiempo';
 import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
 
@@ -34,7 +36,7 @@ const sources = escritorio && movil
 const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', width: Math.min(1600, escritorio.width) }) : null;
 ---
 
-<section class="hero" data-modo={v.modo} aria-labelledby="hero-titulo">
+<section class="hero" data-modo={v.modo} data-base={ruta()} aria-labelledby="hero-titulo">
   {
     respaldo ? (
       <picture class="hero__foto">
@@ -50,11 +52,33 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     <p class="hero__fecha" data-h="fecha" hidden={!v.fecha}>{v.fecha}</p>
     <h1 id="hero-titulo" class="hero__titulo" data-h="titulo">{v.titulo}</h1>
     <p class="hero__mientras" data-h="mientras" hidden={!v.mientras}>{v.mientras}</p>
-    <p class="hero__detalle" data-h="detalle" hidden={!v.detalle}>{v.detalle}</p>
-    <p class="dato hero__horas">
-      <span data-h="hora" hidden={!v.hora}>{v.hora}</span>
-      <span data-h="alla" hidden={!v.alla}>{v.alla}</span>
+    <p class="hero__linea" data-linea hidden={!v.linea}>
+      {
+        v.linea && (
+          <>
+            {v.linea.hora}
+            {' · '}
+            {v.linea.seleccion && <>{SELECCION}{' · '}</>}
+            {
+              !v.linea.seleccion && v.linea.jugadoras.length > 0 && (
+                <>
+                  {v.linea.jugadoras.map((j, i) => (
+                    <>
+                      {separador(i, v.linea?.jugadoras.length ?? 0)}
+                      <a href={ruta(`jugadoras/${j.slug}`)}>{j.nombre}</a>
+                    </>
+                  ))}
+                  {' · '}
+                </>
+              )
+            }
+            {v.linea.equipos}
+          </>
+        )
+      }
     </p>
+    <p class="hero__detalle" data-h="detalle" hidden={!v.detalle}>{v.detalle}</p>
+    <p class="dato hero__alla" data-h="alla" hidden={!v.alla}>{v.alla}</p>
     <div class="cuenta" role="timer" aria-label="Cuenta regresiva" data-cuenta hidden>
       <p data-unidad="dias"><span>--</span> días</p>
       <p data-unidad="horas"><span>--</span> horas</p>
@@ -68,14 +92,39 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
 <script type="application/json" id="datos-hero" set:html={datosCliente} />
 
 <script>
-  import { elegirCompromiso, vistaHero, type VistaHero } from '../lib/compromiso';
+  import { elegirCompromiso, vistaHero, type LineaHero, type VistaHero } from '../lib/compromiso';
+  import { SELECCION, separador } from '../lib/partido';
   import { cuentaRegresiva } from '../lib/tiempo';
 
   const hero = document.querySelector<HTMLElement>('.hero');
   const { lista, torneo } = JSON.parse(document.getElementById('datos-hero')?.textContent ?? '{"lista":[],"torneo":null}');
   const cuenta = document.querySelector<HTMLElement>('[data-cuenta]');
   const envivo = document.querySelector<HTMLElement>('[data-envivo]');
+  const linea = document.querySelector<HTMLElement>('[data-linea]');
   const dos = (n: number) => String(n).padStart(2, '0');
+  let lineaPintada = '';
+
+  function escribirLinea(l: LineaHero | null) {
+    if (!linea) return;
+    linea.hidden = !l;
+    const firma = JSON.stringify(l);
+    if (!l || firma === lineaPintada) return;
+    lineaPintada = firma;
+    const nodos: (Node | string)[] = [`${l.hora} · `];
+    if (l.seleccion) {
+      nodos.push(`${SELECCION} · `);
+    } else if (l.jugadoras.length > 0) {
+      l.jugadoras.forEach((j, i) => {
+        const enlace = document.createElement('a');
+        enlace.href = `${hero?.dataset.base ?? '/'}jugadoras/${j.slug}`;
+        enlace.textContent = j.nombre;
+        nodos.push(separador(i, l.jugadoras.length), enlace);
+      });
+      nodos.push(' · ');
+    }
+    nodos.push(l.equipos);
+    linea.replaceChildren(...nodos);
+  }
 
   function escribir(campo: keyof VistaHero, valor: string | null) {
     const el = document.querySelector<HTMLElement>(`[data-h="${campo}"]`);
@@ -96,7 +145,8 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     const ahora = Date.now();
     const v = vistaHero(elegirCompromiso(lista, torneo, ahora), ahora);
     if (hero) hero.dataset.modo = v.modo;
-    for (const campo of ['etiqueta', 'fecha', 'titulo', 'mientras', 'detalle', 'hora', 'alla'] as const) escribir(campo, v[campo]);
+    for (const campo of ['etiqueta', 'fecha', 'titulo', 'mientras', 'detalle', 'alla'] as const) escribir(campo, v[campo]);
+    escribirLinea(v.linea);
 
     const c = v.cuenta;
     if (envivo) envivo.hidden = c.modo !== 'envivo';
@@ -205,12 +255,38 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     line-height: 0.9;
   }
 
+  .hero[data-modo='partido'] .hero__titulo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
   .hero__mientras {
-    max-width: 34ch;
     margin-top: 20px;
-    font-size: clamp(1.0625rem, 3vw, 1.375rem);
+    color: rgb(255 255 255 / 82%);
+  }
+
+  .hero__linea {
+    max-width: 40ch;
+    margin-top: 4px;
+    font-size: clamp(1.125rem, 3.2vw, 1.5rem);
     font-weight: 600;
     line-height: 1.3;
+  }
+
+  .hero[data-modo='partido'] .hero__linea {
+    margin-top: 12px;
+    font-family: var(--fuente-display);
+    font-size: clamp(1.75rem, 7vw, 3rem);
+    font-weight: 800;
+    line-height: 1.05;
+    text-transform: uppercase;
+  }
+
+  .hero__linea a {
+    text-underline-offset: 3px;
   }
 
   .hero__detalle {
@@ -218,11 +294,8 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     color: rgb(255 255 255 / 82%);
   }
 
-  .hero__horas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px 16px;
-    margin-top: 8px;
+  .hero__alla {
+    margin-top: 6px;
     color: rgb(255 255 255 / 82%);
   }
 
