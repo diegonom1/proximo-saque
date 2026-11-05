@@ -1,0 +1,47 @@
+// Fotos y créditos de src/assets/fotos/. Astro genera tamaños y formatos al construir.
+// Solo se usa en el frontmatter: en el navegador no hace falta.
+
+import type { ImageMetadata } from 'astro';
+
+const RAIZ = '/src/assets/fotos/';
+
+const imagenes = import.meta.glob<ImageMetadata>('/src/assets/fotos/**/*.{jpg,png}', { eager: true, import: 'default' });
+const creditos = import.meta.glob<string>('/src/assets/fotos/**/credito.txt', { eager: true, query: '?raw', import: 'default' });
+
+const foto = (ruta: string) => imagenes[`${RAIZ}${ruta}`] ?? null;
+
+// Si solo existe una de las dos, sirve para ambas pantallas.
+export function fotosHero() {
+  const escritorio = foto('seleccion/hero.jpg');
+  const movil = foto('seleccion/hero-movil.jpg');
+  return { escritorio: escritorio ?? movil, movil: movil ?? escritorio };
+}
+
+export const fotosJugadora = (slug: string) => ({
+  tarjeta: foto(`jugadoras/${slug}/tarjeta.jpg`),
+  fondo: foto(`jugadoras/${slug}/fondo.jpg`),
+  recorte: foto(`jugadoras/${slug}/recorte.png`),
+});
+
+export interface Credito {
+  texto: string;
+  url: string | null;
+}
+
+// "Foto: autor o cuenta — URL"
+export function parsearCredito(contenido: string): Credito | null {
+  const linea = contenido.replace(/^﻿/, '').split(/\r?\n/).map((l) => l.trim()).find(Boolean);
+  if (!linea) return null;
+  const m = linea.match(/^(.*?)\s+[—–-]\s+(https?:\/\/\S+)$/);
+  return m ? { texto: m[1], url: m[2] } : { texto: linea, url: null };
+}
+
+// Créditos distintos, para el pie del sitio.
+export function todosLosCreditos() {
+  const unicos = new Map<string, Credito>();
+  for (const contenido of Object.values(creditos)) {
+    const c = parsearCredito(contenido);
+    if (c) unicos.set(`${c.texto}|${c.url}`, c);
+  }
+  return [...unicos.values()];
+}

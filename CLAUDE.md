@@ -9,7 +9,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 - Commits sin líneas `Co-Authored-By` ni menciones a Claude.
 - Código, comentarios y textos del sitio en español de México.
 - Mobile first: la mayoría de las visitas llegan desde el celular.
-- No descargues fotos de internet ni enlaces fotos de Volleybox u otros sitios. Las fotos las ponemos nosotros en `public/fotos/`.
+- No descargues fotos de internet ni enlaces fotos de Volleybox u otros sitios. Las fotos las ponemos nosotros en `src/assets/fotos/`.
 - No edites `data/*.json` a mano salvo que te lo pidamos: los escribe el orquestador. Las correcciones humanas van en `data/manual.json`.
 - Todo lo animado respeta `prefers-reduced-motion`.
 - La carpeta `v1/` es el sitio anterior. Reutiliza su lógica probada (`v1/scripts/actualizar.mjs`, `v1/index.html`): conversión de zonas horarias, fusión de partidos, enlace a Google Calendar, cuenta regresiva y agrupación por día. No la borres hasta que v2 esté en línea.
@@ -37,18 +37,18 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  ├─ seleccion.json  torneos.json  rankings.json
 │  ├─ estado-agentes.json   qué revisó cada agente y cuándo (para rotar)
 │  └─ manual.json           correcciones humanas; siempre ganan
-├─ public/fotos/
-│  ├─ seleccion/            hero.jpg, hero-movil.jpg, credito.txt
-│  └─ jugadoras/<slug>/     tarjeta.jpg, fondo.jpg, recorte.png (opcional), credito.txt
 ├─ scripts/
 │  ├─ agentes/              correr.mjs (orquestador) + un módulo por agente
 │  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs
 │  ├─ pruebas/              respuestas simuladas por agente (IA_SIMULADA)
 │  └─ fotos/recortar.py     opcional: quita fondos con rembg, solo en local
 ├─ src/
+│  ├─ assets/fotos/
+│  │  ├─ seleccion/         hero.jpg, hero-movil.jpg, credito.txt
+│  │  └─ jugadoras/<slug>/  tarjeta.jpg, fondo.jpg, recorte.png (opcional), credito.txt
 │  ├─ pages/                index.astro, agenda.astro, jugadoras/[slug].astro, torneos.astro
 │  ├─ components/
-│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts
+│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts
 ├─ v1/                      sitio anterior (referencia)
 └─ .github/workflows/       actualizar.yml (semanal), deploy.yml (push a main)
 ```
@@ -347,7 +347,9 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 - Si falta una foto: tarjeta con iniciales y número en contorno; perfil con fondo de color y nombre gigante.
 - Si solo existe `fondo.jpg`, la tarjeta usa un recorte de esa misma foto con `fotos.foco`.
 - `scripts/fotos/recortar.py` (opcional, local): genera `recorte.png` con rembg a partir de `fondo.jpg`.
-- Astro genera los tamaños y formatos; no subir imágenes de más de 5 MB.
+- Las fotos viven en `src/assets/fotos/` porque Astro no procesa lo que está en `public/`. `src/lib/fotos.ts` las carga con `import.meta.glob` y lee `credito.txt` con `?raw`.
+- Astro genera los tamaños y formatos (WebP/AVIF) con `<Picture>` de `astro:assets`. El hero usa `getImage()` con un `<picture>` propio, porque `<Picture>` no admite un archivo distinto por pantalla.
+- No subir imágenes de más de 5 MB.
 
 ## Agentes
 
@@ -387,7 +389,7 @@ Detalles técnicos:
 ### Qué se guarda solo y qué se aprueba
 
 - **Commit directo**: `partidos.json`, `rankings.json`, `seleccion.json`, `estado-agentes.json`.
-- **Pull Request de revisión semanal** (rama `revision-semanal`, uno abierto a la vez; si ya existe se actualiza): cambios en `jugadoras.json`, `clubes.json`, `ligas.json` y `torneos.json`. El cuerpo del PR resume altas, bajas, cambios de club, plataformas nuevas, torneos nuevos y dudas, cada uno con su fuente. Un alta crea también `public/fotos/jugadoras/<slug>/.gitkeep`. Se aprueba desde la app de GitHub en el celular.
+- **Pull Request de revisión semanal** (rama `revision-semanal`, uno abierto a la vez; si ya existe se actualiza): cambios en `jugadoras.json`, `clubes.json`, `ligas.json` y `torneos.json`. El cuerpo del PR resume altas, bajas, cambios de club, plataformas nuevas, torneos nuevos y dudas, cada uno con su fuente. Un alta crea también `src/assets/fotos/jugadoras/<slug>/.gitkeep`. Se aprueba desde la app de GitHub en el celular.
 - Requisito: en el repo, Settings → Actions → General → *Allow GitHub Actions to create and approve pull requests*. Usar `peter-evans/create-pull-request`.
 
 ### Workflows

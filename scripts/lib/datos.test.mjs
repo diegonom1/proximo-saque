@@ -17,7 +17,7 @@ describe('data/', () => {
   });
   it('cada jugadora tiene su carpeta de fotos', () => {
     const faltan = crudos.jugadoras
-      .filter((j) => !existsSync(new URL(`../../public/fotos/jugadoras/${j.slug}/`, import.meta.url)))
+      .filter((j) => !existsSync(new URL(`../../src/assets/fotos/jugadoras/${j.slug}/`, import.meta.url)))
       .map((j) => j.slug);
     expect(faltan).toEqual([]);
   });

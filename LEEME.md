@@ -25,14 +25,14 @@
 
 ## Fotos
 
-Después de la fase 0 habrá una carpeta por jugadora en `public/fotos/jugadoras/`. En cada una van:
+Después de la fase 0 habrá una carpeta por jugadora en `src/assets/fotos/jugadoras/`. En cada una van:
 
 - `tarjeta.jpg`: retrato vertical 4:5 (mínimo 1000 × 1250), con la cara en la parte de arriba.
 - `fondo.jpg`: foto horizontal grande (mínimo 2000 px de ancho), con la jugadora hacia un lado.
 - `recorte.png` (opcional): la jugadora sin fondo, para el efecto de profundidad.
 - `credito.txt`: de quién es la foto, por ejemplo `Foto: FMVB — https://...`.
 
-En `public/fotos/seleccion/` van `hero.jpg` (horizontal, 2400 px de ancho) y `hero-movil.jpg` (vertical, 1080 × 1920).
+En `src/assets/fotos/seleccion/` van `hero.jpg` (horizontal, 2400 px de ancho) y `hero-movil.jpg` (vertical, 1080 × 1920).
 
 Si no tienen todas, no pasa nada: el sitio pone iniciales y número mientras tanto. También pueden darle las fotos a Claude Code tal cual y pedirle: "Acomódalas y recórtalas según CLAUDE.md".
 
