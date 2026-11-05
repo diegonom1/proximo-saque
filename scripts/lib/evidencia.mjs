@@ -141,6 +141,18 @@ export function evidenciaPartido(texto, { fecha, hora, rival, propio }) {
   return resultado;
 }
 
+// "GINÁSIO DO MACKENZIE" es una sede: va antes de la fecha de su bloque, no es una fila del club.
+const SEDE = /\b(ginasio|gimnasio|arena|palasport|pala\s|estadio|stadium|coliseo|forum|palais|salle)\b/;
+
+// Las fechas en que un calendario muestra a un equipo, una lista por fila: "11/12" pueden ser dos fechas.
+export function fechasDeEquipo(texto, propio) {
+  const lineas = normalizar(texto).split(/\n+/).map((l) => l.trim()).filter(Boolean);
+  return filasDe(lineas, palabrasDe(propio))
+    .filter((f) => !(f.corta && SEDE.test(f.texto)))
+    .map((f) => [...fechasDeFila(lineas, f).fechas])
+    .filter((f) => f.length > 0);
+}
+
 const PARTICIPA = /clasific|qualif|participa|disputar|competir|compete|anfitri|\bhosts?\b/;
 const OTRA_CATEGORIA = /\bsub[- ]?\d{2}\b|\bu[- ]?\d{2}\b|juvenil|playa|beach/;
 const VARONIL = /varonil|masculin|\bmen'?s\b/;

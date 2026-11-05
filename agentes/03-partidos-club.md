@@ -10,6 +10,7 @@ Encontrar los partidos oficiales de un club entre dos fechas: liga, copa, superc
 - `jugadoras`: las seleccionadas que juegan ahí (sirven para confirmar que es el club correcto).
 - `desde` y `hasta`: rango de fechas a buscar (ambas incluidas).
 - `conocidos`: partidos que el sitio ya tiene en ese rango. Confírmalos, corrígelos o repórtalos como no encontrados. Si el rango es de pocos días, tu tarea es justo esa: los partidos están por jugarse y las ligas mueven horarios a última hora, así que revisa cada uno contra su fila.
+- `fechasOmitidas` (opcional): fechas en que el calendario muestra al club y que no reportaste la primera vez. Búscalas en los resultados y repórtalas junto con todo lo demás.
 - `textoPagina` y `urlPagina` (opcionales): texto del calendario oficial que el programa ya descargó. Si vienen, son tu primera fuente; cita `urlPagina`.
 
 ## Dónde buscar (en este orden, para horarios)

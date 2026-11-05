@@ -14,7 +14,7 @@ export async function consultar(ctx, agente, clave, entrada, esquema, plan) {
   const registrar = (r, resultados) => {
     const crudo = extraerJSON(r.texto);
     ctx.reporte.modelo(agente, r.modelo);
-    ctx.diagnostico?.push({ agente, clave, modelo: r.modelo, urls: resultados?.map((x) => x.url) ?? null, respuesta: crudo });
+    ctx.diagnostico?.push({ agente, clave, modelo: r.modelo, urls: resultados?.map((x) => x.url) ?? null, caracteres: resultados?.map((x) => x.contenido.length) ?? null, respuesta: crudo });
     return esquema.parse(crudo);
   };
   if (ctx.buscador) {
@@ -22,7 +22,9 @@ export async function consultar(ctx, agente, clave, entrada, esquema, plan) {
     if (resultados.length === 0) throw new Error('la búsqueda no trajo resultados');
     const mensaje = JSON.stringify({ ...entrada, resultadosBusqueda: resultados }, null, 2);
     const r = await ctx.llamar({ agente, clave, mensaje, conBusqueda: false });
-    return { respuesta: registrar(r, resultados), verificar: verificadorDeResultados(resultados, plan.exige), resultados };
+    // Vuelve a preguntar con lo mismo que ya se buscó: no gasta créditos.
+    const repetir = async (extra) => registrar(await ctx.llamar({ agente, clave, mensaje: JSON.stringify({ ...entrada, ...extra, resultadosBusqueda: resultados }, null, 2), conBusqueda: false }), resultados);
+    return { respuesta: registrar(r, resultados), verificar: verificadorDeResultados(resultados, plan.exige), resultados, repetir };
   }
   const r = await ctx.llamar({ agente, clave, mensaje: JSON.stringify(entrada, null, 2) });
   return { respuesta: registrar(r), verificar: (url) => ctx.verificar(url, r.fuentes) };

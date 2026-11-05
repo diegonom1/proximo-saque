@@ -1146,6 +1146,63 @@ describe('próximo torneo: la fuente debe decir que México participa', () => {
   });
 });
 
+describe('calendario del club: lo que Gemini omite', () => {
+  const CAL = 'https://www.legavolleyfemminile.it/club/uyba-busto-arsizio/710946/calendario';
+  const partido = (fecha, rival) => ({ fecha, hora: '17:00', zonaHoraria: 'Europe/Rome', zonaSede: 'Europe/Rome', local: 'UYBA Volley Busto Arsizio', visitante: rival, nuestro: 'local', fuente: CAL });
+  const fila = (dia, rival) => `${dia} Novembre 2026\n${dia}/11/2026\n17:00\nUYBA Volley Busto Arsizio\n${rival}`;
+  const PAGINA = [fila(22, 'Il Bisonte Firenze'), fila(29, 'Millenium Brescia')].join('\n');
+  const uyba = (respuestas) => ({ '03-partidos-club': (c) => (c === 'uyba' ? respuestas.shift() : undefined) });
+  const corre = async (respuestas, contenido = PAGINA) => {
+    await cambiar('clubes.json', (d) => { d.uyba.calendarioUrl = CAL; });
+    const llamar = llamarCon(uyba(respuestas));
+    const r = await correr({
+      dirDatos: dir, dirFotos: fotos, llamar, verificar: async () => null, ahora: AHORA,
+      buscador: { investigar: async () => ({ resultados: [{ url: CAL, titulo: 'x', contenido }] }), resumen: async () => ({ proveedor: 'Tavily', corrida: 1, mes: 1, limite: 800 }), usarPrevios: () => {} },
+    });
+    return { r, llamadas: llamar.llamadas.filter((l) => l.clave === 'uyba') };
+  };
+  const hay = async (fecha) => (await leer('partidos.json')).partidos.some((p) => p.id === `club-uyba-${fecha}`);
+
+  it('si faltan fechas vuelve a preguntar por ellas y agrega lo que llegue', async () => {
+    const { llamadas, r } = await corre([
+      { clubId: 'uyba', partidos: [partido('2026-11-22', 'Il Bisonte Firenze')] },
+      { clubId: 'uyba', partidos: [partido('2026-11-22', 'Il Bisonte Firenze'), partido('2026-11-29', 'Millenium Brescia')] },
+    ]);
+    expect(llamadas).toHaveLength(2);
+    expect(JSON.parse(llamadas[1].mensaje).fechasOmitidas).toEqual(['2026-11-29']);
+    expect(await hay('2026-11-22')).toBe(true);
+    expect(await hay('2026-11-29')).toBe(true);
+    expect(r.resumen).not.toContain('Gemini no lo reportó');
+  });
+  it('con todo reportado no gasta otra llamada', async () => {
+    const { llamadas } = await corre([{ clubId: 'uyba', partidos: [partido('2026-11-22', 'Il Bisonte Firenze'), partido('2026-11-29', 'Millenium Brescia')] }]);
+    expect(llamadas).toHaveLength(1);
+  });
+  it('si sigue faltando lo avisa', async () => {
+    const { r } = await corre([{ clubId: 'uyba', partidos: [] }, { clubId: 'uyba', partidos: [] }]);
+    expect(r.resumen).toContain('**Por revisar:** UYBA Volley Busto Arsizio: el calendario muestra un partido el 2026-11-22');
+    expect(r.resumen).toContain('el 2026-11-29');
+  });
+  it('si la segunda lectura falla se queda con la primera', async () => {
+    const { r } = await corre([{ clubId: 'uyba', partidos: [partido('2026-11-22', 'Il Bisonte Firenze')] }, new Error('sin respuesta')]);
+    expect(await hay('2026-11-22')).toBe(true);
+    expect(r.resumen).toContain('segunda lectura: sin respuesta');
+  });
+  it('una fecha fuera del rango no cuenta como omitida', async () => {
+    const { llamadas } = await corre([{ clubId: 'uyba', partidos: [] }], fila(4, 'Pasado'));
+    expect(llamadas).toHaveLength(1);
+  });
+  it('una nota de prensa no cuenta como calendario', async () => {
+    await cambiar('clubes.json', (d) => { d.uyba.calendarioUrl = null; });
+    const llamar = llamarCon(uyba([{ clubId: 'uyba', partidos: [] }]));
+    await correr({
+      dirDatos: dir, dirFotos: fotos, llamar, verificar: async () => null, ahora: AHORA,
+      buscador: { investigar: async () => ({ resultados: [{ url: 'https://noticias.it/nota', titulo: 'x', contenido: PAGINA }] }), resumen: async () => ({ proveedor: 'Tavily', corrida: 1, mes: 1, limite: 800 }), usarPrevios: () => {} },
+    });
+    expect(llamar.llamadas.filter((l) => l.clave === 'uyba')).toHaveLength(1);
+  });
+});
+
 describe('perfiles: un listado no es fuente', () => {
   const LISTADO = 'https://women.volleybox.net/players?country=MX';
   it('rechaza el listado aunque nombre a la jugadora', async () => {

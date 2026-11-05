@@ -70,6 +70,17 @@ jobs:
 
       - name: Correr agentes
         run: npm run agentes
+        env:
+          DIAGNOSTICO: ${{ runner.temp }}/diagnostico.json
+
+      # Las respuestas crudas de Gemini: sin ellas no se puede saber por qué una corrida trajo menos partidos.
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: diagnostico
+          path: ${{ runner.temp }}/diagnostico.json
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Guardar directo en main
         run: |

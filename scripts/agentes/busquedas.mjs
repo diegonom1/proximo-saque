@@ -1,6 +1,6 @@
 // Qué busca cada agente. Son las búsquedas que describen los archivos de agentes/, escritas en código.
 
-import { dominio } from '../lib/fuentes.mjs';
+import { dominio, fuenteAdmisible } from '../lib/fuentes.mjs';
 import { mencionaA } from '../lib/nombres.mjs';
 
 export const FEDERACIONES = ['fmvb.org', 'norceca.net', 'norceca.info', 'fivb.com', 'volleyballworld.com'];
@@ -87,7 +87,8 @@ export function planPartidos(ctx, club, liga, guardados = []) {
       { texto: idioma.proximo(nombre, a) },
       ...(china ? [{ texto: `${club.nombre} schedule`, dominios: ['volleybox.net'] }] : []),
     ],
-    paginas: [club.calendarioUrl, liga?.calendarioOficialUrl, ...guardados.map((p) => p.fuente)].filter(Boolean),
+    // Una portada no se puede citar: si Gemini la lee, pierde el partido cuando se descarta la fuente.
+    paginas: [club.calendarioUrl, liga?.calendarioOficialUrl, ...guardados.map((p) => p.fuente)].filter(fuenteAdmisible),
     mejores: 3,
     filas: [club.nombre, ...club.alias],
   };

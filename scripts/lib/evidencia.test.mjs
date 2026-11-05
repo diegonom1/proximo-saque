@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { evidenciaParticipacion, evidenciaPartido, fechasEn, normalizar, palabrasDe } from './evidencia.mjs';
+import { evidenciaParticipacion, evidenciaPartido, fechasDeEquipo, fechasEn, normalizar, palabrasDe } from './evidencia.mjs';
 
 // Copia real de spikelive.fr/ligue/laf/calendrier: filas de aria-label + texto, y solo el texto de Tavily.
 const pagina = (nombre) => readFileSync(new URL(`../pruebas/paginas/${nombre}`, import.meta.url), 'utf8');
@@ -124,4 +124,19 @@ describe('evidenciaParticipacion', () => {
   it('voleibol de playa no vale', () => expect(ver2('Noticias', 'México clasificó al Mundial de 2027 de voleibol de playa femenil.')).toBe(false));
   it('sin decir que es femenil no vale', () => expect(ver2('Mundial 2027', 'México clasificó al Mundial de 2027.')).toBe(false));
   it('sin edición basta el torneo', () => expect(ver2('Noticias', 'México clasificó al Mundial de voleibol femenil.', MUNDIAL, null)).toBe(true));
+});
+
+describe('fechasDeEquipo', () => {
+  it('toma la fecha de la fila o la del encabezado del bloque', () => {
+    expect(fechasDeEquipo('Samedi 21 novembre\nNancy Béziers\nÉvreux Nantes\n28 novembre Cannet Nancy', ['Nancy'])).toEqual([['11-21'], ['11-28']]);
+  });
+  it('una fecha ambigua trae las dos lecturas', () => expect(fechasDeEquipo('11/12 Nancy Béziers', ['Nancy'])[0].sort()).toEqual(['11-12', '12-11']));
+  it('el estadio del club no es una fila suya (texto real de la CBV)', () => {
+    const cbv = 'qua 18/11 · 21h00\nSANCOR SEGUROS VOLEI\nSSV\nDENTIL PRAIA CLUBE\nDPC\nJogo 35· Rodada 6\nGINÁSIO DO MACKENZIE· BELO HORIZONTE\nqui 19/11 · 18h30\nBATAVO MACKENZIE\nMEC\nBRUSQUE VÔLEI';
+    expect(fechasDeEquipo(cbv, ['Batavo Mackenzie', 'Mackenzie'])).toEqual([['11-19']]);
+  });
+  it('una mención sin fecha no cuenta', () => expect(fechasDeEquipo('Equipos\nNancy\nBéziers', ['Nancy'])).toEqual([]));
+  it('la página real de spikelive trae todas las de Nancy', () => {
+    expect(fechasDeEquipo(SPIKELIVE, NANCY).flat()).toEqual(expect.arrayContaining(['11-21', '11-28', '12-05', '12-12', '12-19']));
+  });
 });

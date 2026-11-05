@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { dominiosConfiables, planPartidos } from './busquedas.mjs';
 import { consultar, sumarDias, textoN, validos } from './comun.mjs';
-import { evidenciaPartido } from '../lib/evidencia.mjs';
+import { evidenciaPartido, fechasDeEquipo } from '../lib/evidencia.mjs';
 import { normalizarUrl } from '../lib/busqueda.mjs';
 import { esDominio } from '../lib/fuentes.mjs';
 import { conMs, mismoCruce } from '../lib/fusion.mjs';
@@ -131,6 +131,18 @@ export function decidirPartidos(ctx, agente, nombre, nuevos, previosCrudos, zona
   return aceptados;
 }
 
+// Fechas que los calendarios muestran para el club entre `desde` y `hasta` y que la respuesta no trae.
+export function fechasOmitidas(calendarios, propio, desde, hasta, reportadas) {
+  const rango = new Map();
+  for (let d = desde; d <= hasta; d = sumarDias(d, 1)) rango.set(d.slice(5), d);
+  const vistas = new Set(reportadas.filter(Boolean).map((f) => f.slice(5)));
+  const faltan = calendarios.flatMap((texto) => fechasDeEquipo(texto, propio))
+    .map((fila) => fila.filter((f) => rango.has(f)))
+    .filter((fila) => fila.length > 0 && !fila.some((f) => vistas.has(f)))
+    .map(([f]) => rango.get(f));
+  return [...new Set(faltan)].sort();
+}
+
 async function pagina(ctx, club) {
   if (!club.calendarioUrl || !ctx.leerPagina) return null;
   try {
@@ -160,10 +172,25 @@ export async function correr(ctx, clubId) {
     })),
     ...(textoPagina ? { textoPagina, urlPagina: club.calendarioUrl } : {}),
   };
-  const { respuesta, verificar, resultados } = await consultar(ctx, AGENTE, clubId, entrada, esquema, planPartidos(ctx, club, liga, proximos(previos, ctx.ahora, hastaVerificar)));
+  const { respuesta, verificar, resultados, repetir } = await consultar(ctx, AGENTE, clubId, entrada, esquema, planPartidos(ctx, club, liga, proximos(previos, ctx.ahora, hastaVerificar)));
   const textos = textosDe(resultados);
   if (textoPagina) textos.set(normalizarUrl(club.calendarioUrl), textoPagina);
   const revisiones = new Map();
+  const propio = [club.nombre, ...club.alias];
+
+  // Gemini a veces se queda en los partidos de `conocidos`: el calendario dice si le faltó alguno.
+  const calendarios = [club.calendarioUrl, liga?.calendarioOficialUrl].map((u) => textos.get(normalizarUrl(u))).filter(Boolean);
+  const faltantes = () => fechasOmitidas(calendarios, propio, ctx.hoy, hasta, (respuesta.partidos ?? []).map((p) => p?.fecha));
+  if (faltantes().length > 0 && repetir) {
+    try {
+      const otra = await repetir({ fechasOmitidas: faltantes() });
+      const vistas = new Set((respuesta.partidos ?? []).map((p) => p?.fecha));
+      respuesta.partidos = [...(respuesta.partidos ?? []), ...(otra.partidos ?? []).filter((p) => !vistas.has(p?.fecha))];
+    } catch (error) {
+      ctx.reporte.descarto(AGENTE, `${club.nombre}: segunda lectura`, error.message.split('\n')[0]);
+    }
+  }
+  for (const fecha of faltantes()) ctx.reporte.porRevisar(AGENTE, `${club.nombre}: el calendario muestra un partido el ${fecha} y Gemini no lo reportó`);
 
   const nuevos = [];
   for (const p of respuesta.partidos ?? []) {
@@ -187,7 +214,7 @@ export async function correr(ctx, clubId) {
     if (ctx.soloVerificar && partido.inicio.slice(0, 10) > hasta) continue; // fuera de la ventana no se toca nada
     nuevos.push(partido);
     const sinHora = convertir({ ...p, hora: null, fuente, transmision }, { id: clubId, ...club }, 'ia', ctx.ahora);
-    revisiones.set(partido, revisarEvidencia(textos, p, partido, [club.nombre, ...club.alias], sinHora));
+    revisiones.set(partido, revisarEvidencia(textos, p, partido, propio, sinHora));
   }
 
   for (const n of respuesta.noEncontrados ?? []) ctx.reporte.noConfirmado(AGENTE, `${club.nombre}: ${n.rival} (${n.fecha}): ${n.motivo ?? 'no apareció en ninguna fuente'}`);
@@ -200,6 +227,5 @@ export async function correr(ctx, clubId) {
   }
 
   ctx.reporte.encontro(AGENTE, `${club.nombre}: ${nuevos.length} partido(s)${respuesta.motivo ? ` (${respuesta.motivo})` : ''}`);
-  const propio = [club.nombre, ...club.alias];
   ctx.nuevos[clubId] = decidirPartidos(ctx, AGENTE, club.nombre, nuevos, previos, club.zona, dominiosConfiables(club, liga, club.ligaId), revisiones, { textos, propio, hasta: hastaVerificar });
 }

@@ -22,9 +22,9 @@ describe('partidos en el idioma de cada liga', () => {
     expect(textos(planPartidos(ctx, club(pais, 'Club'), { nombre: 'Liga', calendarioOficialUrl: 'https://liga.org/calendario' }))).toContain(palabra);
   });
   it('restringe al sitio de la liga y a Volleybox', () => {
-    const plan = planPartidos(ctx, club('Brasil', 'Sesi'), { nombre: 'Superliga', calendarioOficialUrl: 'https://cbv.com.br/' });
+    const plan = planPartidos(ctx, club('Brasil', 'Sesi'), { nombre: 'Superliga', calendarioOficialUrl: 'https://cbv.com.br/superliga' });
     expect(plan.consultas[0].dominios).toEqual(['cbv.com.br', 'volleybox.net']);
-    expect(plan.paginas).toContain('https://cbv.com.br/');
+    expect(plan.paginas).toContain('https://cbv.com.br/superliga');
   });
 });
 
@@ -60,6 +60,11 @@ describe('otros planes', () => {
   it('un partido por verificar agrega la página de donde salió', () => {
     const club = { nombre: 'Club', alias: [], pais: 'Italia', calendarioUrl: 'https://a.it/cal' };
     expect(planPartidos(ctx, club, null, [{ fuente: 'https://a.it/nota' }, { fuente: null }]).paginas).toEqual(['https://a.it/cal', 'https://a.it/nota']);
+  });
+  it('no lee la portada de la liga: no se puede citar', () => {
+    const club = { nombre: 'Club', alias: [], pais: 'Brasil', calendarioUrl: null };
+    expect(planPartidos(ctx, club, { nombre: 'Liga', calendarioOficialUrl: 'https://cbv.com.br/' }).paginas).toEqual([]);
+    expect(planPartidos(ctx, club, { nombre: 'Liga', calendarioOficialUrl: 'https://cbv.com.br/superliga' }).paginas).toEqual(['https://cbv.com.br/superliga']);
   });
   it('dónde ver lee el calendario oficial', () => {
     expect(planDondeVer(ctx, { nombre: 'Liga' }, { calendarioOficialUrl: 'https://a.mx/c' }).paginas).toEqual(['https://a.mx/c']);
