@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { FEDERACIONES, planProximo, planTorneo } from './busquedas.mjs';
 import { confianza, consultar, fechaN, proponer, sumarDias, textoN, validos } from './comun.mjs';
-import { decidirPartidos, revisarEvidencia, textosDe } from './partidos.mjs';
+import { decidirPartidos, proximos, revisarEvidencia, textosDe } from './partidos.mjs';
 import { resolverJugadora } from '../lib/nombres.mjs';
 import { delCatalogo, fechasDeCatalogo, idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
 import { convertirSeleccion, esquemaPartido, esquemaTorneo } from '../lib/validar.mjs';
@@ -37,6 +37,13 @@ const esquema = z.object({
   motivo: textoN,
 });
 const esquemaMencion = z.object({ nombre: z.string().min(1), edicion: z.number().int() });
+
+const MEXICO = ['México', 'Mexico', 'MEX'];
+const deSeleccion = (datos) => datos.partidos.partidos.filter((p) => p.tipo === 'seleccion');
+const hastaVerificar = (ctx) => sumarDias(ctx.hoy, ctx.diasVerificar);
+
+// ¿La Selección juega dentro de la ventana de verificación?
+export const juegaPronto = (datos, ahora, hasta) => proximos(deSeleccion(datos), ahora, hasta).length > 0;
 
 const MAX_TORNEOS = 2; // por corrida; lo demás se vuelve a detectar la semana siguiente
 const DIAS_ENTRE_REVISIONES = 30;
@@ -113,13 +120,13 @@ async function partidos(ctx, respuesta, verificar, resultados) {
       ctx.reporte.descarto(AGENTE, etiqueta, 'fecha, zona horaria o equipos inválidos');
       continue;
     }
+    if (ctx.soloVerificar && partido.inicio.slice(0, 10) > hastaVerificar(ctx)) continue;
     nuevos.push(partido);
     const sinHora = convertirSeleccion({ ...p, hora: null, fuente, convocadas }, torneoId, 'ia', ctx.ahora);
-    revisiones.set(partido, revisarEvidencia(textos, p, partido, ['México', 'Mexico', 'MEX'], sinHora));
+    revisiones.set(partido, revisarEvidencia(textos, p, partido, MEXICO, sinHora));
   }
   ctx.reporte.encontro(AGENTE, `${nuevos.length} partido(s) de la Selección`);
-  const previos = ctx.datos.partidos.partidos.filter((p) => p.tipo === 'seleccion');
-  return decidirPartidos(ctx, AGENTE, 'Selección', nuevos, previos, 'America/Mexico_City', [...FEDERACIONES, 'volleybox.net'], revisiones);
+  return decidirPartidos(ctx, AGENTE, 'Selección', nuevos, deSeleccion(ctx.datos), 'America/Mexico_City', [...FEDERACIONES, 'volleybox.net'], revisiones, { textos, propio: MEXICO, hasta: hastaVerificar(ctx) });
 }
 
 // Si Gemini no trae las fechas de un torneo que ya conocemos, se usan las que tenemos.
@@ -219,7 +226,12 @@ export async function correr(ctx, clave = null) {
     proximoGuardado: datos.seleccion.proximoTorneo,
     plantel: datos.jugadoras.filter((j) => j.estado !== 'exseleccionada').map((j) => j.nombre),
   };
-  const { respuesta, verificar, resultados } = await consultar(ctx, AGENTE, null, entrada, esquema, planProximo(ctx));
+  const pronto = proximos(deSeleccion(datos), ctx.ahora, hastaVerificar(ctx));
+  const { respuesta, verificar, resultados } = await consultar(ctx, AGENTE, null, entrada, esquema, planProximo(ctx, pronto));
+  if (ctx.soloVerificar) {
+    ctx.nuevos.seleccion = await partidos(ctx, respuesta, verificar, resultados);
+    return;
+  }
   const conocido = datos.seleccion.proximoTorneo;
   await proximoTorneo(ctx, respuesta.proximoTorneo, verificar);
   const nuevos = await partidos(ctx, respuesta, verificar, resultados);

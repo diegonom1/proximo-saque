@@ -9,15 +9,18 @@
 //   TAVILY_API_KEY   clave de Tavily.
 //   MAX_LLAMADAS     presupuesto por corrida (por defecto 20).
 //   DIAS_ADELANTE    días hacia adelante para buscar partidos (por defecto 45).
+//   SOLO_VERIFICAR   true: solo vuelve a verificar los partidos próximos (corrida de los jueves).
+//   DIAS_VERIFICAR   ventana de esa verificación (por defecto 7, o 4 con SOLO_VERIFICAR).
 //   IA_SIMULADA      carpeta con respuestas guardadas; no gasta llamadas ni usa la red.
 //   PR_ESTADO        OPEN, MERGED o CLOSED: cómo quedó el último PR de revisión (lo da el workflow).
 //   DIR_APROBADOS    carpeta con los datos de main. Hace falta si se parte de la rama del PR.
 //   DIAGNOSTICO      archivo donde guardar respuestas crudas y la comparación de partidos.
-// Opción --seco: corre todo y muestra el resumen, pero no escribe nada.
+// Opción --seco: corre todo y muestra el resumen, pero no escribe nada. Opción --verificar: como SOLO_VERIFICAR.
 
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { sumarDias } from './comun.mjs';
 import * as donde from './donde-ver.mjs';
 import * as partidos from './partidos.mjs';
 import * as perfil from './perfil.mjs';
@@ -200,7 +203,7 @@ function validarContraAprobados(datos, aprobados) {
 
 export async function correr({
   dirDatos, dirFotos, llamar, verificar, buscador = null, leerPagina = null, ahora = Date.now(), maxLlamadas = 20, diasAdelante = 45, seco = false, modo = 'real',
-  prEstado = null, dirAprobados = dirDatos,
+  prEstado = null, dirAprobados = dirDatos, soloVerificar = false, diasVerificar = soloVerificar ? 4 : 7,
 }) {
   const { datos, manual, crudos } = await cargar(dirDatos);
   const archivosAprobados = Object.fromEntries(await Promise.all(['jugadoras', 'clubes', 'ligas', 'torneos'].map(async (k) => [k, await leerJSON(dirAprobados, ARCHIVOS[k])])));
@@ -209,10 +212,12 @@ export async function correr({
   const aprobados = { clubes: new Set(Object.keys(archivosAprobados.clubes)), jugadoras: new Set(archivosAprobados.jugadoras.map((j) => j.slug)) };
   const diagnostico = [];
   const comparacion = [];
-  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, ahora, hoy, diasAdelante, reporte, aprobados, altas: [], nuevos: {}, torneosDetectados: [] };
-  atenderPr(ctx.datos.estado, prEstado, hoy);
-  // Con el PR abierto, una `propuesta` todavía no está aprobada.
-  if (prEstado !== 'OPEN') aprobarPropuestas(ctx.datos);
+  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, ahora, hoy, diasAdelante: soloVerificar ? diasVerificar : diasAdelante, diasVerificar, soloVerificar, reporte, aprobados, altas: [], nuevos: {}, torneosDetectados: [] };
+  if (!soloVerificar) {
+    atenderPr(ctx.datos.estado, prEstado, hoy);
+    // Con el PR abierto, una `propuesta` todavía no está aprobada.
+    if (prEstado !== 'OPEN') aprobarPropuestas(ctx.datos);
+  }
 
   const contador = ctx.datos.estado.tavily;
   if (buscador && contador?.mes === hoy.slice(0, 7)) buscador.usarPrevios(contador.creditos);
@@ -220,6 +225,12 @@ export async function correr({
   const { ejecutar, pendientes, estado } = ejecutorDe(ctx, maxLlamadas, reporte);
 
   if (llamar) {
+    // Lo que está por jugarse va antes que todo: que no lo deje fuera el presupuesto.
+    const hastaVerificar = sumarDias(hoy, diasVerificar);
+    if (seleccion.juegaPronto(ctx.datos, ahora, hastaVerificar)) await ejecutar(seleccion.AGENTE);
+    for (const club of partidos.clubesPorVerificar(ctx.datos, aprobados.clubes, ahora, hastaVerificar)) await ejecutar(partidos.AGENTE, club);
+  }
+  if (llamar && !soloVerificar) {
     // Lo que no cupo la semana pasada va primero.
     for (const { agente, clave } of previos) if (MODULOS[agente]) await ejecutar(agente, clave);
     if (rankings.toca(ctx.datos.estado, hoy)) await ejecutar(rankings.AGENTE);
@@ -246,7 +257,8 @@ export async function correr({
   const marcaDeTiempo = isoEnZona(ahora, ZONA_SITIO);
   ctx.datos.partidos.actualizado = marcaDeTiempo;
   ctx.datos.estado.ultimaCorrida = marcaDeTiempo;
-  ctx.datos.estado.pendientes = pendientes;
+  // Los pendientes son del lunes: la verificación del jueves no los corre ni los pierde.
+  ctx.datos.estado.pendientes = soloVerificar ? previos : pendientes;
 
   const cambiados = await escribir(dirDatos, ctx.datos, crudos, seco);
   if (!seco) {
@@ -285,6 +297,7 @@ async function creditosLocales(hoy) {
 
 async function main() {
   const seco = process.argv.includes('--seco');
+  const soloVerificar = process.argv.includes('--verificar') || process.env.SOLO_VERIFICAR === 'true';
   const simulada = process.env.IA_SIMULADA;
   const clave = process.env.GEMINI_API_KEY;
   const ahora = Date.now();
@@ -319,8 +332,10 @@ async function main() {
     ahora,
     maxLlamadas: Number(process.env.MAX_LLAMADAS || 20),
     diasAdelante: Number(process.env.DIAS_ADELANTE || 45),
+    soloVerificar,
+    ...(process.env.DIAS_VERIFICAR ? { diasVerificar: Number(process.env.DIAS_VERIFICAR) } : {}),
     seco,
-    modo,
+    modo: soloVerificar ? `${modo} · solo verificación de partidos` : modo,
     prEstado: process.env.PR_ESTADO || null,
     dirAprobados: process.env.DIR_APROBADOS || undefined,
   });

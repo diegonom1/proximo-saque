@@ -57,6 +57,10 @@ describe('otros planes', () => {
     expect(textos(planTorneo(ctx, torneo))).toContain('Copa Panamericana 2026');
     expect(textos(planLista(ctx, torneo))).toContain('Copa Panamericana 2026');
   });
+  it('un partido por verificar agrega la página de donde salió', () => {
+    const club = { nombre: 'Club', alias: [], pais: 'Italia', calendarioUrl: 'https://a.it/cal' };
+    expect(planPartidos(ctx, club, null, [{ fuente: 'https://a.it/nota' }, { fuente: null }]).paginas).toEqual(['https://a.it/cal', 'https://a.it/nota']);
+  });
   it('dónde ver lee el calendario oficial', () => {
     expect(planDondeVer(ctx, { nombre: 'Liga' }, { calendarioOficialUrl: 'https://a.mx/c' }).paginas).toEqual(['https://a.mx/c']);
   });

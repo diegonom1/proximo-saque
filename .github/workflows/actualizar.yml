@@ -1,10 +1,18 @@
-# Corrida semanal de los agentes: guarda lo directo en main, deja lo demás en el PR de revisión y publica.
+# Lunes: corrida completa de los agentes; guarda lo directo en main, deja lo demás en el PR de revisión y publica.
+# Jueves: solo vuelve a verificar los partidos de los próximos 4 días.
 name: Actualizar datos
 
 on:
   schedule:
     - cron: '17 12 * * 1' # lunes 06:17 de Tonalá
+    - cron: '17 12 * * 4' # jueves 06:17 de Tonalá
   workflow_dispatch:
+    inputs:
+      corrida:
+        description: Qué corrida lanzar
+        type: choice
+        options: [lunes, jueves]
+        default: lunes
 
 concurrency:
   group: actualizar
@@ -12,7 +20,7 @@ concurrency:
 
 jobs:
   actualizar:
-    # La programada queda apagada hasta poner la variable CORRIDA_PROGRAMADA en true: la primera se lanza a mano.
+    # Las programadas quedan apagadas hasta poner la variable CORRIDA_PROGRAMADA en true: la primera se lanza a mano.
     if: github.event_name == 'workflow_dispatch' || vars.CORRIDA_PROGRAMADA == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -26,6 +34,7 @@ jobs:
       GEMINI_MODELOS: ${{ vars.GEMINI_MODELOS }}
       MAX_LLAMADAS: ${{ vars.MAX_LLAMADAS }}
       BUSQUEDA: ${{ vars.BUSQUEDA }}
+      SOLO_VERIFICAR: ${{ github.event.schedule == '17 12 * * 4' || inputs.corrida == 'jueves' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -43,7 +52,11 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          estado=$(gh pr list --head revision-semanal --state all --limit 1 --json state --jq '.[0].state // ""')
+          # El jueves solo toca lo que se guarda directo: no le importa el PR.
+          estado=''
+          if [ "$SOLO_VERIFICAR" != true ]; then
+            estado=$(gh pr list --head revision-semanal --state all --limit 1 --json state --jq '.[0].state // ""')
+          fi
           echo "PR_ESTADO=$estado" >> "$GITHUB_ENV"
           mkdir -p "$RUNNER_TEMP/aprobados" "$RUNNER_TEMP/resultado"
           cp data/*.json "$RUNNER_TEMP/aprobados/"
@@ -73,6 +86,7 @@ jobs:
           fi
 
       - name: Preparar lo que va al PR
+        if: env.SOLO_VERIFICAR != 'true'
         run: |
           for archivo in jugadoras clubes ligas torneos; do
             cp "$RUNNER_TEMP/resultado/$archivo.json" data/
@@ -87,6 +101,7 @@ jobs:
           done
 
       - uses: peter-evans/create-pull-request@v8
+        if: env.SOLO_VERIFICAR != 'true'
         with:
           branch: revision-semanal
           base: main

@@ -382,7 +382,7 @@ Los contextos están en `agentes/` (ver `agentes/README.md`). Para cada llamada,
 
 ### Orquestador `scripts/agentes/correr.mjs`
 
-Orden de cada corrida semanal:
+Orden de cada corrida semanal. Antes de todo, y antes de los `pendientes`, van las tareas de lo que está por jugarse: 04 si la Selección juega en los próximos 7 días y 03 de cada club que juega en ese rango.
 
 1. **06 Rankings** (1 llamada, una vez al mes: cada 28 días).
 2. **04 Selección y torneos**: 1 llamada para el próximo compromiso, que también nombra los torneos terminados que ve; luego 1 llamada por torneo del catálogo que no esté en `torneos.json` (máximo 2 por corrida, cada uno cada 30 días).
@@ -391,6 +391,11 @@ Orden de cada corrida semanal:
 5. **03 Partidos de club**: 1 llamada por club con seleccionadas activas, ya aprobado en `clubes.json`. Un club nuevo empieza a tener partidos en la corrida siguiente a aprobar el PR (o al correr el workflow a mano).
 6. **05 Dónde ver**: máximo 2 por corrida, para ligas o el próximo torneo con `plataformas` vacía, `temporada` distinta o `revisado` de más de 30 días.
 7. Fusionar con lo existente, aplicar `manual.json`, validar con Zod, verificar fuentes y escribir.
+
+Verificación de partidos próximos: el código coteja cada partido guardado de la ventana contra el texto de las fuentes de esa tarea (`verificarGuardados`), aunque Gemini no lo reporte, y relee la página de su `fuente` además del calendario. Aquí vale cualquiera de los dos equipos, con sus alias, junto a la fecha y la hora, porque una fuente en otro idioma quizá solo permita reconocer a uno (北京北冰洋); si una fila nombra a los dos, manda esa. Un partido nuevo o un cambio sigue exigiendo al rival. Solo informa en el resumen: "Verificado", "Hora sin verificar" o "No verificado"; lo que no se confirma se conserva. Los cambios siguen las reglas de siempre.
+
+- Lunes: ventana de 7 días (`DIAS_VERIFICAR`), dentro de la corrida normal.
+- Jueves (`SOLO_VERIFICAR=true` o `--verificar`): ventana de 4 días. Solo corren 03 de los clubes que juegan en ese rango y 04 si juega la Selección, buscando hasta el último día de la ventana. No corren perfiles, rankings, plantel ni dónde ver; no toca `torneos.json`, el próximo torneo ni el PR; conserva `pendientes`. `npm run agentes:verificar` la prueba sin escribir.
 
 Detalles técnicos:
 
@@ -439,7 +444,7 @@ Detalles técnicos:
 
 Ambos usan Node 24: `actions/setup-node` con `node-version-file: .nvmrc`.
 
-- `actualizar.yml`: `schedule` lunes 06:17 de Tonalá (`17 12 * * 1` en UTC) y `workflow_dispatch`. La programada solo corre con la variable `CORRIDA_PROGRAMADA` en `true`; a mano siempre corre. Secretos `GEMINI_API_KEY` y `TAVILY_API_KEY`, variables `GEMINI_MODELOS`, `MAX_LLAMADAS` y `BUSQUEDA`. Después del commit, construye y despliega en el mismo workflow, llamando a `deploy.yml`: un push hecho con `GITHUB_TOKEN` no dispara otros workflows.
+- `actualizar.yml`: `schedule` lunes y jueves a las 06:17 de Tonalá (`17 12 * * 1` y `17 12 * * 4` en UTC) y `workflow_dispatch`, que deja elegir `lunes` o `jueves`. El jueves pone `SOLO_VERIFICAR=true`, parte de `main` y no toca el PR. Las programadas solo corren con la variable `CORRIDA_PROGRAMADA` en `true`; a mano siempre corre. Secretos `GEMINI_API_KEY` y `TAVILY_API_KEY`, variables `GEMINI_MODELOS`, `MAX_LLAMADAS` y `BUSQUEDA`. Después del commit, construye y despliega en el mismo workflow, llamando a `deploy.yml`: un push hecho con `GITHUB_TOKEN` no dispara otros workflows.
 - `deploy.yml`: en push a `main` (por ejemplo al aprobar el PR), `astro build` y despliegue a Pages (`actions/upload-pages-artifact` + `actions/deploy-pages`; en Settings → Pages, fuente *GitHub Actions*). `site` y `base` están en `astro.config.mjs`: si cambia el nombre del repo, hay que cambiar `base`.
 
 ## Fases

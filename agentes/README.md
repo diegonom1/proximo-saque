@@ -7,7 +7,7 @@ Aquí, un agente es: instrucciones fijas (estos archivos) + búsqueda de Google 
 | `00-reglas-comunes.md` | Reglas que van antes de cada agente | Siempre | — |
 | `01-plantel.md` | Anuncios de retiro; la lista de cada torneo nuevo | Cada lunes | 1 + máximo 2 listas |
 | `02-perfil.md` | Datos de una jugadora | Altas nuevas + las 4 con revisión más vieja | 1 por jugadora |
-| `03-partidos-club.md` | Próximos partidos de un club | Cada lunes | 1 por club |
+| `03-partidos-club.md` | Próximos partidos de un club | Cada lunes; los jueves solo clubes que juegan en 4 días | 1 por club |
 | `04-seleccion-torneos.md` | Próximo torneo y partidos; el resultado de cada torneo nuevo | Cada lunes | 1 + máximo 2 torneos |
 | `05-donde-ver.md` | Plataformas oficiales para ver una liga o torneo desde México | Si no hay datos o pasaron 30 días | Máximo 2 |
 | `06-rankings.md` | Ranking FIVB y NORCECA | Una vez al mes | 1 |

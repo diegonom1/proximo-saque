@@ -15,14 +15,21 @@ export const planRankings = () => ({
   avanzado: true, // el ranking es una tabla; una vez al mes se puede pagar la lectura completa
 });
 
+const consultasDeGuardados = (guardados) => [...new Set(guardados.map((p) => p.competencia).filter(Boolean))]
+  .map((c) => ({ texto: `${c} México voleibol femenil calendario partidos horarios` }));
+
 // El agente 04 solo detecta lo nuevo: lo histórico ya está en torneos.json.
-export const planProximo = (ctx) => ({
+export const planProximo = (ctx, guardados = []) => ({
   consultas: [
+    ...consultasDeGuardados(guardados),
+    ...(ctx.soloVerificar ? [] : [
     { texto: `Selección Mexicana voleibol femenil mayor próximo torneo ${anio(ctx) + 1}`, dominios: FEDERACIONES },
     { texto: `NORCECA calendar of competitions ${anio(ctx) + 1} women senior hosts`, dominios: ['norceca.net', 'norceca.info'] },
     { texto: 'Lima 2027 Juegos Panamericanos voleibol femenino clasificación México' },
     { texto: `selección mexicana voleibol femenil resultado torneo ${anio(ctx)}` },
+    ]),
   ],
+  paginas: guardados.map((p) => p.fuente).filter(Boolean),
   mejores: 4,
 });
 
@@ -66,7 +73,8 @@ const ESPANOL = { calendario: (c, l, a) => `${c} calendario partidos ${l} ${a}`,
 // En China el nombre que encuentra el calendario es el original.
 const nombreLocal = (club) => (club.pais === 'China' ? club.alias.find((a) => /[一-鿿]/.test(a)) ?? club.nombre : club.nombre);
 
-export function planPartidos(ctx, club, liga) {
+// `guardados`: partidos por verificar. Se relee la página de donde salieron, además del calendario.
+export function planPartidos(ctx, club, liga, guardados = []) {
   const idioma = IDIOMAS[club.pais] ?? ESPANOL;
   const nombre = nombreLocal(club);
   const sitioLiga = liga?.calendarioOficialUrl ? dominio(liga.calendarioOficialUrl) : null;
@@ -79,7 +87,7 @@ export function planPartidos(ctx, club, liga) {
       { texto: idioma.proximo(nombre, a) },
       ...(china ? [{ texto: `${club.nombre} schedule`, dominios: ['volleybox.net'] }] : []),
     ],
-    paginas: [club.calendarioUrl, liga?.calendarioOficialUrl].filter(Boolean),
+    paginas: [club.calendarioUrl, liga?.calendarioOficialUrl, ...guardados.map((p) => p.fuente)].filter(Boolean),
     mejores: 3,
     filas: [club.nombre, ...club.alias],
   };
