@@ -24,7 +24,7 @@ const premiosDe = (t: (typeof lista)[number]) => {
           <li class="torneo">
             <p class="torneo__resultado">
               {t.medalla && <span class:list={['medalla', `medalla--${t.medalla}`]} aria-hidden="true" />}
-              <span class="torneo__medalla">{t.medalla ?? lugarTexto(t.posicion)}</span>
+              <span class="torneo__medalla">{t.medalla ?? lugarTexto(t.posicion, t.fase)}</span>
               {t.medalla && <span class="dato torneo__lugar">{lugarTexto(t.posicion)}</span>}
             </p>
             <h3 class="torneo__nombre">{t.nombre} {t.edicion}</h3>

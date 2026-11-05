@@ -144,6 +144,7 @@ export const esquemaTorneo = z.strictObject({
   medalla: z.enum(['oro', 'plata', 'bronce']).nullable(),
   record: z.string().regex(/^\d+-\d+$/).nullable(),
   premios: z.array(z.strictObject({ jugadora: slug, premio: texto })),
+  fase: textoN.default(null), // hasta dónde llegó México; se muestra cuando no hay lugar confirmado
   fuente: url,
 });
 

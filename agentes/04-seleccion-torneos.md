@@ -30,6 +30,7 @@ Calendarios y noticias de NORCECA (norceca.net, norceca.info), FMVB (fmvb.org), 
 - `proximoTorneo` es el siguiente torneo que **no ha terminado** (puede estar en curso). Si hay varios confirmados, el más cercano.
 - Un torneo está terminado cuando se jugó su último partido. Si está en curso, va en `proximoTorneo` y sus partidos pendientes en `partidos`.
 - `posicion`: lugar final de México (1, 2, 3…). `medalla`: `oro`, `plata`, `bronce` o `null`.
+- `fase`: hasta dónde llegó México si no se publicó su lugar final, por ejemplo `"Fase de grupos"` o `"Cuartos de final"`; si hay `posicion`, déjala en `null`.
 - `record`: partidos ganados y perdidos de México en ese torneo, como `"5-2"`; `null` si no lo confirmas.
 - `premios`: solo premios individuales de jugadoras mexicanas, con el nombre como aparece en la fuente.
 - En `partidos`, `mexico` indica el lado de México (`"local"` o `"visita"`); en sede neutral, usa el orden de la fuente.

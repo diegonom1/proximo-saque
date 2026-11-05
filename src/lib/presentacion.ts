@@ -30,7 +30,7 @@ export function rangoFechas(inicio: string | null, fin: string) {
   return `${a.dia}–${b.dia} ${b.mes} ${b.anio}`;
 }
 
-export const lugarTexto = (posicion: number | null) => (posicion ? `${posicion}.º lugar` : 'Lugar por confirmar');
+export const lugarTexto = (posicion: number | null, fase: string | null = null) => (posicion ? `${posicion}.º lugar` : fase ?? 'Lugar por confirmar');
 
 /* ---------- Rankings ---------- */
 

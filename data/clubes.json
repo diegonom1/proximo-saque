@@ -4,7 +4,8 @@
     "alias": [
       "UYBA Busto Arsizio",
       "Eurotek UYBA",
-      "Busto Arsizio"
+      "Busto Arsizio",
+      "Laica Cioccolato Uyba"
     ],
     "ligaId": "serie-a1-it",
     "pais": "Italia",
@@ -15,7 +16,7 @@
       "widgetId": 2048
     },
     "sitio": null,
-    "calendarioUrl": null
+    "calendarioUrl": "https://www.legavolleyfemminile.it/club/uyba-busto-arsizio/710946/calendario"
   },
   "sesi-bauru": {
     "nombre": "Sesi Vôlei Bauru",

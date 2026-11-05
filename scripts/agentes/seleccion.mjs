@@ -25,6 +25,7 @@ const esquemaTerminado = esquemaProximo.extend({
   fechaFin: z.iso.date(),
   posicion: z.number().int().positive().nullable().optional(),
   medalla: z.enum(['oro', 'plata', 'bronce']).nullable().optional(),
+  fase: textoN,
   record: z.string().regex(/^\d+-\d+$/).nullable().optional(),
   premios: z.array(z.object({ jugadora: z.string(), premio: z.string().min(1) })).default([]),
 });
@@ -155,24 +156,25 @@ async function torneos(ctx, lista, verificar, conocidos = []) {
     const guardado = doc.torneos.find((x) => mismoTorneo(x, t));
     if (guardado) {
       // Solo completa lo que faltaba; lo que ya estaba aprobado no se pisa.
-      const faltaba = (guardado.record === null && t.record) || (guardado.posicion === null && t.posicion) || (guardado.medalla === null && t.medalla) || (guardado.premios.length === 0 && premios.length);
+      const faltaba = (guardado.record === null && t.record) || (guardado.posicion === null && t.posicion) || (!guardado.fase && t.fase) || (guardado.medalla === null && t.medalla) || (guardado.premios.length === 0 && premios.length);
       if (faltaba && proponer(ctx, AGENTE, { clave: `torneo:${guardado.id}:completar`, seccion: 'Torneos nuevos', texto: `${guardado.nombre} ${guardado.edicion}: datos que faltaban`, fuente })) {
         guardado.record ??= t.record ?? null;
         guardado.posicion ??= t.posicion ?? null;
         guardado.medalla ??= t.medalla ?? null;
+        guardado.fase ??= t.fase ?? null;
         if (guardado.premios.length === 0) guardado.premios = premios;
       }
       continue;
     }
     const nuevo = {
       id, nombre: nombreCanonico(t.nombre), edicion: t.edicion, ciudad: t.ciudad ?? null, pais: t.pais ?? null, fechaInicio: t.fechaInicio ?? null, fechaFin: t.fechaFin,
-      posicion: t.posicion ?? null, medalla: t.medalla ?? null, record: t.record ?? null, premios, fuente,
+      posicion: t.posicion ?? null, medalla: t.medalla ?? null, record: t.record ?? null, premios, fase: t.fase ?? null, fuente,
     };
     if (!esquemaTorneo.safeParse(nuevo).success) {
       ctx.reporte.descarto(AGENTE, t.nombre, 'no cumple el contrato');
       continue;
     }
-    const texto = `${nuevo.nombre} ${t.edicion}: ${t.medalla ?? (t.posicion ? `lugar ${t.posicion}` : 'resultado por confirmar')}`;
+    const texto = `${nuevo.nombre} ${t.edicion}: ${t.medalla ?? (t.posicion ? `lugar ${t.posicion}` : t.fase ?? 'resultado por confirmar')}`;
     if (proponer(ctx, AGENTE, { clave: `torneo:${id}`, seccion: 'Torneos nuevos', texto, fuente })) doc.torneos.push(nuevo);
   }
   // Regla en código: los más recientes por fecha de fin.

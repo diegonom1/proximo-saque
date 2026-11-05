@@ -20,6 +20,8 @@ describe('textos', () => {
   it('lugarTexto', () => {
     expect(lugarTexto(2)).toBe('2.º lugar');
     expect(lugarTexto(null)).toBe('Lugar por confirmar');
+    expect(lugarTexto(null, 'Fase de grupos')).toBe('Fase de grupos');
+    expect(lugarTexto(24, 'Fase de grupos')).toBe('24.º lugar'); // el lugar confirmado manda
   });
   it('ruta respeta la base', () => {
     expect(ruta('agenda')).toBe('/agenda');

@@ -208,8 +208,8 @@ describe('plantilla: nombres', () => {
     expect((await jugadora('tanguma')).numero).toBe(77);
   });
   it('un nombre confirmado se guarda y avisa que falta renombrar', async () => {
-    const r = await ejecutar(plantel({ listas: [lista([{ nombre: 'María Ovalle', numero: 8, slug: 'ovalle' }])] }));
-    expect((await jugadora('ovalle')).nombre).toBe('María Ovalle');
+    const r = await ejecutar(plantel({ listas: [lista([{ nombre: 'María Tanguma', numero: 13, slug: 'tanguma' }])] }));
+    expect((await jugadora('tanguma')).nombre).toBe('María Tanguma');
     expect(r.cuerpoPr).toContain('renombrar');
   });
   it('una lista vieja no pisa una más reciente', async () => {
@@ -308,7 +308,7 @@ describe('perfiles', () => {
     });
     const llamar = llamarCon(plantel({ listas: [lista([{ nombre: 'Rosa Hernández', slug: null }])] }));
     await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA });
-    expect(llamar.llamadas.filter((l) => l.agente === '02-perfil').map((l) => l.clave)).toEqual(['rosa-hernandez', 'argentina-ung', 'ovalle', 'arleth-marquez', 'jocelyn-urias']);
+    expect(llamar.llamadas.filter((l) => l.agente === '02-perfil').map((l) => l.clave)).toEqual(['rosa-hernandez', 'argentina-ung', 'marian-ovalle', 'arleth-marquez', 'jocelyn-urias']);
   });
   it('la rotación avanza aunque el PR no se apruebe', async () => {
     const primeras = llamarCon();
@@ -699,6 +699,13 @@ describe('tareas chicas', () => {
     const llamar = llamarCon(mencion({ nombre: 'Copa Panamericana', edicion: 2026 }));
     await corre(llamar);
     expect(claves(llamar, '04-seleccion-torneos')).toEqual([null]);
+  });
+  it('un torneo sin lugar conserva hasta qué fase llegó', async () => {
+    const terminado = { nombre: 'Copa Panamericana', edicion: 2026, ciudad: 'León', pais: 'México', fechaInicio: '2026-09-08', fechaFin: '2026-09-18', posicion: null, medalla: null, fase: 'Fase de grupos', record: null, premios: [], fuente: OFICIAL };
+    const llamar = llamarCon({ '04-seleccion-torneos': (clave) => (clave ? { ...VACIAS['04-seleccion-torneos'], torneosTerminados: [terminado] } : { ...VACIAS['04-seleccion-torneos'], torneosMencionados: [{ nombre: 'Copa Panamericana', edicion: 2026 }] }) });
+    const r = await corre(llamar);
+    expect((await leer('torneos.json')).torneos.find((t) => t.id === 'copa-panamericana-2026')).toMatchObject({ posicion: null, fase: 'Fase de grupos' });
+    expect(r.cuerpoPr).toContain('Copa Panamericana 2026: Fase de grupos');
   });
   it('el torneo revisado entra por PR y otro distinto se descarta', async () => {
     const terminado = { nombre: 'Copa Panamericana', edicion: 2026, ciudad: 'León', pais: 'México', fechaInicio: '2026-09-08', fechaFin: '2026-09-18', posicion: 3, medalla: 'bronce', record: null, premios: [], fuente: OFICIAL };
