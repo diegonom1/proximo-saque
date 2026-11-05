@@ -18,7 +18,7 @@ Una corrida normal gasta unas 15–20 llamadas a Gemini a la semana.
 
 - Instrucción de sistema: `00-reglas-comunes.md` + el archivo del agente, **hasta la línea `## Prueba manual`** (esa sección es solo para ustedes). `{{HOY}}` se reemplaza por la fecha de Ciudad de México.
 - Mensaje: la entrada en JSON que describe cada archivo, armada con los datos de `data/`.
-- Herramienta: búsqueda de Google (`google_search`).
+- Búsqueda: la hace el código con Tavily (`scripts/agentes/busquedas.mjs`) y los resultados llegan en `resultadosBusqueda`, con el anexo `00-resultados-busqueda.md`. Con `BUSQUEDA=google` Gemini busca solo con `google_search`, que necesita facturación activa.
 - Respuesta esperada: un solo bloque ```json, que el código valida antes de usar.
 
 ## Probarlos a mano (antes de conectar el código)

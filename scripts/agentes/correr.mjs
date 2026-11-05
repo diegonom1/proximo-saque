@@ -3,7 +3,10 @@
 //
 // Variables de entorno:
 //   GEMINI_API_KEY   clave de Google AI Studio. Sin ella solo limpia partidos pasados y aplica manual.json.
-//   GEMINI_MODELOS   modelos separados por comas (por defecto gemini-3.8-flash).
+//   GEMINI_MODELOS   modelos separados por comas (ver MODELOS_DEFECTO).
+//   BUSQUEDA         tavily (por defecto): busca el código y Gemini solo extrae.
+//                    google: Gemini busca con google_search; necesita facturación activa.
+//   TAVILY_API_KEY   clave de Tavily.
 //   MAX_LLAMADAS     presupuesto por corrida (por defecto 20).
 //   DIAS_ADELANTE    días hacia adelante para buscar partidos (por defecto 45).
 //   IA_SIMULADA      carpeta con respuestas guardadas; no gasta llamadas ni usa la red.
@@ -21,6 +24,7 @@ import * as plantel from './plantel.mjs';
 import * as rankings from './rankings.mjs';
 import { crearReporte } from './reporte.mjs';
 import * as seleccion from './seleccion.mjs';
+import { crearBuscadorTavily } from '../lib/busqueda.mjs';
 import { crearVerificador, textoDePagina } from '../lib/fuentes.mjs';
 import { conMs, fusionar } from '../lib/fusion.mjs';
 import { crearClienteGemini, crearClienteSimulado } from '../lib/gemini.mjs';
@@ -28,6 +32,7 @@ import { DURACION_MS, ZONA_SITIO, fechaEnZona, isoEnZona } from '../lib/tiempo.m
 import { convertir, convertirSeleccion, esquemaEstadoAgentes, esquemaManual, esquemaPartido, validarDatos } from '../lib/validar.mjs';
 
 const RAIZ = fileURLToPath(new URL('../../', import.meta.url));
+const MODELOS_DEFECTO = 'gemini-3.8-flash,gemini-3.5-flash,gemini-3.1-flash-lite';
 
 const ARCHIVOS = {
   jugadoras: 'jugadoras.json',
@@ -171,7 +176,7 @@ function validarContraAprobados(datos, aprobados) {
 }
 
 export async function correr({
-  dirDatos, dirFotos, llamar, verificar, leerPagina = null, ahora = Date.now(), maxLlamadas = 20, diasAdelante = 45, seco = false, modo = 'real',
+  dirDatos, dirFotos, llamar, verificar, buscador = null, leerPagina = null, ahora = Date.now(), maxLlamadas = 20, diasAdelante = 45, seco = false, modo = 'real',
   prEstado = null, dirAprobados = dirDatos,
 }) {
   const { datos, manual, crudos } = await cargar(dirDatos);
@@ -179,7 +184,7 @@ export async function correr({
   const reporte = crearReporte();
   const hoy = fechaEnZona(ahora, ZONA_SITIO);
   const aprobados = { clubes: new Set(Object.keys(archivosAprobados.clubes)), jugadoras: new Set(archivosAprobados.jugadoras.map((j) => j.slug)) };
-  const ctx = { datos, manual, llamar, verificar, leerPagina, ahora, hoy, diasAdelante, reporte, aprobados, altas: [], nuevos: {} };
+  const ctx = { datos, manual, llamar, verificar, buscador, leerPagina, ahora, hoy, diasAdelante, reporte, aprobados, altas: [], nuevos: {} };
   atenderPr(ctx.datos.estado, prEstado, hoy);
   // Con el PR abierto, una `propuesta` todavía no está aprobada.
   if (prEstado !== 'OPEN') aprobarPropuestas(ctx.datos);
@@ -218,13 +223,15 @@ export async function correr({
       await writeFile(join(carpeta, '.gitkeep'), '');
     }
   }
+  const busqueda = buscador ? await buscador.resumen() : null;
   return {
     cambiados,
     pendientes,
+    busqueda,
     llamadas: estado.llamadas,
     altas: ctx.altas,
     reporte,
-    resumen: reporte.resumen({ modo, llamadas: estado.llamadas, maximo: maxLlamadas, pendientes }),
+    resumen: reporte.resumen({ modo, llamadas: estado.llamadas, maximo: maxLlamadas, pendientes, busqueda }),
     cuerpoPr: reporte.cuerpoPr(ctx.datos.estado.propuestas),
     hayPr: ctx.datos.estado.propuestas.length > 0 || cambiados.some((a) => ARCHIVOS_PR.includes(a)),
   };
@@ -239,14 +246,18 @@ async function main() {
   const dirAgentes = join(RAIZ, 'agentes');
 
   let llamar = null;
+  let buscador = null;
   let modo = 'sin IA';
   if (simulada) {
     llamar = crearClienteSimulado(join(process.cwd(), simulada), hoy);
     modo = 'simulado';
   } else if (clave) {
-    const modelos = (process.env.GEMINI_MODELOS || 'gemini-3.8-flash').split(',').map((m) => m.trim()).filter(Boolean);
+    const modelos = (process.env.GEMINI_MODELOS || MODELOS_DEFECTO).split(',').map((m) => m.trim()).filter(Boolean);
+    const proveedor = process.env.BUSQUEDA || 'tavily';
+    if (!['tavily', 'google'].includes(proveedor)) throw new Error(`BUSQUEDA debe ser tavily o google, no ${proveedor}`);
     llamar = crearClienteGemini({ clave, modelos, hoy, dirAgentes });
-    modo = `Gemini (${modelos.join(', ')})`;
+    if (proveedor === 'tavily') buscador = crearBuscadorTavily({ clave: process.env.TAVILY_API_KEY });
+    modo = `Gemini (${modelos.join(', ')}) · búsqueda: ${proveedor}`;
   } else {
     console.log('Sin GEMINI_API_KEY: solo limpio partidos pasados y aplico data/manual.json.');
   }
@@ -256,7 +267,9 @@ async function main() {
     dirFotos: join(RAIZ, 'src/assets/fotos'),
     llamar,
     verificar: crearVerificador({ red: !simulada }),
-    leerPagina: simulada ? null : textoDePagina,
+    buscador,
+    // Con Tavily las páginas se leen con extract.
+    leerPagina: simulada || buscador ? null : textoDePagina,
     ahora,
     maxLlamadas: Number(process.env.MAX_LLAMADAS || 20),
     diasAdelante: Number(process.env.DIAS_ADELANTE || 45),

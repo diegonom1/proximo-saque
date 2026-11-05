@@ -1,6 +1,6 @@
 # Próximo Saque v2
 
-Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (categoría mayor, sala) y a cada seleccionada con su club: próximo partido con cuenta regresiva, dónde verlo, agenda unificada, rankings y últimos torneos. Los datos se actualizan solos cada lunes con agentes de IA (Gemini) y reglas en código.
+Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (categoría mayor, sala) y a cada seleccionada con su club: próximo partido con cuenta regresiva, dónde verlo, agenda unificada, rankings y últimos torneos. Los datos se actualizan solos cada lunes con búsquedas en código (Tavily), agentes de IA (Gemini) y reglas en código.
 
 > Este archivo es para Claude Code. La lógica del proyecto se definió fuera de aquí; este documento es el contrato. Si algo no está aquí, pregunta antes de inventarlo.
 
@@ -25,6 +25,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 | Animación | GSAP + ScrollTrigger + SplitText, Lenis para scroll suave | GSAP y todos sus plugins son gratis. Lenis no altera el scroll táctil por defecto. |
 | Validación | Zod | Valida lo que devuelve la IA y lo que lee el sitio. |
 | Agentes | Node 24 + API de Gemini por `fetch` | Sin SDK; fácil de probar con respuestas simuladas. |
+| Búsqueda | Tavily (plan gratis) por `fetch`; `BUSQUEDA=tavily\|google` | La capa gratis de Gemini 3 no incluye `google_search` y los modelos 2.5 ya no aceptan usuarios nuevos. El código busca y Gemini solo extrae. |
 | Automatización | GitHub Actions | Gratis en repo público: actualización semanal y despliegue. |
 | Hosting | GitHub Pages (opcional: Hostinger por FTP) | Estático y gratis. |
 
@@ -42,7 +43,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  └─ manual.json           correcciones humanas; siempre ganan
 ├─ scripts/
 │  ├─ agentes/              correr.mjs (orquestador) + un módulo por agente
-│  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, nombres.mjs, torneos.mjs, fotos-sin-credito.mjs
+│  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, busqueda.mjs, nombres.mjs, torneos.mjs, fotos-sin-credito.mjs
 │  ├─ pruebas/              respuestas simuladas por agente (IA_SIMULADA)
 │  └─ fotos/                procesar.py (npm run fotos): prepara las fotos, solo en local
 ├─ src/
@@ -376,7 +377,7 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 
 ## Agentes
 
-Los contextos están en `agentes/` (ver `agentes/README.md`). Para cada llamada, el orquestador manda como instrucción de sistema `00-reglas-comunes.md` + el archivo del agente, hasta la línea `## Prueba manual` (sin incluirla) y con `{{HOY}}` reemplazado por la fecha de Ciudad de México. El mensaje es la entrada en JSON que describe cada archivo.
+Los contextos están en `agentes/` (ver `agentes/README.md`). Para cada llamada, el orquestador manda como instrucción de sistema `00-reglas-comunes.md` + el archivo del agente, hasta la línea `## Prueba manual` (sin incluirla) y con `{{HOY}}` reemplazado por la fecha de Ciudad de México. Con `BUSQUEDA=tavily` agrega `00-resultados-busqueda.md`. El mensaje es la entrada en JSON que describe cada archivo y, con Tavily, `resultadosBusqueda`: lo que el código encontró. Las búsquedas de cada agente están en `scripts/agentes/busquedas.mjs`.
 
 ### Orquestador `scripts/agentes/correr.mjs`
 
@@ -392,9 +393,10 @@ Orden de cada corrida semanal:
 
 Detalles técnicos:
 
-- Modelos en `GEMINI_MODELOS` (lista separada por comas, por defecto `gemini-3.8-flash`; Google retiró `gemini-2.5-flash` para usuarios nuevos). Si uno responde 404 o 429 por cuota agotada, se pasa al siguiente de la lista. Si ninguno responde por eso, la corrida deja de llamar y lo demás queda en `pendientes`.
+- Modelos en `GEMINI_MODELOS` (lista separada por comas, por defecto `gemini-3.8-flash,gemini-3.5-flash,gemini-3.1-flash-lite`; Google retiró `gemini-2.5-flash` para usuarios nuevos). Si uno responde 404 o 429 por cuota agotada, se pasa al siguiente de la lista. Si ninguno responde por eso, la corrida deja de llamar y lo demás queda en `pendientes`.
 - Presupuesto: `MAX_LLAMADAS` por corrida (por defecto 20). Lo que no cabe va a `estado-agentes.json → pendientes`. Los límites gratis los cambia Google seguido; se revisan en AI Studio.
-- Llamada: `system_instruction` + `contents` + `tools: [{ google_search: {} }]`. `temperature: 0` en modelos 2.5; en Gemini 3 se deja la temperatura por defecto (Google lo recomienda). Pedir el JSON en el texto y extraerlo (`extraerJSON` del v1); no combinar `responseSchema` con `google_search` si el modelo no lo soporta.
+- Búsqueda (`scripts/lib/busqueda.mjs`): 1 crédito por búsqueda básica y 1 por extracción de hasta 5 páginas. Límite duro de 800 créditos al mes, leído de `/usage` de Tavily; si no se puede leer, no se busca. Tope de 180 por corrida. Al llegar a un límite la corrida deja de llamar y lo demás queda en `pendientes`. El resumen muestra los créditos.
+- Llamada: `system_instruction` + `contents`, y `tools: [{ google_search: {} }]` solo con `BUSQUEDA=google`. `temperature: 0` en modelos 2.5; en Gemini 3 se deja la temperatura por defecto (Google lo recomienda). Pedir el JSON en el texto y extraerlo (`extraerJSON` del v1); no combinar `responseSchema` con `google_search` si el modelo no lo soporta.
 - Reintentos ante 429/5xx con espera creciente; pausa de 8 s entre llamadas.
 - `IA_SIMULADA=scripts/pruebas` usa respuestas guardadas (un JSON por agente, basados en los ejemplos de `agentes/`) para probar sin gastar llamadas ni usar la red. Aceptan `{{HOY+3}}` y `{{CLAVE}}` para no caducar. `npm run agentes:simulado` lo corre con `--seco`, que muestra el resumen sin escribir nada.
 - `DIAS_ADELANTE` (por defecto 45): rango de búsqueda de partidos.
@@ -404,7 +406,8 @@ Detalles técnicos:
 ### Validación (código, no IA)
 
 - Todo dato nuevo necesita `fuente`; sin fuente se descarta.
-- Fuentes: una URL se acepta si su dominio aparece entre las fuentes de `groundingMetadata` de esa misma respuesta o si responde al abrirla (2xx/3xx; Volleybox contesta 403 a los bots y se acepta si viene en `groundingMetadata`). Los enlaces de redirección de Google en `groundingMetadata` (`vertexaisearch.cloud.google.com/grounding-api-redirect/…`) se resuelven a su URL final antes de guardarlos. Si ninguna fuente del dato pasa, se descarta.
+- Fuentes con `BUSQUEDA=tavily`: una URL vale solo si vino en los resultados de esa misma tarea. Otra página del mismo dominio no vale.
+- Fuentes con `BUSQUEDA=google`: una URL se acepta si su dominio aparece entre las fuentes de `groundingMetadata` de esa misma respuesta o si responde al abrirla (2xx/3xx; Volleybox contesta 403 a los bots y se acepta si viene en `groundingMetadata`). Los enlaces de redirección de Google en `groundingMetadata` (`vertexaisearch.cloud.google.com/grounding-api-redirect/…`) se resuelven a su URL final antes de guardarlos. Si ninguna fuente del dato pasa, se descarta.
 - Partidos: fecha válida, futura, a menos de 120 días, zona IANA válida, local y visitante presentes. La hora llega como la publica la fuente (`fecha`, `hora`, `zonaHoraria`), junto con `zonaSede`. El código calcula el instante con `hora` + `zonaHoraria` y guarda `inicio` en `zonaSede` (`relojLocalAUtc` e `isoEnZona` del v1). El desfase de `inicio` debe coincidir con `zonaSede`.
 - Plantilla: un alta necesita aparecer en una lista oficial (FMVB, NORCECA, FIVB/Volleyball World, Panam Sports, Centro Caribe Sports) de los últimos 12 meses. Una baja necesita anuncio explícito o 24 meses sin aparecer en listas oficiales (se calcula con `ultimaListaOficial.fecha`; si la fecha es `null`, nunca hay baja por inactividad). Faltar a un torneo nunca es baja.
 - Nombres: el `slug` que propone el agente se acepta solo si el apellido coincide (comparado sin acentos ni mayúsculas). Si una lista trae solo apellidos, se fusiona cuando el apellido es único en la plantilla; si no, va a dudas del PR.
@@ -428,7 +431,7 @@ Detalles técnicos:
 
 Ambos usan Node 24: `actions/setup-node` con `node-version-file: .nvmrc`.
 
-- `actualizar.yml`: `schedule` lunes 06:17 de Tonalá (`17 12 * * 1` en UTC) y `workflow_dispatch`. Secreto `GEMINI_API_KEY`, variables `GEMINI_MODELOS` y `MAX_LLAMADAS`. Después del commit, construye y despliega en el mismo workflow: un push hecho con `GITHUB_TOKEN` no dispara otros workflows.
+- `actualizar.yml`: `schedule` lunes 06:17 de Tonalá (`17 12 * * 1` en UTC) y `workflow_dispatch`. Secretos `GEMINI_API_KEY` y `TAVILY_API_KEY`, variables `GEMINI_MODELOS`, `MAX_LLAMADAS` y `BUSQUEDA`. Después del commit, construye y despliega en el mismo workflow: un push hecho con `GITHUB_TOKEN` no dispara otros workflows.
 - `deploy.yml`: en push a `main` (por ejemplo al aprobar el PR), `astro build` y despliegue a Pages (`actions/upload-pages-artifact` + `actions/deploy-pages`; en Settings → Pages, fuente *GitHub Actions*). Configurar `site` y `base` de Astro según el nombre del repo.
 
 ## Fases

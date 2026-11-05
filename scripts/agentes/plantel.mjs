@@ -1,6 +1,7 @@
 // Agente 01: listas oficiales, altas y bajas. El agente reporta; estas reglas deciden.
 
 import { z } from 'zod';
+import { planPlantel } from './busquedas.mjs';
 import { confianza, consultar, fechaN, proponer, restarMeses, textoN, validos } from './comun.mjs';
 import { dominio } from '../lib/fuentes.mjs';
 import { normal } from '../lib/fusion.mjs';
@@ -178,7 +179,7 @@ export async function correr(ctx) {
     slug: j.slug, nombre: j.nombre, ultimaLista: j.ultimaListaOficial?.torneo ?? null, fecha: j.ultimaListaOficial?.fecha ?? null,
   }));
   const listasConocidas = [...new Set(datos.jugadoras.flatMap((j) => (j.ultimaListaOficial ? [j.ultimaListaOficial.torneo] : [])))];
-  const { respuesta, verificar } = await consultar(ctx, AGENTE, null, { plantelActual, listasConocidas }, esquema);
+  const { respuesta, verificar } = await consultar(ctx, AGENTE, null, { plantelActual, listasConocidas }, esquema, planPlantel(ctx));
 
   await procesarListas(ctx, respuesta.listas, verificar);
   await procesarApariciones(ctx, respuesta.ultimasApariciones, verificar);

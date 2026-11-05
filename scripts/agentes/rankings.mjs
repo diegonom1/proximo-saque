@@ -1,6 +1,7 @@
 // Agente 06: lugar y puntos de México en los rankings FIVB y NORCECA.
 
 import { z } from 'zod';
+import { planRankings } from './busquedas.mjs';
 import { consultar, confianza, fechaN, textoN } from './comun.mjs';
 
 export const AGENTE = '06-rankings';
@@ -18,7 +19,7 @@ const esquema = z.object({ fivb: esquemaRanking, norceca: esquemaRanking });
 export async function correr(ctx) {
   const { rankings } = ctx.datos;
   const { fivb, norceca } = rankings;
-  const { respuesta, verificar } = await consultar(ctx, AGENTE, null, { guardado: { fivb, norceca } }, esquema);
+  const { respuesta, verificar } = await consultar(ctx, AGENTE, null, { guardado: { fivb, norceca } }, esquema, planRankings());
 
   for (const clave of ['fivb', 'norceca']) {
     const nuevo = respuesta[clave];

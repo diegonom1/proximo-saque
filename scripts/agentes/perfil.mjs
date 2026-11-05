@@ -1,6 +1,7 @@
 // Agente 02: ficha de una jugadora.
 
 import { z } from 'zod';
+import { planPerfil } from './busquedas.mjs';
 import { confianza, consultar, proponer, textoN, validos } from './comun.mjs';
 import { normal } from '../lib/fusion.mjs';
 import { slugDe } from '../lib/nombres.mjs';
@@ -133,7 +134,7 @@ export async function correr(ctx, slug) {
     },
     faltan: [...campos.filter((c) => j[c] === null), ...(club ? [] : ['club']), 'historialClubes', 'redes', 'destacados'],
   };
-  const { respuesta, verificar } = await consultar(ctx, AGENTE, slug, entrada, esquema);
+  const { respuesta, verificar } = await consultar(ctx, AGENTE, slug, entrada, esquema, planPerfil(ctx, j, club));
   if (respuesta.slug !== slug) throw new Error(`la respuesta es de ${respuesta.slug}, no de ${slug}`);
 
   let datosNuevos = 0;

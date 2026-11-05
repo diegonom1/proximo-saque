@@ -1,6 +1,7 @@
 // Agente 03: partidos de un club.
 
 import { z } from 'zod';
+import { planPartidos } from './busquedas.mjs';
 import { consultar, sumarDias, textoN, validos } from './comun.mjs';
 import { esquemaPartido, convertir } from '../lib/validar.mjs';
 
@@ -46,7 +47,7 @@ export async function correr(ctx, clubId) {
     })),
     ...(textoPagina ? { textoPagina, urlPagina: club.calendarioUrl } : {}),
   };
-  const { respuesta, verificar } = await consultar(ctx, AGENTE, clubId, entrada, esquema);
+  const { respuesta, verificar } = await consultar(ctx, AGENTE, clubId, entrada, esquema, planPartidos(ctx, club, liga));
 
   const nuevos = [];
   for (const p of respuesta.partidos ?? []) {

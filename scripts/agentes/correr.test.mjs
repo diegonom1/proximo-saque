@@ -42,8 +42,8 @@ const jugadora = async (slug) => (await leer('jugadoras.json')).find((j) => j.sl
 
 const llamarCon = (respuestas = {}) => {
   const llamadas = [];
-  const llamar = async ({ agente, clave, mensaje }) => {
-    llamadas.push({ agente, clave, mensaje });
+  const llamar = async ({ agente, clave, mensaje, conBusqueda }) => {
+    llamadas.push({ agente, clave, mensaje, conBusqueda });
     const r = respuestas[agente] ?? VACIAS[agente];
     const v = typeof r === 'function' ? (r(clave) ?? VACIAS[agente]) : r;
     const final = typeof v === 'function' ? v(clave) : v;
@@ -511,6 +511,69 @@ describe('orquestador', () => {
     const nombres = ['jugadoras', 'clubes', 'ligas', 'partidos', 'seleccion', 'torneos', 'rankings'];
     const crudos = Object.fromEntries(await Promise.all(nombres.map(async (n) => [n, await leer(`${n}.json`)])));
     expect(() => validarDatos(crudos)).not.toThrow();
+  });
+});
+
+describe('búsqueda hecha por el código', () => {
+  const URL_BUENA = 'https://cbv.com.br/tabela';
+  const buscadorFalso = (resultados = [{ url: URL_BUENA, titulo: 'Tabela', contenido: 'Rodada 9' }]) => {
+    const planes = [];
+    return {
+      planes,
+      investigar: async (plan) => { planes.push(plan); return { resultados }; },
+      resumen: async () => ({ proveedor: 'Tavily', corrida: planes.length, mes: 40, limite: 800 }),
+    };
+  };
+  const partido = (fuente) => ({ fecha: '2026-12-01', hora: '21:00', zonaHoraria: 'America/Sao_Paulo', zonaSede: 'America/Sao_Paulo', local: 'Sesi Vôlei Bauru', visitante: 'Praia Clube', nuestro: 'local', fuente });
+  const sesi = (fuente) => ({ '03-partidos-club': (clave) => (clave === 'sesi-bauru' ? { clubId: clave, partidos: [partido(fuente)] } : undefined) });
+  const correrCon = (buscador, respuestas) => {
+    const llamar = llamarCon(respuestas);
+    return correr({ dirDatos: dir, dirFotos: fotos, llamar, buscador, verificar: async () => { throw new Error('no debe usarse'); }, ahora: AHORA }).then((r) => ({ r, llamar }));
+  };
+  const hay = async () => (await leer('partidos.json')).partidos.some((p) => p.id === 'club-sesi-bauru-2026-12-01');
+
+  it('una fuente vale si su URL vino en los resultados', async () => {
+    await correrCon(buscadorFalso(), sesi(URL_BUENA));
+    expect(await hay()).toBe(true);
+  });
+  it('otra página del mismo dominio no vale', async () => {
+    await correrCon(buscadorFalso(), sesi('https://cbv.com.br/inventada'));
+    expect(await hay()).toBe(false);
+  });
+  it('Gemini recibe los resultados en el mensaje y no busca', async () => {
+    const { llamar } = await correrCon(buscadorFalso(), {});
+    const m = JSON.parse(llamar.llamadas[0].mensaje);
+    expect(m.resultadosBusqueda).toEqual([{ url: URL_BUENA, titulo: 'Tabela', contenido: 'Rodada 9' }]);
+    expect(m.guardado).toBeTruthy();
+    expect(llamar.llamadas.every((l) => l.conBusqueda === false)).toBe(true);
+  });
+  it('sin resultados no gasta una llamada a Gemini', async () => {
+    const { r, llamar } = await correrCon(buscadorFalso([]), {});
+    expect(llamar.llamadas).toHaveLength(0);
+    expect(r.resumen).toContain('no trajo resultados');
+  });
+  it('si se acaban los créditos todo queda pendiente', async () => {
+    const buscador = { ...buscadorFalso(), investigar: async () => { throw Object.assign(new Error('límite de 800'), { sinCuota: true }); } };
+    const { r, llamar } = await correrCon(buscador, {});
+    expect(llamar.llamadas).toHaveLength(0);
+    expect(r.pendientes.length).toBeGreaterThan(10);
+  });
+  it('el resumen muestra los créditos', async () => {
+    const { r } = await correrCon(buscadorFalso(), {});
+    expect(r.resumen).toMatch(/Tavily: \d+ créditos en esta corrida · 40 de 800 este mes/);
+  });
+  it('usa búsquedas con dominio para Volleybox y la liga', async () => {
+    const b = buscadorFalso();
+    await correrCon(b, {});
+    const dominios = b.planes.flatMap((p) => p.consultas.flatMap((c) => c.dominios ?? []));
+    expect(dominios).toEqual(expect.arrayContaining(['volleybox.net', 'cbv.com.br', 'norceca.info']));
+  });
+  it('una corrida normal cabe en el presupuesto de créditos', async () => {
+    const b = buscadorFalso();
+    await correrCon(b, {});
+    const porCorrida = b.planes.reduce((t, p) => t + p.consultas.length + 1, 0);
+    expect(porCorrida).toBeLessThanOrEqual(60);
+    expect(porCorrida * 5).toBeLessThanOrEqual(800); // un mes con 5 lunes
   });
 });
 

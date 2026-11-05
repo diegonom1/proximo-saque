@@ -67,7 +67,10 @@ npm run agentes:simulado
 
 Corre todo el proceso con respuestas guardadas en `scripts/pruebas/` y muestra qué encontró y qué descartó, sin escribir nada en `data/`.
 
+## Claves
+
+En `.env` (nunca se sube al repo) van `GEMINI_API_KEY`, de [Google AI Studio](https://aistudio.google.com/), y `TAVILY_API_KEY`, de [Tavily](https://tavily.com/). Las dos son gratis. El sitio no pasa de 800 créditos de Tavily al mes; `npm run agentes:seco` hace una corrida real sin escribir nada.
+
 ## Antes de la fase 5
 
-- Saquen una clave gratis de la API de Gemini en [Google AI Studio](https://aistudio.google.com/). Es aparte de su plan de estudiante.
 - Prueben los agentes en AI Studio con las instrucciones de `agentes/README.md`.

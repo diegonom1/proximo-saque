@@ -12,6 +12,7 @@ beforeAll(async () => {
   dir = await mkdtemp(join(tmpdir(), 'agentes-'));
   await writeFile(join(dir, '00-reglas-comunes.md'), 'Reglas. Hoy es {{HOY}}.');
   await writeFile(join(dir, '06-rankings.md'), '# Rankings\n\nTarea.\n\n## Prueba manual\n\nSecreto.\n');
+  await writeFile(join(dir, '00-resultados-busqueda.md'), 'Usa solo los resultados.\n');
 });
 
 const cliente = (pedir, extra = {}) => crearClienteGemini({
@@ -38,6 +39,18 @@ describe('crearClienteGemini', () => {
     expect(cuerpo.tools).toEqual([{ google_search: {} }]);
     expect(cuerpo.generationConfig).toEqual({ temperature: 0 });
     expect(r).toEqual({ texto: '{"a":1}', fuentes: [{ uri: 'https://cbv.com.br/x', titulo: 'cbv.com.br' }], modelo: 'gemini-2.5-flash' });
+  });
+  it('con la búsqueda hecha por el código no manda herramientas y agrega el anexo', async () => {
+    const pedir = vi.fn(async () => ok('{}'));
+    await cliente(pedir)({ ...llamada, conBusqueda: false });
+    const cuerpo = JSON.parse(pedir.mock.calls[0][1].body);
+    expect(cuerpo.tools).toBeUndefined();
+    expect(cuerpo.system_instruction.parts[0].text).toContain('Usa solo los resultados.');
+  });
+  it('con google_search no agrega el anexo', async () => {
+    const pedir = vi.fn(async () => ok('{}'));
+    await cliente(pedir)(llamada);
+    expect(JSON.parse(pedir.mock.calls[0][1].body).system_instruction.parts[0].text).not.toContain('Usa solo los resultados.');
   });
   it('en Gemini 3 deja la temperatura por defecto', async () => {
     const pedir = vi.fn(async () => ok('{}'));

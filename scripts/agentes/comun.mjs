@@ -1,6 +1,7 @@
 // Piezas que comparten los agentes.
 
 import { z } from 'zod';
+import { verificadorDeResultados } from '../lib/busqueda.mjs';
 import { extraerJSON } from '../lib/gemini.mjs';
 
 export const textoN = z.string().nullable().optional();
@@ -8,7 +9,15 @@ export const fechaN = z.iso.date().nullable().optional();
 export const confianza = z.enum(['alta', 'media', 'baja']).nullable().optional();
 
 // Pregunta a un agente y valida la forma de la respuesta. `verificar` devuelve la URL a guardar o null.
-export async function consultar(ctx, agente, clave, entrada, esquema) {
+// Con buscador, el código busca primero y una fuente vale solo si su URL vino en esos resultados.
+export async function consultar(ctx, agente, clave, entrada, esquema, plan) {
+  if (ctx.buscador) {
+    const { resultados } = await ctx.buscador.investigar(plan);
+    if (resultados.length === 0) throw new Error('la búsqueda no trajo resultados');
+    const mensaje = JSON.stringify({ ...entrada, resultadosBusqueda: resultados }, null, 2);
+    const r = await ctx.llamar({ agente, clave, mensaje, conBusqueda: false });
+    return { respuesta: esquema.parse(extraerJSON(r.texto)), verificar: verificadorDeResultados(resultados) };
+  }
   const r = await ctx.llamar({ agente, clave, mensaje: JSON.stringify(entrada, null, 2) });
   const respuesta = esquema.parse(extraerJSON(r.texto));
   return { respuesta, verificar: (url) => ctx.verificar(url, r.fuentes) };

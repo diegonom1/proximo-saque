@@ -25,8 +25,10 @@ export function crearReporte() {
       dudas.length = marca.dudas;
       for (const [a, r] of agentes) r.encontro.length = marca.agentes.get(a) ?? 0;
     },
-    resumen({ modo, llamadas, maximo, pendientes }) {
-      const lineas = ['## Próximo Saque · actualización', '', `Modo: ${modo} · llamadas: ${llamadas} de ${maximo}`, ''];
+    resumen({ modo, llamadas, maximo, pendientes, busqueda }) {
+      const lineas = ['## Próximo Saque · actualización', '', `Modo: ${modo} · llamadas: ${llamadas} de ${maximo}`];
+      if (busqueda) lineas.push(`${busqueda.proveedor}: ${busqueda.corrida} créditos en esta corrida · ${busqueda.mes} de ${busqueda.limite} este mes`);
+      lineas.push('');
       for (const [agente, r] of agentes) {
         lineas.push(`### ${agente}`, '');
         for (const t of r.encontro) lineas.push(`- ${t}`);

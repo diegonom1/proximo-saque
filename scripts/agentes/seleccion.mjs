@@ -1,6 +1,7 @@
 // Agente 04: próximo compromiso de la Selección y torneos terminados.
 
 import { z } from 'zod';
+import { planSeleccion } from './busquedas.mjs';
 import { confianza, consultar, fechaN, proponer, textoN, validos } from './comun.mjs';
 import { resolverJugadora } from '../lib/nombres.mjs';
 import { idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
@@ -157,7 +158,7 @@ export async function correr(ctx) {
     proximoGuardado: datos.seleccion.proximoTorneo,
     plantel: datos.jugadoras.filter((j) => j.estado !== 'exseleccionada').map((j) => j.nombre),
   };
-  const { respuesta, verificar } = await consultar(ctx, AGENTE, null, entrada, esquema);
+  const { respuesta, verificar } = await consultar(ctx, AGENTE, null, entrada, esquema, planSeleccion(ctx));
   await proximoTorneo(ctx, respuesta.proximoTorneo, verificar);
   const nuevos = await partidos(ctx, respuesta, verificar);
   await torneos(ctx, respuesta.torneosTerminados, verificar);

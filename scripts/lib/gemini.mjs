@@ -14,12 +14,14 @@ export function extraerJSON(salida) {
 }
 
 // Reglas comunes + agente, hasta "## Prueba manual" (esa parte es solo para las personas).
-export async function instruccionesDe(agente, hoy, dirAgentes) {
-  const [comunes, propio] = await Promise.all([
+// Si la búsqueda la hace el código, se agrega cómo trabajar con los resultados.
+export async function instruccionesDe(agente, hoy, dirAgentes, conResultados = false) {
+  const [comunes, propio, modo] = await Promise.all([
     readFile(join(dirAgentes, '00-reglas-comunes.md'), 'utf8'),
     readFile(join(dirAgentes, `${agente}.md`), 'utf8'),
+    conResultados ? readFile(join(dirAgentes, '00-resultados-busqueda.md'), 'utf8') : '',
   ]);
-  return `${comunes}\n\n${propio.split(/^## Prueba manual/m)[0].trimEnd()}\n`.replaceAll('{{HOY}}', hoy);
+  return `${comunes}\n\n${propio.split(/^## Prueba manual/m)[0].trimEnd()}\n\n${modo}`.trimEnd().concat('\n').replaceAll('{{HOY}}', hoy);
 }
 
 const dormirReal = (ms) => new Promise((r) => { setTimeout(r, ms); });
@@ -43,12 +45,12 @@ export function crearClienteGemini({
 }) {
   let primera = true;
 
-  async function preguntar(modelo, sistema, mensaje) {
+  async function preguntar(modelo, sistema, mensaje, conBusqueda) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelo)}:generateContent`;
     const cuerpo = JSON.stringify({
       system_instruction: { parts: [{ text: sistema }] },
       contents: [{ role: 'user', parts: [{ text: mensaje }] }],
-      tools: [{ google_search: {} }],
+      ...(conBusqueda ? { tools: [{ google_search: {} }] } : {}),
       generationConfig: generacion(modelo),
     });
     let ultimo = '';
@@ -77,13 +79,14 @@ export function crearClienteGemini({
     return { agotado: `${modelo}: respondió ${ultimo} después de ${intentos} intentos` };
   }
 
-  return async function llamar({ agente, mensaje }) {
+  // `conBusqueda: false`: los resultados ya vienen en el mensaje y Gemini no usa herramientas.
+  return async function llamar({ agente, mensaje, conBusqueda = true }) {
     if (!primera) await dormir(pausaMs);
     primera = false;
-    const sistema = await instruccionesDe(agente, hoy, dirAgentes);
+    const sistema = await instruccionesDe(agente, hoy, dirAgentes, !conBusqueda);
     const motivos = [];
     for (const modelo of modelos) {
-      const r = await preguntar(modelo, sistema, mensaje);
+      const r = await preguntar(modelo, sistema, mensaje, conBusqueda);
       if (!r.agotado) return r;
       motivos.push(r.agotado);
     }

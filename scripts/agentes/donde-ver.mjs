@@ -1,6 +1,7 @@
 // Agente 05: dónde ver una liga o el próximo torneo desde México.
 
 import { z } from 'zod';
+import { planDondeVer } from './busquedas.mjs';
 import { confianza, consultar, proponer, textoN, validos } from './comun.mjs';
 
 export const AGENTE = '05-donde-ver';
@@ -56,7 +57,7 @@ export async function correr(ctx, id) {
     ? { tipo: 'torneo', nombre: torneo.nombre, pais: torneo.pais, temporada: String(torneo.edicion ?? '') }
     : { tipo: 'liga', nombre: liga.nombre, pais: liga.pais, temporada: liga.temporada };
   const clubes = esTorneo ? [] : Object.values(datos.clubes).filter((c) => c.ligaId === id).map((c) => c.nombre);
-  const { respuesta, verificar } = await consultar(ctx, AGENTE, id, { competencia, clubes, espectador: 'México' }, esquema);
+  const { respuesta, verificar } = await consultar(ctx, AGENTE, id, { competencia, clubes, espectador: 'México' }, esquema, planDondeVer(ctx, competencia, liga));
 
   const destino = esTorneo ? datos.seleccion : liga;
   const plataformas = [];
