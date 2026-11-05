@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { evidenciaPartido, fechasEn, normalizar, palabrasDe } from './evidencia.mjs';
+import { evidenciaParticipacion, evidenciaPartido, fechasEn, normalizar, palabrasDe } from './evidencia.mjs';
 
 // Copia real de spikelive.fr/ligue/laf/calendrier: filas de aria-label + texto, y solo el texto de Tavily.
 const pagina = (nombre) => readFileSync(new URL(`../pruebas/paginas/${nombre}`, import.meta.url), 'utf8');
@@ -92,4 +92,36 @@ describe('palabrasDe', () => {
   it('"Le Cannet" es "cannet"', () => expect(palabrasDe('Le Cannet')).toEqual(['cannet']));
   it('sin palabras útiles usa el nombre', () => expect(palabrasDe('LA VC')).toEqual(['la vc']));
   it('los nombres en chino se quedan', () => expect(palabrasDe('天津渤海银行')).toEqual(['天津渤海银行']));
+});
+
+describe('evidenciaParticipacion', () => {
+  const MUNDIAL = ['Campeonato Mundial', 'Mundial', 'World Championship'];
+  const COPA = ['Copa del Mundo', 'World Cup', 'Copa Mundial'];
+  const ver2 = (titulo, contenido, nombres = MUNDIAL, edicion = 2027) => evidenciaParticipacion({ titulo, contenido }, nombres, edicion);
+  // Textos reales de Claro Sports y de la FIVB.
+  const CLARO = 'México tendrá nuevamente representación femenil y varonil en el voleibol de sala de los Campeonatos Mundiales de 2027, al lograr la clasificación por ubicarse el sitio 21 y 24 del ranking de la disciplina, respectivamente.';
+  const FIVB = 'All 32 teams are set to compete for glory in the United States and Canada. Finally, the Netherlands, Russia, Germany, Czechia, Belgium, France, Slovenia, Sweden, Mexico, Ukraine, Greece, Korea, Bulgaria and Switzerland qualified through this pathway.';
+
+  it('acepta la nota de Claro', () => expect(ver2('México clasifica con sus selecciones femenil y varonil a los Mundiales de Voleibol de 2027', CLARO)).toBe(true));
+  it('acepta la lista de clasificados de la FIVB, con el torneo en el título', () => {
+    expect(ver2('Qualified Teams confirmed for the 2027 FIVB Volleyball Women\'s World Cup', FIVB, COPA)).toBe(true);
+  });
+  it('sin México en la lista no vale', () => {
+    expect(ver2('Qualified Teams confirmed for the 2027 FIVB Volleyball Women\'s World Cup', FIVB.replace('Mexico, ', ''), COPA)).toBe(false);
+  });
+  it('que México se mencione sin participar no vale', () => {
+    expect(ver2('Mundial femenil 2027', 'El Mundial de 2027 se jugará en Canadá. México fue sede de otro torneo de voleibol femenil.')).toBe(false);
+  });
+  it('otra edición no vale', () => expect(ver2('Mundial femenil 2025', 'México clasificó al Mundial de 2025 de voleibol femenil.')).toBe(false));
+  it('otro torneo no vale', () => expect(ver2('Copa Panamericana 2027', 'México clasificó a la Copa Panamericana 2027 de voleibol femenil.')).toBe(false));
+  it('la rama varonil no vale', () => {
+    expect(ver2('Mundial varonil 2027', 'México clasificó al Mundial varonil de 2027. Las mujeres juegan otra liga.')).toBe(false);
+  });
+  it('una categoría juvenil no vale', () => {
+    expect(ver2('Mundial Sub-21 femenil 2027', 'México clasificó al Mundial de 2027 de voleibol femenil.')).toBe(false);
+    expect(ver2('Noticias', 'México clasificó al Mundial U21 de 2027 de voleibol femenil.')).toBe(false);
+  });
+  it('voleibol de playa no vale', () => expect(ver2('Noticias', 'México clasificó al Mundial de 2027 de voleibol de playa femenil.')).toBe(false));
+  it('sin decir que es femenil no vale', () => expect(ver2('Mundial 2027', 'México clasificó al Mundial de 2027.')).toBe(false));
+  it('sin edición basta el torneo', () => expect(ver2('Noticias', 'México clasificó al Mundial de voleibol femenil.', MUNDIAL, null)).toBe(true));
 });

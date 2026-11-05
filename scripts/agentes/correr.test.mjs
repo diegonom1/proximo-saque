@@ -312,7 +312,7 @@ describe('perfiles', () => {
   it('la rotación avanza aunque el PR no se apruebe', async () => {
     const primeras = llamarCon();
     await correr({ dirDatos: dir, dirFotos: fotos, llamar: primeras, verificar: crearVerificador({ red: false }), ahora: AHORA });
-    const original = await readFile(new URL('../../data/jugadoras.json', import.meta.url), 'utf8');
+    const original = await readFile(new URL('../pruebas/datos-base/jugadoras.json', import.meta.url), 'utf8');
     await writeFile(join(dir, 'jugadoras.json'), original); // el PR sigue sin aprobarse
     const segundas = llamarCon();
     await correr({ dirDatos: dir, dirFotos: fotos, llamar: segundas, verificar: crearVerificador({ red: false }), ahora: AHORA + 7 * 864e5 });
@@ -871,6 +871,21 @@ describe('manual.json: próximo torneo', () => {
     expect((await proximo()).nombre).toBe('Copa Challenger');
     expect(r.resumen).toContain('ya terminó');
   });
+  it('un torneo confirmado antes del manual sale en el resumen para decidir', async () => {
+    await mano(base);
+    const r = await ejecutar(llamaProximo);
+    expect(r.resumen).toContain('**Por revisar:** El agente halló un torneo antes del de manual.json: Copa Challenger 2027, desde el 2027-05-01');
+  });
+  it('uno posterior no molesta', async () => {
+    await mano({ ...base, fechaInicio: '2027-01-01', fechaFin: '2027-01-08' });
+    const r = await ejecutar(llamaProximo);
+    expect(r.resumen).not.toContain('antes del de manual.json');
+  });
+  it('el mismo torneo con otro nombre tampoco', async () => {
+    await mano(base);
+    const r = await ejecutar({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], proximoTorneo: { nombre: 'Lima 2027', edicion: 2027, fechaInicio: '2027-07-23', fechaFin: '2027-08-08', fuente: OFICIAL, confianza: 'alta' } } });
+    expect(r.resumen).not.toContain('antes del de manual.json');
+  });
   it('sin fuente no pasa la validación', async () => {
     await mano({ nombre: 'Copa', edicion: 2027 });
     await expect(ejecutar({})).rejects.toThrow();
@@ -1056,6 +1071,27 @@ describe('verificación de partidos próximos', () => {
   });
 });
 
+describe('próximo torneo: la fuente debe decir que México participa', () => {
+  const FIVB = 'https://www.fivb.com/qualified-teams';
+  const respuesta = (cambios = {}) => ({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], proximoTorneo: { nombre: 'Copa del Mundo Femenina de Voleibol de la FIVB', edicion: 2027, fechaInicio: '2027-08-20', fechaFin: '2027-09-05', fuente: FIVB, confianza: 'alta', ...cambios } } });
+  const corre = (contenido, titulo = 'Qualified Teams confirmed for the 2027 FIVB Volleyball Women\'s World Cup') => correr({
+    dirDatos: dir, dirFotos: fotos, llamar: llamarCon(respuesta()), verificar: async () => null, ahora: AHORA,
+    buscador: { investigar: async () => ({ resultados: [{ url: FIVB, titulo, contenido }] }), resumen: async () => ({ proveedor: 'Tavily', corrida: 1, mes: 1, limite: 800 }), usarPrevios: () => {} },
+  });
+  const proximo = async () => (await leer('seleccion.json')).proximoTorneo;
+
+  it('con México en la lista de clasificados entra', async () => {
+    await corre('Sweden, Mexico, Ukraine, Greece, Korea, Bulgaria and Switzerland qualified through this pathway.');
+    expect(await proximo()).toMatchObject({ id: 'copa-del-mundo-2027', nombre: 'Copa del Mundo', edicion: 2027 });
+  });
+  it('si la fuente no dice que México clasificó se descarta y queda lo anterior', async () => {
+    await cambiar('seleccion.json', (s) => { s.proximoTorneo = null; });
+    const r = await corre('Sweden, Ukraine, Greece, Korea, Bulgaria and Switzerland qualified through this pathway.');
+    expect(await proximo()).toBeNull();
+    expect(r.resumen).toContain('no dice que México (mayor femenil) participe');
+  });
+});
+
 describe('perfiles: un listado no es fuente', () => {
   const LISTADO = 'https://women.volleybox.net/players?country=MX';
   it('rechaza el listado aunque nombre a la jugadora', async () => {
@@ -1086,7 +1122,7 @@ describe('Pull Request que acumula', () => {
   const baja = (fuente) => plantel({ bajas: [{ slug: 'jocelyn-urias', tipo: 'retiro', evidencia: 'Anunció su retiro', fuente, confianza: 'alta' }] });
   const semana = (n) => AHORA + n * 7 * 864e5;
   const vuelveAMain = async (original) => writeFile(join(dir, 'jugadoras.json'), original);
-  const original = () => readFile(new URL('../../data/jugadoras.json', import.meta.url), 'utf8');
+  const original = () => readFile(new URL('../pruebas/datos-base/jugadoras.json', import.meta.url), 'utf8');
 
   it('guarda lo propuesto en estado-agentes con su fuente', async () => {
     await ejecutar(conAlta());

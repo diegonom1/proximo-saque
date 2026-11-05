@@ -2,6 +2,14 @@
   "partidos": [],
   "jugadoras": {},
   "seleccion": {
-    "proximoTorneo": null
+    "proximoTorneo": {
+      "nombre": "Campeonato Mundial",
+      "edicion": 2027,
+      "ciudad": "Anaheim, Omaha, Orlando, Montreal y Quebec",
+      "pais": "Estados Unidos y Canadá",
+      "fechaInicio": "2027-08-20",
+      "fechaFin": "2027-09-05",
+      "fuente": "https://www.clarosports.com/otros-deportes/mexico-clasifica-mundial-voleibol-2027/"
+    }
   }
 }

@@ -140,3 +140,29 @@ export function evidenciaPartido(texto, { fecha, hora, rival, propio }) {
   }
   return resultado;
 }
+
+const PARTICIPA = /clasific|qualif|participa|disputar|competir|compete|anfitri|\bhosts?\b/;
+const OTRA_CATEGORIA = /\bsub[- ]?\d{2}\b|\bu[- ]?\d{2}\b|juvenil|playa|beach/;
+const VARONIL = /varonil|masculin|\bmen'?s\b/;
+const FEMENIL = /femenil|femenin|feminin|women|mujeres/;
+const SIN_PESO = new Set(['de', 'del', 'la', 'el', 'y', 'and', 'the', 'of', 'fivb', 'voleibol', 'volleyball']);
+const ALREDEDOR = 200;
+
+const palabrasTorneo = (nombre) => normalizar(nombre).split(/[^\p{L}\p{N}]+/u).filter((p) => p && !SIN_PESO.has(p));
+
+// ¿La fuente dice que México (mayor femenil) participa o clasificó a ese torneo? La mención de México y el
+// verbo van juntos; el torneo, ahí mismo o en el título: en una lista de clasificados suele estar arriba.
+export function evidenciaParticipacion({ titulo, contenido }, nombres, edicion) {
+  const encabezado = normalizar(titulo);
+  const pagina = `${encabezado} ${normalizar(contenido).replace(/\s+/g, ' ')}`;
+  if (!FEMENIL.test(pagina) || OTRA_CATEGORIA.test(encabezado)) return false;
+  if (VARONIL.test(encabezado) && !FEMENIL.test(encabezado)) return false;
+  const delTorneo = (texto) => (!edicion || texto.includes(String(edicion)))
+    && nombres.some((n) => palabrasTorneo(n).every((p) => texto.includes(p)));
+  return [...pagina.matchAll(/\bmexic/g)].some(({ index }) => {
+    const ventana = pagina.slice(Math.max(0, index - ALREDEDOR), index + ALREDEDOR);
+    if (!PARTICIPA.test(ventana) || OTRA_CATEGORIA.test(ventana)) return false;
+    if (VARONIL.test(ventana) && !FEMENIL.test(ventana)) return false;
+    return delTorneo(ventana) || delTorneo(encabezado);
+  });
+}

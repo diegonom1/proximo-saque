@@ -275,7 +275,7 @@ Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los ree
 }
 ```
 
-`partidos` funciona como en el v1 (agregar, corregir o `"eliminar": true`). `jugadoras` fija campos por slug (`{ "jocelyn-urias": { "capitana": true } }`) y gana sobre la IA. `seleccion.proximoTorneo` fija el próximo torneo y gana sobre el agente 04 mientras no termine; pide `nombre`, `edicion` y `fuente`, y lo demás es opcional (`ciudad`, `pais`, `fechaInicio`, `fechaFin`; el `id` se calcula). Con `null` decide el agente. Se aplica en la siguiente corrida.
+`partidos` funciona como en el v1 (agregar, corregir o `"eliminar": true`). `jugadoras` fija campos por slug (`{ "jocelyn-urias": { "capitana": true } }`) y gana sobre la IA. `seleccion.proximoTorneo` fija el próximo torneo y gana sobre el agente 04 mientras no termine; pide `nombre`, `edicion` y `fuente`, y lo demás es opcional (`ciudad`, `pais`, `fechaInicio`, `fechaFin`; el `id` se calcula). Con `null` decide el agente. Se aplica en la siguiente corrida. Si el agente halla un torneo confirmado que empieza antes, sale en "Por revisar" para decidir.
 
 ## Páginas
 
@@ -425,7 +425,8 @@ Detalles técnicos:
 - Un cambio de fecha, hora o rival a un partido que ya existe solo se aplica si la fuente es la liga, el club o Volleybox (en la Selección, la federación). Si no, queda como está y sale en el resumen como "Por revisar". Un partido nuevo entra con cualquier fuente válida. Lo que el agente no confirma se conserva.
 - Plantilla: un alta necesita aparecer en una lista oficial (FMVB, NORCECA, FIVB/Volleyball World, Panam Sports, Centro Caribe Sports) de los últimos 12 meses. Una baja necesita anuncio explícito o 24 meses sin aparecer en listas oficiales (se calcula con `ultimaListaOficial.fecha`; si la fecha es `null`, nunca hay baja por inactividad). Faltar a un torneo nunca es baja.
 - Nombres: el `slug` que propone el agente se acepta solo si el apellido coincide (comparado sin acentos ni mayúsculas). Si una lista trae solo apellidos, se fusiona cuando el apellido es único en la plantilla; si no, va a dudas del PR.
-- Torneos: máximo 7 por fecha de fin. El `id` sale del nombre canónico y la edición (`norceca-final-six-2026`, `campeonato-mundial-2025`). `scripts/lib/torneos.mjs` tiene el catálogo: "Mundial" y "World Championship" son el mismo torneo. También lo son dos con la misma edición y fechas traslapadas.
+- Próximo torneo: solo vale si el texto de la fuente dice que México (mayor femenil) participa o clasificó (`evidenciaParticipacion`): México junto a un verbo de participación, y el torneo y la edición ahí mismo o en el título. Varonil, playa y categorías juveniles no cuentan.
+- Torneos: máximo 7 por fecha de fin. El `id` sale del nombre canónico y la edición (`norceca-final-six-2026`, `campeonato-mundial-2025`). `scripts/lib/torneos.mjs` tiene el catálogo: "Mundial" y "World Championship" son el mismo torneo; "Copa del Mundo" es otra entrada. También son el mismo dos con la misma edición y fechas traslapadas, porque la Selección no juega dos torneos a la vez.
 - Si un agente falla o su respuesta no valida, se conservan los datos anteriores y se avisa en el resumen.
 - Fuentes oficiales para un alta: `fmvb.org`, `norceca.net`, `norceca.info`, `fivb.com`, `fivb.org`, `volleyballworld.com`, `panamsports.org`, `centrocaribesports.org`.
 - Un torneo terminado sin fechas toma las que ya se conocen: el `proximoTorneo` que acaba de terminar, lo guardado en `torneos.json` o las `ediciones` del catálogo. Sin ninguna de esas, se descarta.

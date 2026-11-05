@@ -32,7 +32,7 @@ import { crearBuscadorTavily } from '../lib/busqueda.mjs';
 import { crearVerificador, textoDePagina } from '../lib/fuentes.mjs';
 import { conMs, fusionar } from '../lib/fusion.mjs';
 import { crearClienteGemini, crearClienteSimulado } from '../lib/gemini.mjs';
-import { idTorneo, nombreCanonico } from '../lib/torneos.mjs';
+import { idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
 import { DURACION_MS, ZONA_SITIO, fechaEnZona, isoEnZona } from '../lib/tiempo.mjs';
 import { convertir, convertirSeleccion, esquemaEstadoAgentes, esquemaManual, esquemaPartido, validarDatos } from '../lib/validar.mjs';
 
@@ -183,6 +183,16 @@ function aplicarManualSeleccion(ctx, manual) {
     fechaFin: t.fechaFin ?? null,
     fuente: t.fuente,
   };
+  avisarTorneoAnterior(ctx, ctx.datos.seleccion.proximoTorneo);
+}
+
+// Lo escrito a mano gana, pero si el agente halló un torneo confirmado antes, decide una persona.
+function avisarTorneoAnterior(ctx, manual) {
+  const hallado = ctx.proximoHallado;
+  if (!hallado || mismoTorneo(hallado, manual)) return;
+  if (hallado.fechaInicio && manual.fechaInicio && hallado.fechaInicio >= manual.fechaInicio) return;
+  const cuando = hallado.fechaInicio ? `desde el ${hallado.fechaInicio}` : 'sin fecha';
+  ctx.reporte.porRevisar(seleccion.AGENTE, `El agente halló un torneo antes del de manual.json: ${hallado.nombre} ${hallado.edicion ?? ''}, ${cuando} (${hallado.fuente}). Si es el próximo, cámbialo en seleccion.proximoTorneo.`);
 }
 
 async function escribir(dir, datos, crudos, seco) {

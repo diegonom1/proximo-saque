@@ -4,8 +4,10 @@ import { z } from 'zod';
 import { FEDERACIONES, planProximo, planTorneo } from './busquedas.mjs';
 import { confianza, consultar, fechaN, proponer, sumarDias, textoN, validos } from './comun.mjs';
 import { decidirPartidos, proximos, revisarEvidencia, textosDe } from './partidos.mjs';
+import { normalizarUrl } from '../lib/busqueda.mjs';
+import { evidenciaParticipacion } from '../lib/evidencia.mjs';
 import { resolverJugadora } from '../lib/nombres.mjs';
-import { delCatalogo, fechasDeCatalogo, idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
+import { delCatalogo, fechasDeCatalogo, idTorneo, mismoTorneo, nombreCanonico, nombresDe } from '../lib/torneos.mjs';
 import { convertirSeleccion, esquemaPartido, esquemaTorneo } from '../lib/validar.mjs';
 
 export const AGENTE = '04-seleccion-torneos';
@@ -58,7 +60,7 @@ function resolverNombres(ctx, nombres, contexto, jugadoras = ctx.datos.jugadoras
   });
 }
 
-async function proximoTorneo(ctx, crudo, verificar) {
+async function proximoTorneo(ctx, crudo, verificar, resultados = []) {
   const { seleccion } = ctx.datos;
   const guardado = seleccion.proximoTorneo;
   const yaTermino = guardado && (guardado.fechaFin ?? guardado.fechaInicio ?? ctx.hoy) < ctx.hoy;
@@ -79,6 +81,12 @@ async function proximoTorneo(ctx, crudo, verificar) {
     ctx.reporte.descarto(AGENTE, t.nombre, t.fuente ? `no se pudo verificar ${t.fuente}` : 'sin fuente');
     return;
   }
+  // Como con los partidos: sin el texto de la fuente (modo simulado) no se coteja.
+  const pagina = resultados.find((r) => normalizarUrl(r.url) === normalizarUrl(fuente));
+  if (pagina && !evidenciaParticipacion(pagina, nombresDe(t.nombre), t.edicion)) {
+    ctx.reporte.descarto(AGENTE, t.nombre, `${fuente} no dice que México (mayor femenil) participe o haya clasificado`);
+    return;
+  }
   seleccion.proximoTorneo = {
     id: idTorneo(t.nombre, t.edicion),
     nombre: nombreCanonico(t.nombre),
@@ -89,6 +97,7 @@ async function proximoTorneo(ctx, crudo, verificar) {
     fechaFin: t.fechaFin ?? null,
     fuente,
   };
+  ctx.proximoHallado = seleccion.proximoTorneo; // manual.json puede ganarle: se compara al final
   ctx.reporte.encontro(AGENTE, `próximo torneo: ${nombreCanonico(t.nombre)} ${t.edicion ?? ''}`.trim());
 }
 
@@ -235,7 +244,7 @@ export async function correr(ctx, clave = null) {
     return;
   }
   const conocido = datos.seleccion.proximoTorneo;
-  await proximoTorneo(ctx, respuesta.proximoTorneo, verificar);
+  await proximoTorneo(ctx, respuesta.proximoTorneo, verificar, resultados);
   const nuevos = await partidos(ctx, respuesta, verificar, resultados);
   await torneos(ctx, respuesta.torneosTerminados, verificar, conocido ? [conocido] : []);
   ctx.torneosDetectados.push(...validos(respuesta.torneosMencionados, esquemaMencion, () => {}));

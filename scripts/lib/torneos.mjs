@@ -7,7 +7,8 @@ import { slugDe } from './nombres.mjs';
 const CATALOGO = [
   { nombre: 'Juegos Olímpicos', alias: ['Olimpiadas', 'Olympic Games', 'Olympics', 'Juegos Olimpicos'] },
   { nombre: 'Preolímpico', alias: ['Clasificatorio Olímpico', 'Olympic Qualification Tournament', 'Olympic Qualifier', 'Preolimpico'] },
-  { nombre: 'Campeonato Mundial', alias: ['Mundial', 'World Championship', 'World Championships', 'Campeonato del Mundo', 'Copa Mundial'] },
+  { nombre: 'Campeonato Mundial', alias: ['Mundial', 'World Championship', 'World Championships', 'Campeonato del Mundo'] },
+  { nombre: 'Copa del Mundo', alias: ['World Cup', 'Copa Mundial'] },
   { nombre: 'Liga de Naciones', alias: ['Nations League', 'VNL'] },
   { nombre: 'Copa Challenger', alias: ['Challenger Cup'] },
   // Fechas que anunció Panam Sports el 30 de enero de 2026.
@@ -36,6 +37,12 @@ export const nombreCanonico = (nombre) => CANONICOS.get(huella(nombre)) ?? nombr
 
 // Las fechas de una edición, si el catálogo las sabe.
 export const fechasDeCatalogo = (nombre, edicion) => CATALOGO.find((t) => t.nombre === nombreCanonico(nombre))?.ediciones?.[edicion] ?? null;
+
+// Todos los nombres con los que una fuente puede llamar a un torneo.
+export function nombresDe(nombre) {
+  const entrada = CATALOGO.find((t) => t.nombre === nombreCanonico(nombre));
+  return entrada ? [entrada.nombre, ...entrada.alias] : [nombre];
+}
 
 export const delCatalogo = (nombre) => CANONICOS.has(huella(nombre));
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { idTorneo, mismoTorneo, nombreCanonico } from './torneos.mjs';
-import { fechasDeCatalogo } from './torneos.mjs';
+import { fechasDeCatalogo, mismoTorneo as mismo, nombresDe } from './torneos.mjs';
 
 describe('nombreCanonico', () => {
   it.each([
@@ -81,4 +81,26 @@ describe('fechasDeCatalogo', () => {
     expect(fechasDeCatalogo('Juegos Panamericanos', 2023)).toBeNull();
     expect(fechasDeCatalogo('Torneo desconocido', 2027)).toBeNull();
   });
+});
+
+describe('Copa del Mundo y Campeonato Mundial', () => {
+  it('son entradas distintas del catálogo', () => {
+    expect(nombreCanonico('Copa del Mundo Femenina de Voleibol de la FIVB')).toBe('Copa del Mundo');
+    expect(nombreCanonico('FIVB Volleyball Women\'s World Cup')).toBe('Copa del Mundo');
+    expect(nombreCanonico('Copa Mundial')).toBe('Copa del Mundo');
+    expect(nombreCanonico('Campeonato del Mundo')).toBe('Campeonato Mundial');
+    expect(idTorneo('World Cup', 2027)).not.toBe(idTorneo('World Championship', 2027));
+  });
+  it('sin fechas no se confunden', () => {
+    expect(mismo({ nombre: 'Copa del Mundo', edicion: 2027 }, { nombre: 'Campeonato Mundial', edicion: 2027 })).toBe(false);
+  });
+  it('con fechas traslapadas siguen siendo uno: la Selección no juega dos torneos a la vez', () => {
+    const fechas = { fechaInicio: '2027-08-20', fechaFin: '2027-09-05' };
+    expect(mismo({ nombre: 'Copa del Mundo', edicion: 2027, ...fechas }, { nombre: 'Campeonato Mundial', edicion: 2027, ...fechas })).toBe(true);
+  });
+});
+
+describe('nombresDe', () => {
+  it('trae el nombre canónico y sus alias', () => expect(nombresDe('World Cup')).toEqual(['Copa del Mundo', 'World Cup', 'Copa Mundial']));
+  it('un torneo fuera del catálogo solo tiene su nombre', () => expect(nombresDe('Torneo X')).toEqual(['Torneo X']));
 });
