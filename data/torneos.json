@@ -33,23 +33,115 @@
       "fuente": "https://norceca.net/2026%20Competition%20&%20Activities/Final%20Six/Women/News-Pages-Women%20Final%20Six.htm"
     },
     {
+      "id": "copa-panamericana-2026",
+      "nombre": "Copa Panamericana",
+      "edicion": 2026,
+      "ciudad": "León",
+      "pais": "México",
+      "fechaInicio": "2026-09-11",
+      "fechaFin": "2026-09-19",
+      "posicion": 3,
+      "medalla": "bronce",
+      "record": "5-1",
+      "premios": [
+        {
+          "jugadora": "sofia-maldonado",
+          "premio": "Equipo ideal (opuesta)"
+        },
+        {
+          "jugadora": "aime-topete",
+          "premio": "Equipo ideal (punta)"
+        }
+      ],
+      "fuente": "https://www.fivb.com/dominican-republic-and-mexico-claim-womens-pan-american-cup-silver-and-bronze-with-empowerment/"
+    },
+    {
+      "id": "campeonato-norceca-2026",
+      "nombre": "Campeonato NORCECA",
+      "edicion": 2026,
+      "ciudad": "Santo Domingo",
+      "pais": "República Dominicana",
+      "fechaInicio": "2026-08-21",
+      "fechaFin": "2026-08-26",
+      "posicion": 6,
+      "medalla": null,
+      "record": "2-4",
+      "premios": [
+        {
+          "jugadora": "paola-rivera",
+          "premio": "Mejor saque"
+        }
+      ],
+      "fuente": "https://norceca.info/event/2026-norceca-womens-continental-championship/"
+    },
+    {
+      "id": "juegos-centroamericanos-y-del-caribe-2026",
+      "nombre": "Juegos Centroamericanos y del Caribe",
+      "edicion": 2026,
+      "ciudad": "Santo Domingo",
+      "pais": "República Dominicana",
+      "fechaInicio": "2026-08-02",
+      "fechaFin": "2026-08-07",
+      "posicion": 5,
+      "medalla": null,
+      "record": "4-2",
+      "premios": [],
+      "fuente": "https://norceca.info/mexico-finishes-fifth-at-santo-domingo-2026/"
+    },
+    {
       "id": "norceca-final-four-2026",
       "nombre": "NORCECA Final Four",
       "edicion": 2026,
       "ciudad": "Ponce",
       "pais": "Puerto Rico",
-      "fechaInicio": "2026-06-03",
-      "fechaFin": "2026-06-08",
+      "fechaInicio": "2026-06-05",
+      "fechaFin": "2026-06-07",
       "posicion": 1,
       "medalla": "oro",
-      "record": null,
+      "record": "3-0",
       "premios": [
         {
           "jugadora": "sofia-maldonado",
           "premio": "MVP"
+        },
+        {
+          "jugadora": "uxue-guereca",
+          "premio": "Mejor atacante"
+        },
+        {
+          "jugadora": "samantha-bricio",
+          "premio": "Mejor recepción"
         }
       ],
       "fuente": "https://norceca.info/mexicos-sofia-maldonado-named-most-valuable-player-of-the-2026-norceca-womens-final-four/"
+    },
+    {
+      "id": "norceca-final-six-2025",
+      "nombre": "NORCECA Final Six",
+      "edicion": 2025,
+      "ciudad": "Guadalajara",
+      "pais": "México",
+      "fechaInicio": "2025-09-15",
+      "fechaFin": "2025-09-21",
+      "posicion": 2,
+      "medalla": "plata",
+      "record": "5-2",
+      "premios": [],
+      "fuente": "https://norceca.net/2025%20Events%20&%20Activities/Events/Final%20Six/Women%20Final%20Six/2025%20NORCECA%20Women%20Final%206.htm"
+    },
+    {
+      "id": "campeonato-mundial-2025",
+      "nombre": "Campeonato Mundial",
+      "edicion": 2025,
+      "ciudad": "Chiang Mai",
+      "pais": "Tailandia",
+      "fechaInicio": "2025-08-22",
+      "fechaFin": "2025-09-07",
+      "posicion": null,
+      "medalla": null,
+      "record": "1-2",
+      "premios": [],
+      "fuente": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/news/maldonado-fires-33-to-help-mexico-finish-on-a-high"
     }
   ]
 }

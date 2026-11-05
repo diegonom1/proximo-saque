@@ -35,9 +35,9 @@
       "foco": "50% 30%"
     },
     "ultimaListaOficial": {
-      "torneo": "NORCECA Final Four 2026",
-      "fecha": "2026-06-08",
-      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+      "torneo": "NORCECA Final Six 2026",
+      "fecha": "2026-09-27",
+      "fuente": "https://norceca.net/2026%20Competition%20&%20Activities/Final%20Six/Women/News-Pages-Women%20Final%20Six.htm"
     },
     "fuentes": {
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
@@ -152,9 +152,9 @@
       "foco": "50% 30%"
     },
     "ultimaListaOficial": {
-      "torneo": "NORCECA Final Four 2026",
-      "fecha": "2026-06-08",
-      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+      "torneo": "NORCECA Final Six 2026",
+      "fecha": "2026-09-27",
+      "fuente": "https://norceca.net/2026%20Competition%20&%20Activities/Final%20Six/Women/News-Pages-Women%20Final%20Six.htm"
     },
     "fuentes": {
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
@@ -207,9 +207,9 @@
     "revisado": null
   },
   {
-    "slug": "ovalle",
-    "nombre": "Ovalle",
-    "nombreCompleto": null,
+    "slug": "marian-ovalle",
+    "nombre": "Marian Ovalle",
+    "nombreCompleto": "Marian Aylin Ovalle Leyva",
     "estado": "activa",
     "posicion": "Opuesta",
     "numero": 8,
@@ -231,7 +231,8 @@
     },
     "fuentes": {
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
-      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "nombreCompleto": "https://www.adiario.mx/deportes/se-prepara-voleibolista-juarense-marian-ovalle-para-los-juegos-centroamericanos-y-del-caribe-2026/"
     },
     "revisado": null
   },
@@ -261,9 +262,9 @@
       "foco": "50% 30%"
     },
     "ultimaListaOficial": {
-      "torneo": "NORCECA Final Four 2026",
-      "fecha": "2026-06-08",
-      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+      "torneo": "NORCECA Final Six 2026",
+      "fecha": "2026-09-27",
+      "fuente": "https://norceca.net/2026%20Competition%20&%20Activities/Final%20Six/Women/News-Pages-Women%20Final%20Six.htm"
     },
     "fuentes": {
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
@@ -398,9 +399,9 @@
       "foco": "50% 30%"
     },
     "ultimaListaOficial": {
-      "torneo": "NORCECA Final Four 2026",
-      "fecha": "2026-06-08",
-      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+      "torneo": "Campeonato NORCECA 2026",
+      "fecha": "2026-08-26",
+      "fuente": "https://www.fivb.com/canada-defeat-usa-to-claim-first-norceca-womens-continental-championship-title/"
     },
     "fuentes": {
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
@@ -463,9 +464,9 @@
       "foco": "50% 30%"
     },
     "ultimaListaOficial": {
-      "torneo": "NORCECA Final Four 2026",
-      "fecha": "2026-06-08",
-      "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+      "torneo": "NORCECA Final Six 2026",
+      "fecha": "2026-09-27",
+      "fuente": "https://norceca.net/2026%20Competition%20&%20Activities/Final%20Six/Women/News-Pages-Women%20Final%20Six.htm"
     },
     "fuentes": {
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",

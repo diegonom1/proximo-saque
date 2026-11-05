@@ -28,6 +28,8 @@ beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), 'datos-'));
   fotos = join(dir, 'fotos');
   await cp(new URL('../../data/', import.meta.url), dir, { recursive: true });
+  // Base fija: las pruebas no dependen de qué torneos estén cargados en data/.
+  await cp(new URL('../pruebas/torneos-base.json', import.meta.url), join(dir, 'torneos.json'));
 });
 afterEach(() => rm(dir, { recursive: true, force: true }));
 
@@ -206,8 +208,8 @@ describe('plantilla: nombres', () => {
     expect((await jugadora('tanguma')).numero).toBe(77);
   });
   it('un nombre confirmado se guarda y avisa que falta renombrar', async () => {
-    const r = await ejecutar(plantel({ listas: [lista([{ nombre: 'María Ovalle', numero: 8, slug: 'ovalle' }])] }));
-    expect((await jugadora('ovalle')).nombre).toBe('María Ovalle');
+    const r = await ejecutar(plantel({ listas: [lista([{ nombre: 'María Tanguma', numero: 13, slug: 'tanguma' }])] }));
+    expect((await jugadora('tanguma')).nombre).toBe('María Tanguma');
     expect(r.cuerpoPr).toContain('renombrar');
   });
   it('una lista vieja no pisa una más reciente', async () => {
@@ -306,7 +308,7 @@ describe('perfiles', () => {
     });
     const llamar = llamarCon(plantel({ listas: [lista([{ nombre: 'Rosa Hernández', slug: null }])] }));
     await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA });
-    expect(llamar.llamadas.filter((l) => l.agente === '02-perfil').map((l) => l.clave)).toEqual(['rosa-hernandez', 'argentina-ung', 'ovalle', 'arleth-marquez', 'jocelyn-urias']);
+    expect(llamar.llamadas.filter((l) => l.agente === '02-perfil').map((l) => l.clave)).toEqual(['rosa-hernandez', 'argentina-ung', 'marian-ovalle', 'arleth-marquez', 'jocelyn-urias']);
   });
   it('la rotación avanza aunque el PR no se apruebe', async () => {
     const primeras = llamarCon();
