@@ -3,6 +3,7 @@
 
 import type { z } from 'zod';
 import type { PartidoCliente } from './compromiso';
+import type { EventoIcs } from './ics';
 import { porNombre } from './partido';
 import { validarDatos, esquemaClub, esquemaJugadora, esquemaLiga, esquemaPartido, esquemaPlataforma, esquemaTorneo } from '../../scripts/lib/validar.mjs';
 import jugadorasJson from '../../data/jugadoras.json';
@@ -46,6 +47,20 @@ export function dondeVer(p: Partido) {
   return lista.filter((x, i) => lista.findIndex((y) => y.url === x.url) === i);
 }
 
+export const eventoIcs = (p: Partido): EventoIcs => ({
+  id: p.id,
+  tipo: p.tipo,
+  inicio: p.inicio,
+  horaConfirmada: p.horaConfirmada,
+  local: p.local,
+  visitante: p.visitante,
+  competencia: p.competencia,
+  sede: p.sede,
+  fuente: p.fuente,
+  jugadoras: jugadorasDe(p).map((j) => j.nombre),
+  dondeVer: dondeVer(p).map((x) => x.nombre),
+});
+
 // Solo lo que el navegador necesita para mantener al día el hero y el botón flotante.
 export const paraCliente = (p: Partido): PartidoCliente => ({
   tipo: p.tipo,
@@ -63,3 +78,9 @@ export const paraCliente = (p: Partido): PartidoCliente => ({
 export const jugadorasDe = (p: Partido): Jugadora[] => porNombre(p.tipo === 'seleccion'
   ? activas.filter((j) => p.convocadas?.includes(j.slug))
   : activas.filter((j) => j.clubId && j.clubId === p.clubId));
+
+// Agenda: la Selección siempre, haya lista o no; de los clubes, solo los que tienen seleccionadas activas.
+export const partidosAgenda = partidos.filter((p) => p.tipo === 'seleccion' || jugadorasDe(p).length > 0);
+
+// Agenda de una jugadora: sus partidos de club y todos los de la Selección.
+export const partidosAgendaDe = (slug: string) => partidosAgenda.filter((p) => p.tipo === 'seleccion' || jugadorasDe(p).some((j) => j.slug === slug));

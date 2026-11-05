@@ -1,0 +1,430 @@
+---
+import Base from '../components/Base.astro';
+import Cuenta from '../components/Cuenta.astro';
+import PartidoAgenda from '../components/PartidoAgenda.astro';
+import { activas, clubes, estados, ligas, partidosAgenda } from '../lib/datos';
+import { porNombre } from '../lib/partido';
+import { ruta } from '../lib/presentacion';
+import { agruparPorDia, vigentes } from '../lib/tiempo';
+import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
+
+const lista = vigentes(partidosAgenda, Date.now());
+const [primero, ...resto] = lista;
+const dias = agruparPorDia(resto, ZONA_SITIO);
+
+const jugadorasFiltro = porNombre(activas);
+const idsLiga = [...new Set(activas.flatMap((j) => (j.clubId && clubes[j.clubId]?.ligaId ? [clubes[j.clubId].ligaId as string] : [])))];
+const ligasFiltro = idsLiga.map((id) => ({ id, nombre: ligas[id].nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+
+// Sin partidos: se decide en el navegador, porque un club puede quedarse sin partidos a media semana.
+const clubesConPartidos = new Set(lista.flatMap((p) => (p.clubId ? [p.clubId] : [])));
+const sinPartidos = jugadorasFiltro.map((j) => {
+  const estado = j.clubId ? estados[j.clubId] : null;
+  return {
+    j,
+    club: j.clubId ? clubes[j.clubId] : null,
+    texto: !j.clubId ? 'Club por confirmar' : estado?.texto ?? 'Sin partidos programados por ahora.',
+    fuente: estado?.fuente ?? null,
+    oculto: Boolean(j.clubId && clubesConPartidos.has(j.clubId)),
+  };
+});
+const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), ligas: idsLiga });
+---
+
+<Base titulo="Agenda | Próximo Saque" descripcion="Todos los partidos de la Selección Mexicana femenil de voleibol y de cada seleccionada con su club, en tu hora.">
+  <header class="cabeza">
+    <div class="marco">
+      <h1>Agenda</h1>
+      <p>Todos los partidos, en la hora de tu dispositivo.</p>
+    </div>
+  </header>
+
+  <div class="filtros" data-filtros hidden>
+    <div class="marco filtros__fila">
+      <button type="button" class="chip" data-filtro="todas">Todas</button>
+      <button type="button" class="chip" data-filtro="seleccion">Selección</button>
+      <label class="selector">
+        <span class="oculto">Filtrar por jugadora</span>
+        <select data-filtro-jugadora>
+          <option value="">Jugadora</option>
+          {jugadorasFiltro.map((j) => <option value={j.slug}>{j.nombre}</option>)}
+        </select>
+      </label>
+      <label class="selector">
+        <span class="oculto">Filtrar por liga</span>
+        <select data-filtro-liga>
+          <option value="">Liga</option>
+          {ligasFiltro.map((l) => <option value={l.id}>{l.nombre}</option>)}
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="marco cuerpo" data-agenda data-validos={validos}>
+    <section class="destacada" aria-label="Próximo partido" data-destacada hidden={!primero}>
+      <Cuenta />
+      <div data-destacada-partido>{primero && <PartidoAgenda partido={primero} />}</div>
+    </section>
+
+    <div data-dias>
+      {
+        dias.map((d) => (
+          <section class="agenda-dia">
+            <h2 class="agenda-dia__titulo">{d.titulo}</h2>
+            {d.partidos.map((p) => <PartidoAgenda partido={p} />)}
+          </section>
+        ))
+      }
+    </div>
+
+    <p class="vacio" data-vacio hidden={lista.length > 0}>No hay partidos con este filtro.</p>
+
+    <section class="sin-partidos" data-sin-seccion hidden={sinPartidos.every((s) => s.oculto)} aria-labelledby="sin-titulo">
+      <h2 id="sin-titulo" class="titulo-seccion">Sin partidos por ahora</h2>
+      <ul>
+        {
+          sinPartidos.map((s) => (
+            <li data-sin data-jugadora={s.j.slug} data-club={s.j.clubId ?? ''} data-liga={s.club?.ligaId ?? ''} hidden={s.oculto}>
+              <a href={ruta(`jugadoras/${s.j.slug}`)}>{s.j.nombre}</a>
+              <span class="sin-partidos__texto">
+                {s.club ? `${s.club.nombre}: ` : ''}{s.texto}
+                {s.fuente && <> <a class="enlace" href={s.fuente} target="_blank" rel="noopener">Fuente</a></>}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="suscribir" aria-labelledby="suscribir-titulo" data-suscribir data-base={ruta()}>
+      <h2 id="suscribir-titulo">Tu calendario, siempre al día</h2>
+      <p data-suscribir-texto>Suscríbete y los cambios de horario llegan solos.</p>
+      <div class="suscribir__botones">
+        <a class="boton" data-ics-google href={ruta('calendario.ics')} target="_blank" rel="noopener">Suscribirme en Google Calendar</a>
+        <a class="enlace" data-ics-archivo href={ruta('calendario.ics')}>Descargar .ics</a>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { TODAS, archivoIcs, coincide, coincideSinPartidos, filtroInicial, type Filtro } from '../lib/agenda';
+  import { escribirCuenta } from '../lib/cuenta';
+  import { agruparPorDia, diaCorto, enJuego, hora } from '../lib/tiempo';
+  import { DURACION_MS } from '../../scripts/lib/tiempo.mjs';
+
+  const CLAVE = 'proximo-saque-filtro-agenda';
+
+  const raiz = document.querySelector<HTMLElement>('[data-agenda]');
+  const destacada = document.querySelector<HTMLElement>('[data-destacada]');
+  const lugarDestacado = document.querySelector<HTMLElement>('[data-destacada-partido]');
+  const cuenta = destacada?.querySelector<HTMLElement>('[data-cuenta]');
+  const contenedorDias = document.querySelector<HTMLElement>('[data-dias]');
+  const vacio = document.querySelector<HTMLElement>('[data-vacio]');
+  const seccionSin = document.querySelector<HTMLElement>('[data-sin-seccion]');
+  const selectorJugadora = document.querySelector<HTMLSelectElement>('[data-filtro-jugadora]');
+  const selectorLiga = document.querySelector<HTMLSelectElement>('[data-filtro-liga]');
+  const chips = [...document.querySelectorAll<HTMLButtonElement>('[data-filtro]')];
+  const suscribir = document.querySelector<HTMLElement>('[data-suscribir]');
+
+  const lista = (texto: string | undefined) => (texto ? texto.split(' ') : []);
+
+  const partidos = [...document.querySelectorAll<HTMLElement>('[data-partido]')]
+    .map((el) => ({
+      el,
+      id: el.dataset.id ?? '',
+      inicio: el.dataset.inicio ?? '',
+      ms: Date.parse(el.dataset.inicio ?? ''),
+      confirmada: el.dataset.confirmada === 'true',
+      tipo: el.dataset.tipo ?? '',
+      liga: el.dataset.liga || null,
+      club: el.dataset.club || null,
+      jugadoras: lista(el.dataset.jugadoras),
+    }))
+    .sort((a, b) => a.ms - b.ms);
+
+  const sinPartidos = [...document.querySelectorAll<HTMLElement>('[data-sin]')].map((el) => ({
+    el,
+    jugadora: el.dataset.jugadora ?? '',
+    club: el.dataset.club || null,
+    liga: el.dataset.liga || null,
+  }));
+
+  // El día y la hora del visitante no cambian con el segundo: se escriben una vez.
+  for (const p of partidos) {
+    const dia = p.el.querySelector('[data-dia]');
+    const horaEl = p.el.querySelector('[data-hora]');
+    if (dia) dia.textContent = diaCorto(p.ms);
+    if (horaEl && p.confirmada) horaEl.textContent = hora(p.ms);
+  }
+
+  function leerGuardado() {
+    try {
+      return localStorage.getItem(CLAVE);
+    } catch {
+      return null;
+    }
+  }
+
+  function guardar(f: Filtro) {
+    try {
+      localStorage.setItem(CLAVE, JSON.stringify(f));
+    } catch {
+      /* sin almacenamiento: el filtro dura mientras la página esté abierta */
+    }
+  }
+
+  const validos = JSON.parse(raiz?.dataset.validos ?? '{"jugadoras":[],"ligas":[]}');
+  let filtro = filtroInicial(new URLSearchParams(location.search).get('j'), leerGuardado(), validos);
+  let firma = '';
+  let actual: (typeof partidos)[number] | null = null;
+
+  function pintarControles() {
+    for (const chip of chips) chip.setAttribute('aria-pressed', String(chip.dataset.filtro === filtro.tipo));
+    if (selectorJugadora) selectorJugadora.value = filtro.tipo === 'jugadora' ? filtro.valor : '';
+    if (selectorLiga) selectorLiga.value = filtro.tipo === 'liga' ? filtro.valor : '';
+    selectorJugadora?.classList.toggle('activo', filtro.tipo === 'jugadora');
+    selectorLiga?.classList.toggle('activo', filtro.tipo === 'liga');
+
+    if (!suscribir) return;
+    const ruta = `${suscribir.dataset.base ?? '/'}${archivoIcs(filtro)}`;
+    const webcal = `webcal://${location.host}${ruta}`;
+    suscribir.querySelector<HTMLAnchorElement>('[data-ics-archivo]')?.setAttribute('href', ruta);
+    suscribir.querySelector<HTMLAnchorElement>('[data-ics-google]')?.setAttribute('href', `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcal)}`);
+    const texto = suscribir.querySelector('[data-suscribir-texto]');
+    const nombre = filtro.tipo === 'jugadora' ? selectorJugadora?.selectedOptions[0]?.textContent : null;
+    if (texto) texto.textContent = nombre
+      ? `Suscríbete a los partidos de ${nombre} y de la Selección. Los cambios de horario llegan solos.`
+      : 'Suscríbete a todos los partidos y los cambios de horario llegan solos.';
+  }
+
+  function acomodar(ahora: number) {
+    const pendientes = partidos.filter((p) => p.ms + DURACION_MS > ahora);
+    const visibles = pendientes.filter((p) => coincide(p, filtro));
+    const nueva = `${JSON.stringify(filtro)}|${pendientes.map((p) => p.id).join()}`;
+    if (nueva === firma) return;
+    firma = nueva;
+
+    const [primero, ...resto] = visibles;
+    actual = primero ?? null;
+    if (destacada) destacada.hidden = !primero;
+    lugarDestacado?.replaceChildren(...(primero ? [primero.el] : []));
+
+    // Se agrupa aquí porque el día depende de la zona del visitante.
+    contenedorDias?.replaceChildren(...agruparPorDia(resto).map((d) => {
+      const seccion = document.createElement('section');
+      seccion.className = 'agenda-dia';
+      const titulo = document.createElement('h2');
+      titulo.className = 'agenda-dia__titulo';
+      titulo.textContent = d.titulo;
+      seccion.append(titulo, ...d.partidos.map((p) => p.el));
+      return seccion;
+    }));
+
+    const conPartidos = new Set(pendientes.flatMap((p) => (p.club ? [p.club] : [])));
+    let conEstado = 0;
+    for (const s of sinPartidos) {
+      s.el.hidden = !coincideSinPartidos(s, filtro) || Boolean(s.club && conPartidos.has(s.club));
+      if (!s.el.hidden) conEstado += 1;
+    }
+    if (seccionSin) seccionSin.hidden = conEstado === 0;
+    if (vacio) vacio.hidden = visibles.length > 0 || conEstado > 0;
+  }
+
+  function pintar() {
+    const ahora = Date.now();
+    acomodar(ahora);
+    for (const p of partidos) {
+      const juego = p.el.querySelector<HTMLElement>('[data-en-juego]');
+      if (juego) juego.hidden = !enJuego(p, ahora);
+    }
+    if (!cuenta) return;
+    const jugando = actual ? enJuego(actual, ahora) : true;
+    cuenta.hidden = jugando;
+    if (actual && !jugando) escribirCuenta(cuenta, actual.ms, actual.confirmada, ahora);
+  }
+
+  function elegir(nuevo: Filtro) {
+    filtro = nuevo;
+    guardar(nuevo);
+    pintarControles();
+    pintar();
+  }
+
+  for (const chip of chips) {
+    chip.addEventListener('click', () => elegir(chip.dataset.filtro === 'seleccion' ? { tipo: 'seleccion' } : TODAS));
+  }
+  selectorJugadora?.addEventListener('change', () => elegir(selectorJugadora.value ? { tipo: 'jugadora', valor: selectorJugadora.value } : TODAS));
+  selectorLiga?.addEventListener('change', () => elegir(selectorLiga.value ? { tipo: 'liga', valor: selectorLiga.value } : TODAS));
+
+  const barra = document.querySelector<HTMLElement>('[data-filtros]');
+  if (barra) barra.hidden = false;
+  pintarControles();
+  pintar();
+  setInterval(pintar, 1000);
+</script>
+
+<style>
+  .cabeza {
+    padding-block: 96px 32px;
+    background: var(--tinta);
+    color: var(--papel);
+  }
+
+  h1 {
+    font-family: var(--fuente-display);
+    font-size: clamp(4rem, 18vw, 9rem);
+    font-weight: 900;
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+
+  .cabeza p {
+    margin-top: 8px;
+    color: rgb(255 255 255 / 82%);
+  }
+
+  .filtros {
+    padding-block: 10px;
+    background: var(--papel);
+    border-bottom: 1px solid var(--linea);
+  }
+
+  .filtros__fila {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chip,
+  select {
+    min-height: 44px;
+    padding-inline: 14px;
+    background: var(--papel);
+    border: 1px solid var(--tinta);
+    border-radius: 999px;
+    color: var(--tinta);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  select {
+    max-width: 44vw;
+  }
+
+  .chip[aria-pressed='true'],
+  select.activo {
+    background: var(--tinta);
+    color: var(--papel);
+  }
+
+  .cuerpo {
+    padding-block: 24px 64px;
+  }
+
+  .destacada {
+    padding: clamp(20px, 4vw, 32px);
+    background: var(--hueso);
+    border-top: 4px solid var(--rojo);
+  }
+
+  .destacada :global(.cuenta) {
+    margin: 0 0 20px;
+  }
+
+  .vacio {
+    padding-block: 24px;
+    color: var(--gris);
+  }
+
+  .sin-partidos {
+    margin-top: 56px;
+  }
+
+  .sin-partidos ul {
+    margin-top: 16px;
+  }
+
+  .sin-partidos li {
+    display: grid;
+    gap: 2px;
+    padding-block: 12px;
+    border-top: 1px solid var(--linea);
+  }
+
+  .sin-partidos li > a {
+    font-weight: 700;
+    text-underline-offset: 3px;
+  }
+
+  .sin-partidos__texto {
+    color: var(--gris);
+    font-size: 0.9375rem;
+  }
+
+  .suscribir {
+    margin-top: 56px;
+    padding: clamp(20px, 4vw, 32px);
+    background: var(--hueso);
+  }
+
+  .suscribir h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .suscribir__botones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    margin-top: 16px;
+  }
+
+  @media (min-width: 768px) {
+    /* En celular dos renglones fijos taparían demasiada pantalla. */
+    .filtros {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .sin-partidos li {
+      grid-template-columns: 220px 1fr;
+      gap: 24px;
+    }
+  }
+</style>
+
+<style is:global>
+  /* Global: el navegador crea estas secciones al reagrupar por día. */
+  .agenda-dia {
+    margin-top: 32px;
+  }
+
+  .agenda-dia__titulo {
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--tinta);
+    font-family: var(--fuente-display);
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .agenda-dia [data-partido] {
+    padding-block: 20px;
+    border-bottom: 1px solid var(--linea);
+  }
+
+  /* La fecha ya está en el título del día; la cabeza solo se queda si trae etiquetas. */
+  .agenda-dia [data-dia] {
+    display: none;
+  }
+
+  .agenda-dia .partido__cabeza:not(:has(.etiqueta:not([hidden]))) {
+    display: none;
+  }
+</style>

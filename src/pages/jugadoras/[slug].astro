@@ -230,7 +230,8 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
 </Base>
 
 <script>
-  import { cuentaRegresiva, diaCorto, diasHasta, enJuego, hora, ymd } from '../../lib/tiempo';
+  import { escribirCuenta } from '../../lib/cuenta';
+  import { diaCorto, enJuego, hora, ymd } from '../../lib/tiempo';
   import { DURACION_MS } from '../../../scripts/lib/tiempo.mjs';
 
   const proximo = document.querySelector<HTMLElement>('[data-proximo]');
@@ -239,7 +240,6 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
   const seccionSiguientes = document.querySelector<HTMLElement>('[data-siguientes-seccion]');
   const maximo = Number(siguientes?.dataset.maximo ?? 3);
   const partidos = [...document.querySelectorAll<HTMLElement>('[data-partido]')];
-  const dos = (n: number) => String(n).padStart(2, '0');
 
   // Pone la hora y el día del visitante; no depende del segundo, así que corre una vez.
   for (const el of partidos) {
@@ -248,14 +248,6 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
     const horaEl = el.querySelector('[data-hora]');
     if (dia) dia.textContent = diaCorto(ms);
     if (horaEl && el.dataset.confirmada === 'true') horaEl.textContent = hora(ms);
-  }
-
-  function unidad(raiz: HTMLElement, nombre: string, valor: string | null) {
-    const el = raiz.querySelector<HTMLElement>(`[data-unidad="${nombre}"]`);
-    if (!el) return;
-    el.hidden = valor === null;
-    const numero = el.querySelector('span');
-    if (numero && valor !== null && numero.textContent !== valor) numero.textContent = valor;
   }
 
   function pintarCuenta(el: HTMLElement, ahora: number) {
@@ -268,16 +260,7 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
     if (!cuenta) return;
     cuenta.hidden = jugando;
     if (jugando) return;
-    if (el.dataset.confirmada === 'true') {
-      const r = cuentaRegresiva(ms, ahora);
-      unidad(cuenta, 'dias', String(r.dias));
-      unidad(cuenta, 'horas', dos(r.horas));
-      unidad(cuenta, 'minutos', dos(r.minutos));
-      unidad(cuenta, 'segundos', dos(r.segundos));
-    } else {
-      unidad(cuenta, 'dias', String(diasHasta(ms, ahora)));
-      for (const nombre of ['horas', 'minutos', 'segundos']) unidad(cuenta, nombre, null);
-    }
+    escribirCuenta(cuenta, ms, el.dataset.confirmada === 'true', ahora);
   }
 
   // El torneo puede terminar antes de la siguiente construcción.

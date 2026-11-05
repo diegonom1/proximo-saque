@@ -1,0 +1,81 @@
+---
+// Un partido de la agenda. El navegador lo acomoda según el filtro y la zona del visitante.
+import DondeVer from './DondeVer.astro';
+import LineaPartido from './LineaPartido.astro';
+import type { Partido } from '../lib/datos';
+import { dondeVer, jugadorasDe, ligas } from '../lib/datos';
+import { enlaceGoogleCalendar } from '../lib/calendario';
+import { diaCorto, horaDelLugar, msDe } from '../lib/tiempo';
+import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
+
+interface Props {
+  partido: Partido;
+}
+
+const { partido: p } = Astro.props;
+const quienes = jugadorasDe(p);
+const calendario = enlaceGoogleCalendar(p, { jugadoras: quienes.map((j) => j.nombre), dondeVer: dondeVer(p).map((x) => x.nombre) });
+const alla = p.horaConfirmada ? horaDelLugar(p) : null;
+const oficial = p.ligaId ? ligas[p.ligaId]?.calendarioOficialUrl : null;
+---
+
+<article
+  class="partido"
+  data-partido
+  data-id={p.id}
+  data-inicio={p.inicio}
+  data-confirmada={String(p.horaConfirmada)}
+  data-tipo={p.tipo}
+  data-liga={p.ligaId ?? ''}
+  data-club={p.clubId ?? ''}
+  data-jugadoras={quienes.map((j) => j.slug).join(' ')}
+>
+  <p class="partido__cabeza">
+    <time class="dato" datetime={p.inicio} data-dia>{diaCorto(msDe(p), ZONA_SITIO)}</time>
+    {p.tipo === 'seleccion' && <span class="etiqueta">Selección</span>}
+    <span class="etiqueta etiqueta--juego" data-en-juego hidden>En juego</span>
+  </p>
+  <LineaPartido partido={p} />
+  <p class="partido__nota">{[p.competencia, p.sede].filter(Boolean).join(' · ') || 'Competencia por confirmar'}</p>
+  {alla && <p class="partido__nota">Allá serán las {alla}</p>}
+  <div class="partido__acciones">
+    <DondeVer partido={p} />
+    <div class="partido__enlaces">
+      <a class="boton boton--chico" href={calendario} target="_blank" rel="noopener">Google Calendar</a>
+      {p.fuente && <a class="enlace" href={p.fuente} target="_blank" rel="noopener">Fuente</a>}
+      {!p.fuente && oficial && <a class="enlace" href={oficial} target="_blank" rel="noopener">Verificar en el calendario oficial</a>}
+    </div>
+  </div>
+</article>
+
+<style>
+  .partido__cabeza {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-bottom: 6px;
+  }
+
+  .partido__nota {
+    margin-top: 2px;
+    color: var(--gris);
+    font-size: 0.875rem;
+  }
+
+  .partido__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-top: 14px;
+  }
+
+  .partido__enlaces {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+  }
+</style>

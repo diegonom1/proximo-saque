@@ -152,6 +152,60 @@ const {
     text-underline-offset: 3px;
   }
 
+  .etiqueta {
+    padding: 2px 10px;
+    background: var(--rojo);
+    border-radius: 999px;
+    color: var(--papel);
+    font-family: var(--fuente-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .etiqueta--juego {
+    background: var(--tinta);
+  }
+
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding-inline: 20px;
+    background: var(--rojo);
+    border-radius: 999px;
+    color: var(--papel);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .boton--chico {
+    min-height: 44px;
+    padding-inline: 16px;
+    font-size: 0.9375rem;
+  }
+
+  .cuenta {
+    display: flex;
+    gap: clamp(16px, 4vw, 36px);
+    margin-top: 20px;
+    font-family: var(--fuente-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .cuenta span {
+    display: block;
+    font-family: var(--fuente-display);
+    font-size: clamp(2.5rem, 10vw, 4.5rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+
   .oculto {
     position: absolute;
     width: 1px;

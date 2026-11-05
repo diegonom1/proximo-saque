@@ -1,5 +1,6 @@
 ---
 import { getImage } from 'astro:assets';
+import Cuenta from './Cuenta.astro';
 import type { ImageMetadata } from 'astro';
 import { partidos, paraCliente, seleccion } from '../lib/datos';
 import { elegirCompromiso, vistaHero } from '../lib/compromiso';
@@ -75,12 +76,7 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     </p>
     <p class="hero__detalle" data-h="detalle" hidden={!v.detalle}>{v.detalle}</p>
     <p class="dato hero__alla" data-h="alla" hidden={!v.alla}>{v.alla}</p>
-    <div class="cuenta" role="timer" aria-label="Cuenta regresiva" data-cuenta hidden>
-      <p data-unidad="dias"><span>--</span> días</p>
-      <p data-unidad="horas"><span>--</span> horas</p>
-      <p data-unidad="minutos"><span>--</span> min</p>
-      <p data-unidad="segundos"><span>--</span> seg</p>
-    </div>
+    <Cuenta />
     <p class="hero__envivo dato" data-envivo hidden>En juego</p>
   </div>
 </section>
@@ -90,14 +86,13 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
 <script>
   import { elegirCompromiso, vistaHero, type LineaHero, type VistaHero } from '../lib/compromiso';
   import { SELECCION, separador } from '../lib/partido';
-  import { cuentaRegresiva } from '../lib/tiempo';
+  import { escribirCompleta, escribirDias } from '../lib/cuenta';
 
   const hero = document.querySelector<HTMLElement>('.hero');
   const { lista, torneo } = JSON.parse(document.getElementById('datos-hero')?.textContent ?? '{"lista":[],"torneo":null}');
   const cuenta = document.querySelector<HTMLElement>('[data-cuenta]');
   const envivo = document.querySelector<HTMLElement>('[data-envivo]');
   const linea = document.querySelector<HTMLElement>('[data-linea]');
-  const dos = (n: number) => String(n).padStart(2, '0');
   let lineaPintada = '';
 
   function escribirLinea(l: LineaHero | null) {
@@ -129,14 +124,6 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     if (valor && el.textContent !== valor) el.textContent = valor;
   }
 
-  function unidad(nombre: string, valor: string | null) {
-    const el = cuenta?.querySelector<HTMLElement>(`[data-unidad="${nombre}"]`);
-    if (!el) return;
-    el.hidden = valor === null;
-    const numero = el.querySelector('span');
-    if (numero && valor !== null && numero.textContent !== valor) numero.textContent = valor;
-  }
-
   function pintar() {
     const ahora = Date.now();
     const v = vistaHero(elegirCompromiso(lista, torneo, ahora), ahora);
@@ -147,16 +134,8 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     const c = v.cuenta;
     if (envivo) envivo.hidden = c.modo !== 'envivo';
     if (cuenta) cuenta.hidden = c.modo !== 'completa' && c.modo !== 'dias';
-    if (c.modo === 'completa') {
-      const r = cuentaRegresiva(c.ms, ahora);
-      unidad('dias', String(r.dias));
-      unidad('horas', dos(r.horas));
-      unidad('minutos', dos(r.minutos));
-      unidad('segundos', dos(r.segundos));
-    } else if (c.modo === 'dias') {
-      unidad('dias', String(c.dias));
-      for (const nombre of ['horas', 'minutos', 'segundos']) unidad(nombre, null);
-    }
+    if (cuenta && c.modo === 'completa') escribirCompleta(cuenta, c.ms, ahora);
+    if (cuenta && c.modo === 'dias') escribirDias(cuenta, c.dias);
   }
 
   pintar();
@@ -293,26 +272,6 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
   .hero__alla {
     margin-top: 6px;
     color: rgb(255 255 255 / 82%);
-  }
-
-  .cuenta {
-    display: flex;
-    gap: clamp(16px, 4vw, 36px);
-    margin-top: 20px;
-    font-family: var(--fuente-mono);
-    font-size: 0.6875rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .cuenta span {
-    display: block;
-    font-family: var(--fuente-display);
-    font-size: clamp(2.5rem, 10vw, 4.5rem);
-    font-variant-numeric: tabular-nums;
-    font-weight: 800;
-    letter-spacing: 0;
-    line-height: 1;
   }
 
   .hero__envivo {

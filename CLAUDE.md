@@ -50,7 +50,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  │  └─ jugadoras/<slug>/  tarjeta.jpg, fondo.jpg, recorte.png (opcional), credito.txt
 │  ├─ pages/                index.astro, agenda.astro, jugadoras/[slug].astro, torneos.astro
 │  ├─ components/
-│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, compromiso.ts, presentacion.ts, partido.ts, perfil.ts, iconos.ts
+│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, compromiso.ts, presentacion.ts, partido.ts, perfil.ts, iconos.ts, agenda.ts, ics.ts, cuenta.ts
 ├─ v1/                      sitio anterior (referencia)
 └─ .github/workflows/       actualizar.yml (semanal), deploy.yml (push a main)
 ```
@@ -308,12 +308,12 @@ Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin 
 
 ### Agenda `/agenda`
 
-- Todos los partidos futuros (clubes y Selección) en orden, agrupados por día en la hora del visitante.
+- Todos los partidos futuros (clubes y Selección) en orden, agrupados por día en la hora del visitante. Los de la Selección salen siempre, haya lista o no, también al filtrar por jugadora y en su `.ics`.
 - Cuenta regresiva solo en el primero, en una tarjeta destacada arriba.
 - Cada partido: texto del partido (con el lado mexicano resaltado), "allá" (si hay `zonaSede`), competencia, etiqueta roja "Selección" cuando aplique, iconos de dónde verlo, botón de Google Calendar y enlace "Fuente". Si no hay fuente, enlace "Verificar en el calendario oficial".
 - Al final, "Sin partidos por ahora": jugadoras cuyo club no tiene partidos en el rango, con el estado de su temporada.
 - Filtros: Todas, Selección, por jugadora y por liga. `?j=<slug>` preselecciona una jugadora. El filtro se recuerda en `localStorage` (con try/catch).
-- Plus opcional: el build genera `calendario.ics` (todos) y `calendario/<slug>.ics` (por jugadora) para suscribirse desde Google Calendar y recibir los cambios solos.
+- El build genera `calendario.ics` (todos) y `calendario/<slug>.ics` (por jugadora) para suscribirse desde Google Calendar y recibir los cambios solos. Un partido sin hora confirmada va como evento de todo el día.
 
 Acceso desde todo el sitio: enlace "Agenda" en la navegación y, en celular, un botón flotante "Próximo partido · 2d 4h" que lleva a `/agenda`.
 
