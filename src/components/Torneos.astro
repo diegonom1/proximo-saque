@@ -59,12 +59,12 @@ const premiosDe = (t: (typeof lista)[number]) => {
 </section>
 
 <script>
-  import { alAparecer, conMovimiento } from '../lib/movimiento';
-
-  conMovimiento(() => {
-    for (const medalla of document.querySelectorAll('.medalla')) {
-      alAparecer(medalla, () => medalla.classList.add('medalla--brilla'));
-    }
+  import('../lib/movimiento').then(({ alAparecer, conMovimiento }) => {
+    conMovimiento(() => {
+      for (const medalla of document.querySelectorAll('.medalla')) {
+        alAparecer(medalla, () => medalla.classList.add('medalla--brilla'));
+      }
+    });
   });
 </script>
 

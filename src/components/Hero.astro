@@ -94,9 +94,7 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
 <script>
   import { elegirCompromiso, vistaHero, type LineaHero, type VistaHero } from '../lib/compromiso';
   import { SELECCION, separador } from '../lib/partido';
-  import { SplitText } from 'gsap/SplitText';
   import { escribirCompleta, escribirDias } from '../lib/cuenta';
-  import { conMovimiento, gsap } from '../lib/movimiento';
 
   const hero = document.querySelector<HTMLElement>('.hero');
   const { lista, torneo } = JSON.parse(document.getElementById('datos-hero')?.textContent ?? '{"lista":[],"torneo":null}');
@@ -156,15 +154,16 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     setInterval(pintar, 1000);
   }, espera * 1000);
 
-  gsap.registerPlugin(SplitText);
-
   // La fecha se arma dígito por dígito. Si el navegador la reescribe después, ya no se anima.
-  conMovimiento(() => {
-    const fecha = document.querySelector<HTMLElement>('.hero__fecha');
-    if (!fecha || fecha.hidden) return;
-    const { chars } = SplitText.create(fecha, { type: 'chars', mask: 'chars' });
-    gsap.set(fecha, { opacity: 1 });
-    gsap.fromTo(chars, { yPercent: 110 }, { yPercent: 0, stagger: 0.06, delay: espera });
+  Promise.all([import('../lib/movimiento'), import('gsap/SplitText')]).then(([{ conMovimiento, gsap }, { SplitText }]) => {
+    gsap.registerPlugin(SplitText);
+    conMovimiento(() => {
+      const fecha = document.querySelector<HTMLElement>('.hero__fecha');
+      if (!fecha || fecha.hidden) return;
+      const { chars } = SplitText.create(fecha, { type: 'chars', mask: 'chars' });
+      gsap.set(fecha, { opacity: 1 });
+      gsap.fromTo(chars, { yPercent: 110 }, { yPercent: 0, stagger: 0.06, delay: espera });
+    });
   });
 </script>
 

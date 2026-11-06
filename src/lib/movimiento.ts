@@ -27,12 +27,27 @@ const CONDICIONES = {
 
 type Pantalla = { escritorio: boolean; celular: boolean };
 
-// Con prefers-reduced-motion no se llama nunca. GSAP deshace lo que haya hecho `fn` si cambia la pantalla.
-export function conMovimiento(fn: (pantalla: Pantalla) => void | (() => void)) {
-  gsap.matchMedia().add(CONDICIONES, (contexto) => fn(contexto.conditions as Pantalla));
+// La sección fijada mueve lo que viene después y cada sección llega por su lado: el orden de la
+// página manda, así que se reacomoda cuando ya llegaron todas.
+let orden: ReturnType<typeof setTimeout>;
+function reacomodar() {
+  clearTimeout(orden);
+  orden = setTimeout(() => {
+    ScrollTrigger.sort();
+    ScrollTrigger.refresh();
+  }, 60);
 }
 
-export const alAparecer = (el: Element, fn: () => void, inicio = 'top 85%') =>
+// Con prefers-reduced-motion no se llama nunca. GSAP deshace lo que haya hecho `fn` si cambia la pantalla.
+export function conMovimiento(fn: (pantalla: Pantalla) => void | (() => void)) {
+  gsap.matchMedia().add(CONDICIONES, (contexto) => {
+    const limpiar = fn(contexto.conditions as Pantalla);
+    reacomodar();
+    return limpiar;
+  });
+}
+
+export const alAparecer = (el: Element, fn: () => void, inicio = 'top bottom') =>
   ScrollTrigger.create({ trigger: el, start: inicio, once: true, onEnter: fn });
 
 /* ---------- 1. Revelado con máscara ---------- */
@@ -49,7 +64,7 @@ function enmascarar(el: HTMLElement) {
 // El elemento sube desde atrás de su propio borde.
 export function revelar(elementos: HTMLElement[], vars: gsap.TweenVars = {}) {
   elementos.forEach(enmascarar);
-  return gsap.fromTo(elementos, { yPercent: 105 }, { yPercent: 0, stagger: 0.06, ...vars });
+  return gsap.fromTo(elementos, { yPercent: 125 }, { yPercent: 0, stagger: 0.06, ...vars });
 }
 
 /* ---------- 2. Contorno que se rellena ---------- */
@@ -153,11 +168,6 @@ export function iniciar() {
     };
   });
 
-  // Las secciones fijadas mueven lo que viene después: el orden de la página manda.
-  document.addEventListener('DOMContentLoaded', () => {
-    ScrollTrigger.sort();
-    ScrollTrigger.refresh();
-  });
   window.movimientoListo = true;
 }
 

@@ -34,6 +34,8 @@ export function rodar(el: HTMLElement, texto: string) {
   const lugares = celdas(el, texto.length);
   for (const i of digitosQueCambian(antes, texto)) {
     const celda = lugares[i];
+    // Si el navegador va lento, el cambio anterior puede no haber terminado.
+    celda.querySelectorAll(':scope > .digito__saliente').forEach((viejo) => viejo.remove());
     const saliente = celda.firstElementChild as HTMLElement | null;
     const entrante = document.createElement('span');
     entrante.textContent = texto[i];
@@ -41,8 +43,8 @@ export function rodar(el: HTMLElement, texto: string) {
     entrante.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: MS, easing: CURVA });
     if (saliente) {
       saliente.classList.add('digito__saliente');
-      saliente.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }], { duration: MS, easing: CURVA }).finished
-        .finally(() => saliente.remove());
+      const salida = saliente.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }], { duration: MS, easing: CURVA });
+      salida.onfinish = () => saliente.remove();
     }
   }
 }

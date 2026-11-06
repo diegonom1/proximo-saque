@@ -36,11 +36,24 @@ const {
       // JavaScript no existen, y si el motor de movimiento no carga, el seguro las quita.
       (function () {
         var raiz = document.documentElement;
+        raiz.classList.add('con-js');
         if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         raiz.classList.add('con-movimiento');
         setTimeout(function () {
           if (!window.movimientoListo) raiz.classList.remove('con-movimiento');
         }, 2500);
+        // Al volver de un perfil, su foto regresa a su tarjeta. Tiene que quedar antes de pintar.
+        addEventListener('pagereveal', function (evento) {
+          var origen = window.navigation && navigation.activation && navigation.activation.from;
+          var jugadora = origen && origen.url.match(/jugadoras\/([^/?#]+)/);
+          var foto = jugadora && document.querySelector('[data-foto-vt="' + jugadora[1] + '"]');
+          if (!evento.viewTransition || !foto) return;
+          foto.style.viewTransitionName = 'foto-' + jugadora[1];
+          function limpiar() {
+            foto.style.viewTransitionName = '';
+          }
+          evento.viewTransition.finished.then(limpiar, limpiar);
+        });
         if (!raiz.hasAttribute('data-intro')) return;
         try {
           if (sessionStorage.getItem('proximo-saque-intro')) return;
@@ -65,9 +78,8 @@ const {
 </html>
 
 <script>
-  import { iniciar } from '../lib/movimiento';
-
-  iniciar();
+  // Va aparte de lo demás: si no carga, el sitio funciona igual, sin movimiento.
+  import('../lib/movimiento').then(({ iniciar }) => iniciar());
 </script>
 
 <style is:global>
@@ -192,6 +204,8 @@ const {
   .mascara {
     display: block;
     overflow: hidden;
+    margin-block: -0.2em;
+    padding-block: 0.2em; /* para que no se coma los acentos */
   }
 
   /* Recurso 2: contorno debajo, relleno encima. Sin JavaScript la capa ya está en su lugar. */
@@ -280,14 +294,19 @@ const {
     font-size: 0.9375rem;
   }
 
+  /* Ocupa su lugar desde el principio para que nada brinque al llenarse. Sin JavaScript no sale. */
   .cuenta {
-    display: flex;
+    display: none;
     gap: clamp(16px, 4vw, 36px);
     margin-top: 20px;
     font-family: var(--fuente-mono);
     font-size: 0.6875rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+  }
+
+  .con-js .cuenta {
+    display: flex;
   }
 
   .cuenta p > span {
