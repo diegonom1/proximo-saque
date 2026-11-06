@@ -1,6 +1,6 @@
 # Próximo Saque v2
 
-Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (categoría mayor, sala) y a cada seleccionada con su club: próximo partido con cuenta regresiva, agenda unificada, rankings y últimos torneos. Los datos se actualizan solos cada lunes con búsquedas en código (Tavily), agentes de IA (Gemini) y reglas en código.
+Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (categoría mayor, sala) y a cada seleccionada con su club: próximo partido con cuenta regresiva, agenda unificada, rankings y últimos torneos. Los datos se actualizan solos cada lunes, y cada jueves se verifican los partidos próximos, con búsquedas en código (Tavily), agentes de IA (Gemini) y reglas en código. En línea en https://diegonom1.github.io/proximo-saque/.
 
 > Este archivo es para Claude Code. La lógica del proyecto se definió fuera de aquí; este documento es el contrato. Si algo no está aquí, pregunta antes de inventarlo.
 
@@ -42,7 +42,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  ├─ estado-agentes.json   qué revisó cada agente y cuándo (para rotar)
 │  └─ manual.json           correcciones humanas; siempre ganan
 ├─ scripts/
-│  ├─ agentes/              correr.mjs (orquestador) + un módulo por agente
+│  ├─ agentes/              correr.mjs (orquestador), un módulo por agente, busquedas.mjs, reporte.mjs, temporadas.mjs, issue-temporadas.mjs
 │  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, busqueda.mjs, evidencia.mjs, nombres.mjs, torneos.mjs, rankings-oficiales.mjs, fotos-sin-credito.mjs
 │  ├─ pruebas/              respuestas simuladas por agente (IA_SIMULADA), páginas reales y datos-base/ (data/ fijo para las pruebas)
 │  └─ fotos/                procesar.py (npm run fotos): prepara las fotos, solo en local
@@ -50,7 +50,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  ├─ assets/fotos/
 │  │  ├─ seleccion/         hero.jpg, hero-movil.jpg, agenda-N.jpg, credito.txt
 │  │  └─ jugadoras/<slug>/  tarjeta.jpg, fondo.jpg, recorte.png (opcional), cara.jpg, credito.txt
-│  ├─ pages/                index.astro, agenda.astro, jugadoras/[slug].astro, torneos.astro
+│  ├─ pages/                index.astro, agenda.astro, jugadoras/[slug].astro, calendario.ics.ts, calendario/[slug].ics.ts
 │  ├─ components/
 │  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, tratamiento.ts, compromiso.ts, presentacion.ts, partido.ts, perfil.ts, iconos.ts, agenda.ts, ics.ts, cuenta.ts, numeros.ts, movimiento.ts, marcador.ts
 └─ .github/workflows/       actualizar.yml (semanal), deploy.yml (push a main)
@@ -253,7 +253,7 @@ Los escribe el agente 06, que los lee de las fuentes oficiales sin IA. `historia
 ```json
 {
   "ultimaCorrida": null,
-  "revisado": { "perfil:sofia-maldonado": "2026-11-09", "dondever:superliga-br": "2026-11-09" },
+  "revisado": { "perfil:sofia-maldonado": "2026-11-09" },
   "pendientes": [],
   "propuestas": [{ "clave": "alta:rosa-hernandez", "seccion": "Altas", "texto": "Rosa Hernández (NORCECA Final Six 2026)", "fuente": "https://...", "fecha": "2026-11-09" }],
   "rechazos": [{ "clave": "club:uxue-guereca:club ejemplo", "texto": "...", "evidencias": ["https://..."], "fecha": "2026-11-16" }]
@@ -297,7 +297,7 @@ En todo el sitio (hero, "Esta semana", perfil, agenda, botón flotante) un parti
 1. **Hero**: foto de la Selección a pantalla completa (`hero.jpg`; en celular `hero-movil.jpg`, vertical) si las dos llegan a su mínimo. Si no, `hero.jpg` va en un panel a su tamaño real, también en celular, y el texto sale aparte. Encima, la fecha grande del próximo compromiso (formato `21.09.26`) y la cuenta regresiva. Qué cuenta, en este orden:
    1. el próximo partido de la Selección;
    2. si no hay partido, el inicio del próximo torneo (cuenta en días);
-   3. si no hay torneo confirmado: "Próximo torneo por confirmar" y abajo "Mientras, la próxima en jugar:", el texto del partido y su cuenta regresiva.
+   3. si no hay torneo confirmado: "Próximo torneo por confirmar" y abajo "Mientras, la próxima en jugar:", el texto del partido y su cuenta regresiva. El título baja de tamaño para que la cuenta quepa en la primera pantalla (medido a 1440 × 900, 1366 × 768, 390 y 360 px).
    Abajo, un cintillo de TV con los próximos partidos (`Cintillo.astro`). Repite lo de "Esta semana": es decorativo para lectores de pantalla, se puede pausar y con movimiento reducido no sale.
 2. **Rankings**: FIVB y NORCECA en dos bloques grandes: lugar (número grande), puntos, fecha de actualización y flecha si subió o bajó contra el registro anterior. La FMVB solo muestra los puntos; nosotros mostramos más.
 3. **La Selección en números**: seleccionadas, países donde juegan, ligas, partidos en los próximos 45 días y medallas en los últimos torneos, calculado de `data/` (`src/lib/numeros.ts`).
@@ -331,9 +331,9 @@ Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin 
 
 Acceso desde todo el sitio: el encabezado se queda fijo, con Plantilla, Torneos y Agenda también en celular. Es transparente sobre la foto de arriba y con fondo propio al bajar (`--alto-encabezado`). En celular hay además un botón flotante con la cuenta y el texto del próximo partido que lleva a `/agenda`.
 
-### Torneos `/torneos` (opcional)
+### Torneos
 
-Los 6 torneos con más detalle: resultado, récord y premios.
+No tienen página propia: `/torneos` era opcional y no se hizo. El enlace del encabezado lleva a la sección del inicio (`#torneos`), que ya trae resultado, récord y premios.
 
 ## Reglas de tiempo y estados
 
@@ -393,6 +393,16 @@ Reglas:
 
 Video de fondo: solo si es material propio o con permiso; las transmisiones tienen dueño.
 
+## Accesibilidad
+
+- Fotos de jugadoras: `alt` con su nombre (`Foto de Sofía Maldonado`), también en la tarjeta. El chip de la agenda lleva `alt=""` porque el botón ya dice el nombre en su `aria-label`. Las del encabezado de la agenda describen la foto (`TEXTOS_ENCABEZADO`).
+- Lo decorativo no se lee: apellido gigante, número en contorno y cintillo van con `aria-hidden`.
+- SplitText parte el texto en letras. La fecha del hero lleva `role="img"` y su `aria-label` mientras está partida. axe no avisó de esto: al animar un texto, hay que leer el árbol de accesibilidad con y sin movimiento.
+- Foco visible: anillo blanco en el encabezado, el hero, el pie y `.seccion--oscura`; rojo otra vez en `.sobre-papel`. `scroll-margin-block` evita que el encabezado fijo o el botón flotante tapen lo enfocado.
+- Plantilla: Tab recorre las tarjetas en orden. En escritorio el foco mueve el scroll de la página para llevar el riel hasta la tarjeta; en celular, `scrollIntoView`. El `tabindex` del carrusel solo existe fuera del riel, para moverlo con las flechas.
+- Filtros de la agenda: el chip enfocado se centra (`centrarChip`).
+- Todo el contenido vive en una región: el botón flotante va en `<aside aria-label="Acceso a la agenda">`.
+
 ## Fotos
 
 | Archivo | Uso | Mínimo recomendado |
@@ -434,7 +444,8 @@ Los contextos están en `agentes/` (ver `agentes/README.md`). Para cada llamada,
 Orden de cada corrida semanal. Antes de todo, y antes de los `pendientes`, van las tareas de lo que está por jugarse: 04 si la Selección juega en los próximos 7 días y 03 de cada club que juega en ese rango.
 
 1. **06 Rankings**: sin IA, cada lunes y sin gastar presupuesto. Lee el API de la FIVB y la página de NORCECA (`scripts/lib/rankings-oficiales.mjs`). Si una fuente falla o cambia de forma, conserva el dato anterior y lo avisa en el resumen.
-   Luego, también sin IA, `scripts/agentes/temporadas.mjs` revisa las ligas con seleccionadas activas: avisa en "Por revisar" y en las dudas del PR si la temporada ya debería haber terminado (`2026-27` termina el 30 de junio de 2027) o si `calendarioOficialUrl` deja de responder (404, 5xx o sin conexión, con un reintento; 401, 403 y 429 son bots bloqueados y no cuentan). No cambia datos: `temporada` y `calendarioOficialUrl` se actualizan a mano.
+   Luego, también sin IA, `scripts/agentes/temporadas.mjs` revisa las ligas con seleccionadas activas: avisa en "Por revisar", en las dudas del PR y en un issue si la temporada ya debería haber terminado (`2026-27` termina el 30 de junio de 2027) o si `calendarioOficialUrl` deja de responder (404, 5xx o sin conexión, con un reintento; 401, 403 y 429 son bots bloqueados y no cuentan). No cambia datos: `temporada` y `calendarioOficialUrl` se actualizan a mano.
+   El issue lo abre `scripts/agentes/issue-temporadas.mjs` con el título "Revisar temporadas de las ligas", para que el aviso no se pierda en las semanas sin PR. Si ya hay uno abierto con ese título no crea otro: le reemplaza la lista. Sin avisos no toca nada, tampoco cierra el que esté abierto: se cierra a mano al corregir.
 2. **04 Selección y torneos**: 1 llamada para el próximo compromiso, que también nombra los torneos terminados que ve; luego 1 llamada por torneo del catálogo que no esté en `torneos.json` (máximo 2 por corrida, cada uno cada 30 días).
 3. **01 Plantel**: 1 llamada para anuncios de retiro; luego 1 llamada por torneo guardado más reciente que la última lista conocida (máximo 2 por corrida, cada uno cada 30 días). Lo histórico no lo buscan los agentes: se cargó una vez por PR.
 4. **02 Perfiles**: altas nuevas primero; luego las 4 jugadoras con `revisado` más viejo (así cada perfil se revisa cerca de una vez al mes sin gastar todo en un lunes).
@@ -489,18 +500,20 @@ Detalles técnicos:
 - **Pull Request de revisión semanal** (rama `revision-semanal`, uno abierto a la vez; acumula lo de semanas anteriores: la corrida parte de la rama, después de integrarle `main`; si se cerró sin aprobar, parte de `main`): cambios en `jugadoras.json`, `clubes.json`, `ligas.json` y `torneos.json`. El cuerpo del PR resume altas, bajas, cambios de club, torneos nuevos, datos de perfil y dudas, cada uno con su fuente. Un alta crea también `src/assets/fotos/jugadoras/<slug>/.gitkeep`. Se aprueba desde la app de GitHub en el celular.
 - Lo que se guarda directo debe ser válido contra lo aprobado en `main` (`DIR_APROBADOS`): `partidos.json` no puede citar un club o una convocada que solo existen en el PR. Si no lo es, la corrida falla sin escribir. Por eso la rotación del agente 02 sale de `estado-agentes.json`, no de los `revisado` de `jugadoras.json`.
 - Un alta entra como `propuesta` por el PR. Si la siguiente corrida la encuentra en `main`, el PR se aprobó y pasa a `activa`.
-- Cuando se confirma el nombre de `ovalle` o `tanguma`, el agente actualiza `nombre` y avisa en dudas; renombrar `slug` y carpeta es a mano.
-- El cuerpo del PR se escribe en `revision-semanal.md` (fuera del repo).
+- Cuando se confirma el nombre de `tanguma`, el agente actualiza `nombre` y avisa en dudas; renombrar `slug` y carpeta es a mano.
+- El cuerpo del PR se escribe en `revision-semanal.md` y los avisos de temporadas en `avisos-temporada.md` (los dos ignorados por git). Sin avisos, este último no existe.
 - Requisito: en el repo, Settings → Actions → General → *Allow GitHub Actions to create and approve pull requests*. Usar `peter-evans/create-pull-request`.
 
 ### Workflows
 
 Ambos usan Node 24 (`actions/setup-node` con `node-version-file: .nvmrc`) y corren en `ubuntu-24.04`, fijo para que un cambio de `ubuntu-latest` no los mueva.
 
-- `actualizar.yml`: `schedule` lunes y jueves a las 06:17 de Tonalá (`17 12 * * 1` y `17 12 * * 4` en UTC) y `workflow_dispatch`, que deja elegir `lunes` o `jueves`. El jueves pone `SOLO_VERIFICAR=true`, parte de `main` y no toca el PR. Las programadas solo corren con la variable `CORRIDA_PROGRAMADA` en `true`; a mano siempre corre. Secretos `GEMINI_API_KEY` y `TAVILY_API_KEY`, variables `GEMINI_MODELOS`, `MAX_LLAMADAS` y `BUSQUEDA`. Después del commit, construye y despliega en el mismo workflow, llamando a `deploy.yml`: un push hecho con `GITHUB_TOKEN` no dispara otros workflows.
+- `actualizar.yml`: `schedule` lunes y jueves a las 06:17 de Tonalá (`17 12 * * 1` y `17 12 * * 4` en UTC) y `workflow_dispatch`, que deja elegir `lunes` o `jueves`. El jueves pone `SOLO_VERIFICAR=true`, parte de `main` y no toca el PR. Las programadas solo corren con la variable `CORRIDA_PROGRAMADA` en `true`; a mano siempre corre. Secretos `GEMINI_API_KEY` y `TAVILY_API_KEY`, variables `GEMINI_MODELOS`, `MAX_LLAMADAS` y `BUSQUEDA`. Permisos `contents`, `pull-requests` e `issues`. El lunes, después de los agentes, avisa de las temporadas en un issue; si ese paso falla, la corrida sigue. Después del commit, construye y despliega en el mismo workflow, llamando a `deploy.yml`: un push hecho con `GITHUB_TOKEN` no dispara otros workflows.
 - `deploy.yml`: en push a `main` (por ejemplo al aprobar el PR), `astro build` y despliegue a Pages (`actions/upload-pages-artifact` + `actions/deploy-pages`; en Settings → Pages, fuente *GitHub Actions*). `site` y `base` están en `astro.config.mjs`: si cambia el nombre del repo, hay que cambiar `base`.
 
 ## Fases
+
+Las ocho están terminadas y el sitio está en línea. Se quedan aquí como registro.
 
 0. Proyecto Astro, estructura y carpetas de fotos de la plantilla inicial (con `.gitkeep`). Migrar los datos de `v1/data/` al formato nuevo (`equipos.json` → `clubes.json` + `ligas.json`; `partidos.json` con `tipo: "club"` y `clubId`) y agregar lo de este documento. Migrar las utilidades del v1 a `scripts/lib/` y `src/lib/` con pruebas.
 1. Inicio sin animaciones.
@@ -513,7 +526,7 @@ Ambos usan Node 24 (`actions/setup-node` con `node-version-file: .nvmrc`) y corr
 
 ## Plantilla inicial (carpetas de fotos)
 
-Jugadoras que aparecen en al menos una lista oficial reciente: el Campeonato Mundial 2025 y el Final Four NORCECA 2026 (Ponce, junio). Número y posición son los del boletín oficial del Final Four 2026. La lista completa del Final Six 2026 (Zinacantepec, septiembre) no apareció publicada con nombres en las fuentes revisadas; el agente 01 la completa en su primera corrida.
+Es el punto de partida; lo vigente está en `data/jugadoras.json`. Jugadoras que aparecen en al menos una lista oficial reciente: el Campeonato Mundial 2025 y el Final Four NORCECA 2026 (Ponce, junio). Número y posición son los del boletín oficial del Final Four 2026. La lista completa del Final Six 2026 (Zinacantepec, septiembre) no apareció publicada con nombres en las fuentes revisadas; el agente 01 la completa en su primera corrida.
 
 | Carpeta (`slug`) | Nombre | # | Posición | Listas |
 |---|---|---|---|---|
@@ -522,7 +535,7 @@ Jugadoras que aparecen en al menos una lista oficial reciente: el Campeonato Mun
 | `sofia-maldonado` | Sofía Maldonado | 3 | Atacante (en el v1 estaba como opuesta) | Mundial 2025, Final Four 2026, Final Six 2026 |
 | `grecia-castro` | Grecia Castro | 6 | Atacante | Mundial 2025, Final Four 2026 |
 | `argentina-ung` | Argentina Ung | 7 | Acomodadora | Mundial 2025, Final Four 2026 |
-| `ovalle` | Ovalle (nombre por confirmar) | 8 | Opuesta | Final Four 2026 |
+| `marian-ovalle` | Marian Ovalle | 8 | Opuesta | Final Four 2026 |
 | `arleth-marquez` | Arleth Márquez | 10 | Central | Mundial 2025, Final Four 2026 |
 | `jocelyn-urias` | Jocelyn Urías (capitana) | 11 | Central | Mundial 2025, Final Four 2026 |
 | `joseline-landeros` | Joseline Landeros | 12 | Líbero | Mundial 2025, Final Four 2026 |
@@ -534,4 +547,4 @@ Jugadoras que aparecen en al menos una lista oficial reciente: el Campeonato Mun
 | `melanie-parra` | Melanie Parra | — | Atacante | Mundial 2025 |
 | `ximena-solar` | Ximena Solar | — | Central | Mundial 2025 |
 
-Nombres completos según el boletín: Uxue Amaya Guereca Parra, Sofía Maldonado Díaz, Grecia Esther Castro López, Gloria Argentina Ung Enríquez, Joseline Landeros Palacios, Karina Angélica Flores Gámez. Tavily no trae ese PDF, así que el agente 02 no puede citarlo: si reporta el mismo valor (sin contar acentos), se ignora sin verificar. Cuando se confirmen los nombres de `ovalle` y `tanguma`, renombrar carpeta y `slug`.
+Nombres completos según el boletín: Uxue Amaya Guereca Parra, Sofía Maldonado Díaz, Grecia Esther Castro López, Gloria Argentina Ung Enríquez, Joseline Landeros Palacios, Karina Angélica Flores Gámez. Tavily no trae ese PDF, así que el agente 02 no puede citarlo: si reporta el mismo valor (sin contar acentos), se ignora sin verificar. Cuando se confirme el nombre de `tanguma`, renombrar carpeta y `slug`.
