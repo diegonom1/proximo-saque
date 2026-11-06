@@ -8,6 +8,11 @@ horizontal para fondo.jpg. Para decidirlo tú, pon en el nombre del archivo "tar
 
 Modelo del recorte: birefnet-general, o el que diga fotos-originales/<slug>/modelo.txt
 ("general" o "portrait"). Si cambias modelo.txt, la siguiente corrida recorta esa foto sola.
+Con poca memoria baja a un modelo de reserva y lo dice en el resumen.
+
+Una sola persona: del recorte solo queda la silueta conectada a la cara de la jugadora. Si sigue
+pegada a alguien, fotos-originales/<slug>/caja.txt limita la zona antes de quitar el fondo, en
+porcentaje de la foto: "20% 0% 80% 100%" (izquierda, arriba, derecha, abajo).
 
 Cara: si el detector elige a otra persona, fotos-originales/<slug>/cara.txt dice dónde está la cara
 de la jugadora, en porcentaje de la foto: "36% 39%".
@@ -31,6 +36,7 @@ import resource
 import shutil
 import sys
 import time
+import warnings
 from pathlib import Path
 import urllib.request
 
@@ -60,16 +66,33 @@ PLANTILLA_CREDITO = "Foto: autor o cuenta — URL"
 MODELOS = RAIZ / ".venv/modelos"
 
 # Súbelo si cambia el proceso, para que todo se vuelva a generar.
-VERSION = 2
+VERSION = 3
 # birefnet-general dio el borde más nítido en una foto real. birefnet-portrait se concentra en la
 # persona y puede morder lo que trae en las manos (un balón).
 MODELO_DEFECTO = "birefnet-general"
 MODELOS_RECORTE = (MODELO_DEFECTO, "birefnet-portrait")
 
 # Memoria: no se carga un modelo con menos de esto disponible. Medido en 14 GB de RAM: cada modelo
-# llega a 9.1 GB en la inferencia, sin importar hilos, arena ni tamaño de la foto, porque la red
-# siempre trabaja a 1024 × 1024. Por eso el mínimo va por encima de ese pico.
-MIN_MEMORIA_GB = 10
+# llega a 9.1 GB con la primera foto, sin importar hilos, arena ni tamaño de la foto, porque la red
+# siempre trabaja a 1024 × 1024. En una corrida de 16 fotos birefnet-general llegó a 11.82 GB.
+# Por eso el mínimo va por encima de ese pico.
+MIN_MEMORIA_GB = 12
+
+# Reservas, de mejor a peor, para no saltarse la foto cuando no alcanza. Medido en 7 fotos reales:
+# birefnet-general-lite llega a 7.44 GB y casi no pierde calidad, pero acumula memoria entre fotos
+# (pasó de 8.4 GB en la segunda): por eso corre en un proceso nuevo por foto.
+# isnet-general-use llega a 1.71 GB, pero deja fantasmas y puede perder un brazo.
+# u2net_human_seg se descartó: se come el balón.
+MODELO_LIGERO = "birefnet-general-lite"
+MODELO_MINIMO = "isnet-general-use"
+RESERVAS = (MODELO_LIGERO, MODELO_MINIMO)
+MEMORIA_GB = {MODELO_LIGERO: 8, MODELO_MINIMO: 3}
+UN_PROCESO_POR_FOTO = {MODELO_LIGERO}
+
+# Una sola persona: la máscara se parte con este corte y se conserva lo que esté a esta distancia
+# de la silueta (fracción del lado largo), para no perder el borde suave ni el cabello.
+CORTE_SILUETA = 96
+BORDE_SILUETA = 0.006
 ONNX_HILOS = 4
 # Lado largo de la copia para la inferencia.
 INFERENCIA_LADO = 1600
@@ -181,7 +204,7 @@ def foco_sugerido(ancho, alto, cara):
 def interpretar_modelo(texto):
     """Lee modelo.txt: acepta "general" o "birefnet-general". Devuelve None si no lo reconoce."""
     limpio = texto.strip().lower()
-    for modelo in MODELOS_RECORTE:
+    for modelo in (*MODELOS_RECORTE, *RESERVAS):
         if limpio in (modelo, modelo.removeprefix("birefnet-")):
             return modelo
     return None
@@ -195,6 +218,48 @@ def interpretar_cara(texto):
     except ValueError:
         return None
     return (x, y) if 0 <= x <= 1 and 0 <= y <= 1 else None
+
+
+def interpretar_caja(texto):
+    """Lee caja.txt: "20% 0% 80% 100%" es izquierda, arriba, derecha y abajo. None si no se entiende."""
+    partes = texto.replace("%", " ").split()
+    try:
+        izq, arriba, der, abajo = (float(p) / 100 for p in partes)
+    except ValueError:
+        return None
+    return (izq, arriba, der, abajo) if 0 <= izq < der <= 1 and 0 <= arriba < abajo <= 1 else None
+
+
+def una_sola_persona(mascara, caras):
+    """Deja solo la silueta conectada a la cara principal, con su balón si lo trae en la mano.
+
+    Devuelve (máscara, ¿se pudo elegir por la cara?, otras caras que siguen en la silueta).
+    Sin cara no hay a quién seguir: queda la silueta más grande.
+    """
+    alfa = np.asarray(mascara)
+    cuantas, etiquetas = cv2.connectedComponents((alfa >= CORTE_SILUETA).astype(np.uint8), connectivity=8)
+    if cuantas < 2:
+        return mascara, True, 0
+    elegida = None
+    if caras:
+        cara = caras[0]
+        izq, arriba = max(0, round(cara.x)), max(0, round(cara.y))
+        zona = etiquetas[arriba:round(cara.y + cara.alto) + 1, izq:round(cara.x + cara.ancho) + 1]
+        tocadas = zona[zona > 0]
+        if tocadas.size:
+            elegida = int(np.bincount(tocadas).argmax())
+    encontrada = elegida is not None
+    if not encontrada:
+        elegida = int(np.bincount(etiquetas[etiquetas > 0]).argmax())
+    silueta = (etiquetas == elegida).astype(np.uint8)
+    otras = 0
+    for cara in caras[1:]:
+        x, y = (round(v) for v in cara.centro)
+        if 0 <= y < silueta.shape[0] and 0 <= x < silueta.shape[1] and silueta[y, x]:
+            otras += 1
+    radio = max(2, round(max(mascara.size) * BORDE_SILUETA))
+    cerca = cv2.dilate(silueta, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (radio * 2 + 1, radio * 2 + 1)))
+    return Image.fromarray(alfa * cerca, "L"), encontrada, otras
 
 
 def cara_fijada(foto, posicion):
@@ -266,10 +331,28 @@ def detectar_caras(imagen):
 def falta_memoria(disponible, modelo):
     """Mensaje si no conviene cargar el modelo; None si alcanza. `disponible` va en bytes."""
     gb = disponible / 1024**3
-    if gb >= MIN_MEMORIA_GB:
+    minimo = MEMORIA_GB.get(modelo, MIN_MEMORIA_GB)
+    if gb >= minimo:
         return None
-    return (f"{modelo}: no lo cargué porque hay {gb:.1f} GB de memoria disponibles y pido {MIN_MEMORIA_GB} GB. "
+    return (f"{modelo}: no lo cargué porque hay {gb:.1f} GB de memoria disponibles y pido {minimo} GB. "
             "Cierra Chrome u otros programas y corre npm run fotos otra vez.")
+
+
+def memoria_disponible():
+    return psutil.virtual_memory().available
+
+
+def opciones_de(modelo):
+    """El modelo pedido y sus reservas, de mejor a peor."""
+    return (modelo, *(m for m in RESERVAS if m != modelo))
+
+
+def modelo_posible(disponible, modelo):
+    """El mejor modelo que cabe en la memoria disponible; None si no cabe ninguno."""
+    return next((m for m in opciones_de(modelo) if falta_memoria(disponible, m) is None), None)
+
+
+AVISO_RESERVA = "recorte.png: usé la reserva"
 
 
 class MemoriaInsuficiente(Exception):
@@ -293,7 +376,11 @@ def _mascara(png, modelo):
         opciones.intra_op_num_threads = ONNX_HILOS
         opciones.inter_op_num_threads = 1
         _sesion = new_session(modelo, opciones, providers=["CPUExecutionProvider"])
-    mascara = remove(Image.open(io.BytesIO(png)), session=_sesion, only_mask=True).convert("L")
+    with warnings.catch_warnings():
+        # rembg calcula 1 / (1 + exp(-x)). Donde el modelo está muy seguro de que es fondo, exp se va
+        # a infinito y el resultado es 0, que es lo correcto: la advertencia no significa un error.
+        warnings.filterwarnings("ignore", message="overflow encountered in exp", category=RuntimeWarning)
+        mascara = remove(Image.open(io.BytesIO(png)), session=_sesion, only_mask=True).convert("L")
     salida = io.BytesIO()
     mascara.save(salida, "PNG")
     return salida.getvalue(), resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024**2
@@ -307,25 +394,35 @@ class Recortador:
     def __init__(self):
         self.modelo = None
         self.proceso = None
+        self.picos = {}
+
+    def cargar(self, modelo):
+        """Deja listo el mejor modelo que quepa, partiendo del que se pidió. Devuelve cuál fue."""
+        self.cerrar()
+        disponible = memoria_disponible()
+        usar = modelo_posible(disponible, modelo)
+        if usar is None:
+            raise MemoriaInsuficiente(falta_memoria(disponible, RESERVAS[-1]))
+        print(f"  Cargando {usar} (la primera vez se descarga)...", flush=True)
+        self.proceso = ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
+        self.modelo = usar
+        return usar
 
     def mascara(self, imagen, modelo):
-        if modelo != self.modelo:
-            self.cerrar()
-            aviso = falta_memoria(psutil.virtual_memory().available, modelo)
-            if aviso:
-                raise MemoriaInsuficiente(aviso)
-            print(f"  Cargando {modelo} (la primera vez se descarga, cerca de 1 GB)...", flush=True)
-            self.proceso = ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
-            self.modelo = modelo
+        """Devuelve la máscara y el modelo que la hizo, que puede ser una reserva."""
+        usar = modelo if modelo == self.modelo else self.cargar(modelo)
         entrada = io.BytesIO()
         imagen.save(entrada, "PNG")
         try:
-            png, pico = self.proceso.submit(_mascara, entrada.getvalue(), modelo).result()
+            png, pico = self.proceso.submit(_mascara, entrada.getvalue(), usar).result()
         except BrokenProcessPool:
             self.cerrar()
             raise
-        print(f"  Recorte con {modelo} (pico de memoria {pico:.2f} GB)", flush=True)
-        return Image.open(io.BytesIO(png)).convert("L")
+        self.picos[usar] = max(pico, self.picos.get(usar, 0))
+        print(f"  Recorte con {usar} (pico de memoria {pico:.2f} GB)", flush=True)
+        if usar in UN_PROCESO_POR_FOTO:
+            self.cerrar()
+        return Image.open(io.BytesIO(png)).convert("L"), usar
 
     def cerrar(self):
         if self.proceso:
@@ -398,46 +495,86 @@ def hacer_fondo(foto, destino, avisos):
         avisos.append(f"Sugerencia para fotos.foco: \"{foco_sugerido(*foto.imagen.size, foto.cara)}\".")
 
 
+def zona_de_recorte(foto, origen, avisos):
+    """La foto limitada a caja.txt, con sus caras en las coordenadas nuevas. Sin caja, la misma foto."""
+    ruta = origen / "caja.txt"
+    if not ruta.exists():
+        return foto
+    caja = interpretar_caja(ruta.read_text(encoding="utf-8"))
+    if caja is None:
+        avisos.append('caja.txt no dice qué zona usar; escribe algo como "20% 0% 80% 100%".')
+        return foto
+    ancho, alto = foto.imagen.size
+    izq, arriba, der, abajo = round(caja[0] * ancho), round(caja[1] * alto), round(caja[2] * ancho), round(caja[3] * alto)
+    caras = [Cara(c.x - izq, c.y - arriba, c.ancho, c.alto) for c in foto.caras if izq <= c.centro[0] <= der and arriba <= c.centro[1] <= abajo]
+    if not caras:
+        avisos.append("caja.txt deja fuera la cara de la jugadora; revísalo.")
+    return Foto(foto.ruta, recortar(foto, (izq, arriba, der, abajo)), caras)
+
+
 def hacer_recortes(foto, nombre, modelos, recortador, avisos):
     """Deja en .comparar/<slug>/ un recorte por modelo.
 
     La inferencia usa una copia reducida (el modelo trabaja a 1024 px de todos modos) y la máscara
     se aplica sobre la foto original. Los bordes se limpian ya recortados, que es mucho menos área.
     """
-    if len(foto.personas()) > 1:
-        avisos.append(f"recorte.png: {foto.ruta.name} tiene {len(foto.personas())} personas; el recorte puede dejarlas a todas.")
+    foto = zona_de_recorte(foto, ORIGINALES / nombre, avisos)
     carpeta = COMPARAR / nombre
     carpeta.mkdir(parents=True, exist_ok=True)
     original = foto.imagen.convert("RGB")
     copia = reducir(original, INFERENCIA_LADO, INFERENCIA_LADO)
     for modelo in modelos:
         try:
-            mascara = recortador.mascara(copia, modelo)
+            mascara, usado = recortador.mascara(copia, modelo)
         except MemoriaInsuficiente as error:
             avisos.append(str(error))
             continue
         except BrokenProcessPool:
             avisos.append(f"{modelo}: el proceso murió, seguramente por falta de memoria. Cierra programas y corre de nuevo.")
             continue
-        cubierto = float(np.asarray(mascara).mean()) / 255
-        if not 0.03 <= cubierto <= 0.9:
-            avisos.append(f"{modelo}: quedó cubierto el {cubierto:.0%} de la imagen; seguramente salió mal. Revísalo.")
+        if usado != modelo:
+            avisos.append(f"{AVISO_RESERVA} {usado}: no alcanzó la memoria para {modelo}.")
         if mascara.size != original.size:
             mascara = mascara.resize(original.size, Image.Resampling.LANCZOS)
+        mascara, encontrada, otras = una_sola_persona(mascara, foto.caras)
+        if not encontrada:
+            avisos.append(f"{usado}: no encontré su silueta en la cara; dejé la más grande. Revisa cara.txt.")
+        if otras:
+            avisos.append(f"{usado}: la silueta sigue pegada a {otras} persona(s) más; define caja.txt.")
+        cubierto = float(np.asarray(mascara).mean()) / 255
+        if not 0.03 <= cubierto <= 0.9:
+            avisos.append(f"{usado}: quedó cubierto el {cubierto:.0%} de la imagen; seguramente salió mal. Revísalo.")
         caja = mascara.point(lambda v: 255 if v > 8 else 0).getbbox() or (0, 0, *original.size)
         persona = reducir(original.crop(caja), 2400, MIN_RECORTE_ALTO)
         limpio = limpiar_bordes(persona, mascara.crop(caja).resize(persona.size, Image.Resampling.LANCZOS))
-        limpio.save(carpeta / f"{modelo}.png", "PNG", optimize=True)
+        limpio.save(carpeta / f"{usado}.png", "PNG", optimize=True)
+        if usado != modelo:
+            break  # con poca memoria los demás caerían en la misma reserva
+
+
+def recorte_hecho(nombre, modelo):
+    """El mejor recorte que ya existe para ese modelo o sus reservas; None si no hay."""
+    return next((m for m in opciones_de(modelo) if (COMPARAR / nombre / f"{m}.png").exists()), None)
+
+
+def falta_recorte(nombre, modelo, disponible):
+    """¿Hay que correr el modelo? No si lo mejor que cabe hoy no supera lo que ya está hecho."""
+    hecho = recorte_hecho(nombre, modelo)
+    if hecho is None:
+        return True
+    posible = modelo_posible(disponible, modelo)
+    orden = opciones_de(modelo)
+    return posible is not None and orden.index(posible) < orden.index(hecho)
 
 
 def aplicar_recorte(nombre, modelo, avisos):
     """recorte.png es una copia del modelo elegido: cambiar de modelo no vuelve a recortar."""
     destino = destino_de(nombre) / "recorte.png"
-    origen = COMPARAR / nombre / f"{modelo}.png"
-    if not origen.exists():
+    hecho = recorte_hecho(nombre, modelo)
+    if hecho is None:
         avisos.append(f"recorte.png: todavía no hay recorte de {modelo}; corre npm run fotos otra vez.")
         return
-    shutil.copyfile(origen, destino)
+    shutil.copyfile(COMPARAR / nombre / f"{hecho}.png", destino)
     with Image.open(destino) as imagen:
         alto = imagen.height
     if alto < MIN_RECORTE_ALTO:
@@ -521,12 +658,13 @@ def miniatura(ruta, alto=300):
 def piezas_de(nombre, carpeta, comparar):
     """Lo que va en la fila de una carpeta: (rótulo, ruta, ¿resaltar?)."""
     piezas = [(n, carpeta / n, False) for n in ("hero.jpg", "hero-movil.jpg", "tarjeta.jpg", "fondo.jpg") if (carpeta / n).exists()]
-    actual = modelo_de(ORIGINALES / nombre, [])
+    pedido = modelo_de(ORIGINALES / nombre, [])
+    actual = recorte_hecho(nombre, pedido) or pedido
     if not comparar:
         if (carpeta / "recorte.png").exists():
             piezas.append((f"recorte ({actual.removeprefix('birefnet-')})", carpeta / "recorte.png", False))
         return piezas
-    for modelo in MODELOS_RECORTE:
+    for modelo in (*MODELOS_RECORTE, *RESERVAS):
         ruta = COMPARAR / nombre / f"{modelo}.png"
         if ruta.exists():
             corto = modelo.removeprefix("birefnet-")
@@ -673,8 +811,8 @@ def procesar_carpeta(nombre, archivos, cache, recortador, forzar=False, comparar
     """Hace solo lo que falta. Devuelve (avisos, ¿no hubo nada que hacer?)."""
     carpeta = destino_de(nombre)
     carpeta.mkdir(parents=True, exist_ok=True)
-    cara = ORIGINALES / nombre / "cara.txt"
-    firma = huella([*archivos, cara] if cara.exists() else archivos)
+    ajustes = [ORIGINALES / nombre / n for n in ("cara.txt", "caja.txt")]
+    firma = huella([*archivos, *(a for a in ajustes if a.exists())])
     previo = cache.get(nombre, {})
     if nombre == "seleccion":
         return procesar_seleccion(archivos, firma, previo, cache, forzar)
@@ -686,7 +824,8 @@ def procesar_carpeta(nombre, archivos, cache, recortador, forzar=False, comparar
         for viejo in (COMPARAR / nombre).glob("*.png"):
             viejo.unlink()
     pedidos = MODELOS_RECORTE if comparar else (modelo,)
-    faltan = [m for m in pedidos if not (COMPARAR / nombre / f"{m}.png").exists()]
+    disponible = memoria_disponible()
+    faltan = [m for m in pedidos if falta_recorte(nombre, m, disponible)]
 
     if not cambio_foto and not faltan:
         avisos = list(previo.get("avisos", [])) + avisos_modelo
@@ -695,7 +834,7 @@ def procesar_carpeta(nombre, archivos, cache, recortador, forzar=False, comparar
         cache[nombre] = {**previo, "modelo": modelo}
         return avisos, sin_cambios
 
-    avisos = [] if cambio_foto else list(previo.get("avisos", []))
+    avisos = [] if cambio_foto else [a for a in previo.get("avisos", []) if not a.startswith(AVISO_RESERVA)]
     fotos = abrir_fotos(archivos, avisos)
     if not fotos:
         return avisos + avisos_modelo, False
@@ -704,7 +843,7 @@ def procesar_carpeta(nombre, archivos, cache, recortador, forzar=False, comparar
         hacer_jugadora(fotos, nombre, avisos)
     hacer_recortes(foto_de_recorte(fotos), nombre, faltan, recortador, avisos)
     guardados = [a for a in avisos if "no lo cargué" not in a]
-    if (COMPARAR / nombre / f"{modelo}.png").exists():
+    if recorte_hecho(nombre, modelo):
         cache[nombre] = {"huella": firma, "modelo": modelo, "avisos": guardados}
     avisos += avisos_modelo
     aplicar_recorte(nombre, modelo, avisos)
@@ -777,6 +916,11 @@ def main():
     hoja = hoja_vista_previa(todas, avisos, opciones.comparar)
 
     print(f"\nProcesadas: {len(procesadas)} · sin cambios: {len(saltadas)} · sin fotos: {len(sin_fotos)} · total: {segundos(inicio_total)}")
+    con_reserva = sorted(n for n, textos in avisos.items() if any(t.startswith(AVISO_RESERVA) for t in textos))
+    if con_reserva:
+        print(f"Con modelo de reserva por falta de memoria ({len(con_reserva)}): {', '.join(con_reserva)}")
+    for modelo, pico in recortador.picos.items():
+        print(f"Pico de memoria de {modelo}: {pico:.2f} GB")
     if procesadas:
         print("Revisa en la vista previa el cabello, el balón y a las personas de atrás.")
     for nombre, textos in avisos.items():

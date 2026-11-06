@@ -31,4 +31,8 @@ Otras opciones
   modelo.txt en la carpeta de una jugadora elige el recorte: general o portrait.
   cara.txt dice dónde está su cara si el programa eligió a otra persona, en porcentaje
   de la foto (izquierda y arriba): 36% 39%
+  caja.txt limita la zona del recorte si sigue saliendo otra persona, en porcentaje de la
+  foto (izquierda, arriba, derecha, abajo): 20% 0% 80% 100%
+  Del recorte solo queda la silueta conectada a la cara de la jugadora. Si trae el balón en la
+  mano se conserva; un balón en el aire, sin tocarla, se borra.
   Revisa fotos-originales/vista-previa.jpg al terminar. El programa no quita marcas de agua.

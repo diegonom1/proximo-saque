@@ -84,11 +84,11 @@ class Hero(unittest.TestCase):
 
 class Otros(unittest.TestCase):
     def test_memoria_suficiente(self):
-        self.assertIsNone(falta_memoria(10 * 1024**3, "birefnet-general"))
+        self.assertIsNone(falta_memoria(12 * 1024**3, "birefnet-general"))
 
     def test_memoria_insuficiente_dice_cuanta_hay(self):
-        aviso = falta_memoria(int(9.5 * 1024**3), "birefnet-general")
-        self.assertIn("9.5 GB", aviso)
+        aviso = falta_memoria(int(11.5 * 1024**3), "birefnet-general")
+        self.assertIn("11.5 GB", aviso)
         self.assertIn("Chrome", aviso)
 
     def test_modelo(self):

@@ -42,7 +42,16 @@ Los comandos que gastan créditos necesitan un archivo `.env`, que nunca se sube
 
 `fotos-originales/` no se sube al repo. Su archivo `LEEME.txt` trae los tamaños mínimos y cómo nombrar las fotos. Las carpetas ya están creadas; si falta alguna, por ejemplo la de una jugadora nueva, `npm run fotos` la crea.
 
-La primera vez prepara un entorno de Python y descarga el modelo de recorte, cerca de 1 GB. Después solo procesa lo que cambió. Necesita 10 GB de memoria disponibles: si no los hay, avisa y no carga el modelo, así que cierra Chrome y vuelve a correrlo.
+La primera vez prepara un entorno de Python y descarga el modelo de recorte, cerca de 1 GB. Después solo procesa lo que cambió.
+
+El mejor recorte pide 12 GB de memoria disponibles. Con menos no se salta la foto: usa un modelo de reserva y lo dice en el resumen. Si después corres el programa con más memoria, mejora esos recortes solo.
+
+| Memoria disponible | Modelo | Pico medido |
+|---|---|---|
+| 12 GB o más | `birefnet-general` | 11.82 GB |
+| 8 GB o más | `birefnet-general-lite` | 7.44 GB |
+| 3 GB o más | `isnet-general-use`, con fantasmas y a veces sin un brazo | 1.71 GB |
+| Menos de 3 GB | Ninguno: avisa y salta la foto | — |
 
 | Comando | Qué hace |
 |---|---|
@@ -53,6 +62,8 @@ La primera vez prepara un entorno de Python y descarga el modelo de recorte, cer
 | `npm run fotos -- --carpetas` | Solo crea las carpetas que falten, sin procesar nada. |
 
 Si la tarjeta salió centrada en otra persona, crea `fotos-originales/<slug>/cara.txt` con la posición de su cara en porcentaje de la foto, por ejemplo `36% 40%`, y vuelve a correr el programa.
+
+Del recorte solo queda la silueta conectada a la cara de la jugadora, con el balón si lo trae en la mano. Si sigue saliendo otra persona, crea `fotos-originales/<slug>/caja.txt` con la zona que debe usar, en porcentaje de la foto (izquierda, arriba, derecha, abajo), por ejemplo `20% 0% 80% 100%`.
 
 El programa no quita marcas de agua. Respeta los permisos de cada foto.
 
