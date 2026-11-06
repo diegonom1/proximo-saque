@@ -93,7 +93,7 @@ async function cambiarClub(ctx, j, c, verificar) {
   }
   const valor = r.data;
   const id = buscarClub(ctx.datos.clubes, valor.nombre);
-  if (id === j.clubId) return false;
+  if (id && id === j.clubId) return false;
   if (c.confianza === 'baja') {
     ctx.reporte.duda(`Posible cambio de club de ${j.nombre}: ${valor.nombre}`, fuente);
     return false;
@@ -107,6 +107,32 @@ async function cambiarClub(ctx, j, c, verificar) {
   j.clubId = id ?? crearClub(ctx, valor);
   j.fuentes.clubId = fuente;
   return true;
+}
+
+// De julio en adelante ya corre la temporada siguiente: en noviembre de 2026 es la 2026-27.
+export function temporadaActual(hoy) {
+  const [anio, mes] = hoy.split('-').map(Number);
+  const inicio = mes >= 7 ? anio : anio - 1;
+  return `${inicio}-${String(inicio + 1).slice(2)}`;
+}
+
+const esTemporada = (temporada, actual) => {
+  const m = /^(\d{4})[-/](\d{2,4})$/.exec(temporada ?? '');
+  return Boolean(m) && `${m[1]}-${m[2].slice(-2)}` === actual;
+};
+
+// Países con una sola zona, o donde casi todos los clubes están en la misma. Los demás van a dudas.
+const ZONA_DE_PAIS = {
+  Alemania: 'Europe/Berlin', China: 'Asia/Shanghai', Eslovenia: 'Europe/Ljubljana', España: 'Europe/Madrid', Francia: 'Europe/Paris', Grecia: 'Europe/Athens',
+  Italia: 'Europe/Rome', México: 'America/Mexico_City', Perú: 'America/Lima', Polonia: 'Europe/Warsaw', Rumania: 'Europe/Bucharest', Turquía: 'Europe/Istanbul',
+};
+
+// Sin club, el historial de esta temporada dice dónde juega. Lo guardado ya pasó su verificación.
+function clubDelHistorial(ctx, j) {
+  const actual = temporadaActual(ctx.hoy);
+  const h = j.historialClubes.find((x) => x.fuente && esTemporada(x.temporada, actual));
+  if (!h) return false;
+  return cambiarClub(ctx, j, { valor: { nombre: h.club, pais: h.pais, zonaHoraria: ZONA_DE_PAIS[h.pais] ?? null }, fuente: h.fuente }, async (url) => url);
 }
 
 // Agrega a una lista lo que trae el agente; lo que ya estaba se conserva.
@@ -176,6 +202,7 @@ export async function correr(ctx, slug) {
   });
   // Una entrada sin temporada es la misma que la que ya trae temporada.
   j.historialClubes = historial.lista.filter((h, _, todos) => h.temporada || !todos.some((o) => o.temporada && normal(o.club) === normal(h.club)));
+  if (!j.clubId && await clubDelHistorial(ctx, j)) datosNuevos += 1;
   const redes = await agregar(ctx, j, {
     actual: j.redes,
     nuevos: validos(respuesta.redes, esquemaRed, descartar('red')),

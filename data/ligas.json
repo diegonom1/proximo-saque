@@ -2,26 +2,68 @@
   "serie-a1-it": {
     "nombre": "Serie A1 femminile",
     "pais": "Italia",
-    "temporada": null,
+    "temporada": "2026-27",
     "calendarioOficialUrl": "https://www.legavolleyfemminile.it/",
-    "plataformas": [],
-    "revisado": null
+    "plataformas": [
+      {
+        "nombre": "DAZN",
+        "tipo": "streaming",
+        "url": "https://www.dazn.com/",
+        "alcance": null,
+        "costo": "pago",
+        "notas": "Transmite toda la temporada de Serie A1: fase regular, playoffs, Copa Italia y Supercopa.",
+        "fuente": "https://www.dazn.com/it-IT/news/volley/calendario-completo-serie-a1-femminile-volley/t7kwzbdfn5zh1w02x8hcdrogp",
+        "revisado": "2026-11-05"
+      },
+      {
+        "nombre": "Lega Volley Femminile YouTube",
+        "tipo": "youtube",
+        "url": "https://www.youtube.com/@legavolleyfemminile",
+        "alcance": null,
+        "costo": "gratis",
+        "notas": "Tres partidos por jornada de la fase regular en los canales oficiales de la Lega.",
+        "fuente": "https://www.volleybergamo1991.it/le-partite-della-stagione-2026-2027-saranno-visibili-su-rai-dazn-youtube-e-sui-social-media-della-lega-dei-club-e-delle-giocatrici/",
+        "revisado": "2026-11-05"
+      },
+      {
+        "nombre": "Rai Sport / RaiPlay",
+        "tipo": "tv",
+        "url": "https://www.raiplay.it/",
+        "alcance": "solo Italia",
+        "costo": "gratis",
+        "notas": "Transmite partidos seleccionados (ej. partidos de sábado o Monday Night). Requiere VPN para ver desde México.",
+        "fuente": "https://note.com/kumikopallavolo/n/n4d88acc585f0?hl=en",
+        "revisado": "2026-11-05"
+      }
+    ],
+    "revisado": "2026-11-05"
   },
   "superliga-br": {
     "nombre": "Superliga Feminina",
     "pais": "Brasil",
     "temporada": "2026-27",
     "calendarioOficialUrl": "https://cbv.com.br/volei-de-quadra/superliga-a-feminina",
-    "plataformas": [],
-    "revisado": null
+    "plataformas": [
+      {
+        "nombre": "Canal Vôlei Brasil",
+        "tipo": "youtube",
+        "url": "https://www.youtube.com/@CanalVoleiBrasil",
+        "alcance": "mundial",
+        "costo": "gratis",
+        "notas": "La CBV transmite partidos de la Superliga a través de su canal oficial de YouTube, según se indica en la plataforma de la confederación.",
+        "fuente": "https://cbv.com.br/volei-de-quadra/superliga-a-feminina",
+        "revisado": "2026-11-05"
+      }
+    ],
+    "revisado": "2026-11-05"
   },
   "superliga-cn": {
     "nombre": "Superliga china (CVL)",
     "pais": "China",
-    "temporada": null,
+    "temporada": "2026-27",
     "calendarioOficialUrl": null,
     "plataformas": [],
-    "revisado": null
+    "revisado": "2026-11-05"
   },
   "ligue-a-fr": {
     "nombre": "Ligue A Féminine",
@@ -43,6 +85,22 @@
     "nombre": "Liga Peruana de Vóley",
     "pais": "Perú",
     "temporada": null,
+    "calendarioOficialUrl": null,
+    "plataformas": [],
+    "revisado": null
+  },
+  "superliga-si": {
+    "nombre": "Superliga ženske",
+    "pais": "Eslovenia",
+    "temporada": "2026-27",
+    "calendarioOficialUrl": null,
+    "plataformas": [],
+    "revisado": null
+  },
+  "conferencia-nacional-mx": {
+    "nombre": "Conferencia Nacional de Voleibol",
+    "pais": "México",
+    "temporada": "2026-27",
     "calendarioOficialUrl": null,
     "plataformas": [],
     "revisado": null

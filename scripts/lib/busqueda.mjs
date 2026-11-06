@@ -2,7 +2,7 @@
 // Tavily: 1 crédito por búsqueda básica y 1 por cada 5 páginas extraídas con éxito.
 
 import { normalizar } from './evidencia.mjs';
-import { REDES_SOCIALES, esDominio, filasDePagina, fuenteAdmisible, urlValida } from './fuentes.mjs';
+import { REDES_SOCIALES, esDominio, esVideoSuelto, filasDePagina, fuenteAdmisible, urlValida } from './fuentes.mjs';
 
 const API = 'https://api.tavily.com';
 const MAX_PAGINAS = 5; // una sola extracción: 1 crédito
@@ -111,7 +111,7 @@ export function crearBuscadorTavily({ clave, fetch: pedir = globalThis.fetch, li
     for (const consulta of consultas) {
       for (const r of await buscar(consulta)) {
         const id = normalizarUrl(r.url);
-        if (id && !esDominio(r.url, REDES_SOCIALES) && !porUrl.has(id)) porUrl.set(id, { url: r.url, titulo: r.title ?? null, contenido: recortar(r.content) });
+        if (id && !esDominio(r.url, REDES_SOCIALES) && !esVideoSuelto(r.url) && !porUrl.has(id)) porUrl.set(id, { url: r.url, titulo: r.title ?? null, contenido: recortar(r.content) });
       }
     }
     const fijas = paginas.filter(urlValida);

@@ -21,6 +21,24 @@
         "pais": "Polonia",
         "temporada": "2025-26",
         "fuente": "https://www.tvazteca.com/aztecadeportes/uxue-guereca-mexicana-juega-polonia-equipo-ideal-temporada-2025-2026/"
+      },
+      {
+        "club": "LOVB Miami",
+        "pais": "Estados Unidos",
+        "temporada": "2026-27",
+        "fuente": "https://auprosports.com/read/lovb-announces-new-signings-for-2027-season"
+      },
+      {
+        "club": "AO Markópoulo Revoil",
+        "pais": "Grecia",
+        "temporada": "2024-25",
+        "fuente": "https://women.volleybox.net/uxue-guereca-p13878"
+      },
+      {
+        "club": "New Mexico Univ.",
+        "pais": "Estados Unidos",
+        "temporada": "2023-24",
+        "fuente": "https://women.volleybox.net/uxue-guereca-p13878"
       }
     ],
     "redes": [],
@@ -29,6 +47,16 @@
         "texto": "Equipo ideal de la liga polaca 2025-26 con UNI Opole",
         "anio": 2026,
         "fuente": "https://www.tvazteca.com/aztecadeportes/uxue-guereca-mexicana-juega-polonia-equipo-ideal-temporada-2025-2026/"
+      },
+      {
+        "texto": "Mejor Atacante de la Tauron Liga (Polonia)",
+        "anio": 2026,
+        "fuente": "https://sports.yahoo.com/articles/lovb-miami-now-roster-first-170322750.html"
+      },
+      {
+        "texto": "Debut con la Selección Mexicana mayor",
+        "anio": 2021,
+        "fuente": "https://www.lovb.com/teams/lovb-miami-volleyball/athletes/uxue-guereca"
       }
     ],
     "fotos": {
@@ -45,17 +73,17 @@
       "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158653"
     },
-    "revisado": null
+    "revisado": "2026-11-05"
   },
   {
     "slug": "samantha-bricio",
     "nombre": "Samantha Bricio",
-    "nombreCompleto": null,
+    "nombreCompleto": "Samantha Bricio",
     "estado": "activa",
     "posicion": "Atacante",
     "numero": 2,
     "capitana": false,
-    "fechaNacimiento": null,
+    "fechaNacimiento": "1994-11-22",
     "origen": {
       "ciudad": null,
       "estado": "Jalisco",
@@ -63,9 +91,40 @@
     },
     "estaturaCm": null,
     "clubId": "beijing",
-    "historialClubes": [],
+    "historialClubes": [
+      {
+        "club": "Beijing Arctic Ocean",
+        "pais": "China",
+        "temporada": "2026-27",
+        "fuente": "https://paralelo19.tv/deportes/2026/10/05/samantha-bricio-regresa-superliga-china-beijing-arctic-ocean"
+      },
+      {
+        "club": "İlbank",
+        "pais": "Turquía",
+        "temporada": "2025-26",
+        "fuente": "https://paralelo19.tv/deportes/2026/10/05/samantha-bricio-regresa-superliga-china-beijing-arctic-ocean"
+      },
+      {
+        "club": "Fenerbahçe",
+        "pais": "Turquía",
+        "temporada": "2024-25",
+        "fuente": "https://paralelo19.tv/deportes/2026/10/05/samantha-bricio-regresa-superliga-china-beijing-arctic-ocean"
+      },
+      {
+        "club": "Shanghai Bright Ubest",
+        "pais": "China",
+        "temporada": "2022-23",
+        "fuente": "https://www.clarosports.com/otros-deportes/la-voleibolista-mexicana-samantha-bricio-tendra-una-nueva-aventura-en-asia"
+      }
+    ],
     "redes": [],
-    "destacados": [],
+    "destacados": [
+      {
+        "texto": "MVP de la Supercopa Italiana",
+        "anio": 2016,
+        "fuente": "https://www.informador.mx/Deportes/La-tapatia-Samantha-Bricio-hace-historia-en-el-voleibol-de-Italia-20161208-0078.html"
+      }
+    ],
     "fotos": {
       "foco": "50% 30%"
     },
@@ -77,9 +136,11 @@
     "fuentes": {
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
-      "clubId": "https://www.clarosports.com/otros-deportes/la-voleibolista-mexicana-samantha-bricio-tendra-una-nueva-aventura-en-asia/"
+      "clubId": "https://www.clarosports.com/otros-deportes/la-voleibolista-mexicana-samantha-bricio-tendra-una-nueva-aventura-en-asia/",
+      "nombreCompleto": "https://women.volleybox.net/samantha-bricio-p5050",
+      "fechaNacimiento": "https://www.elfinanciero.com.mx/deportes/2022/06/04/fue-bastante-dificil-samantha-bricio-cuenta-su-experiencia-con-la-pandemia-y-el-conflicto-rusia-ucrania/"
     },
-    "revisado": null
+    "revisado": "2026-11-05"
   },
   {
     "slug": "sofia-maldonado",
@@ -89,15 +150,40 @@
     "posicion": "Atacante",
     "numero": 3,
     "capitana": false,
-    "fechaNacimiento": null,
+    "fechaNacimiento": "2002-02-06",
     "origen": {
       "ciudad": "Guadalajara",
       "estado": "Jalisco",
       "pais": "México"
     },
-    "estaturaCm": null,
+    "estaturaCm": 182,
     "clubId": "sesi-bauru",
-    "historialClubes": [],
+    "historialClubes": [
+      {
+        "club": "Sesi Vôlei Bauru",
+        "pais": "Brasil",
+        "temporada": "2026-27",
+        "fuente": "https://www.sesisp.org.br/noticia/sesi-volei-bauru-vence-batavo-mackenzie-na-estreia-da-superliga"
+      },
+      {
+        "club": "Dallas Pulse",
+        "pais": "Estados Unidos",
+        "temporada": "2025-26",
+        "fuente": "https://ge.globo.com/sp/tem-esporte/volei/noticia/2026/06/01/sesi-bauru-contrata-a-mexicana-sofia-maldonado-mvp-da-liga-dos-eua.ghtml"
+      },
+      {
+        "club": "Louisville Cardinals",
+        "pais": "Estados Unidos",
+        "temporada": "2024-25",
+        "fuente": "https://www.melhordovolei.com.br/2026/06/01/sesi-volei-bauru-anuncia-sofia-maldonado-atacante-destaque-em-liga-dos-eua"
+      },
+      {
+        "club": "Arizona Wildcats",
+        "pais": "Estados Unidos",
+        "temporada": "2023-24",
+        "fuente": "https://www.olimpiadatododia.com.br/volei/746450-sesi-bauru-acerta-contratacao-de-destaque-mexicana-para-2026-27"
+      }
+    ],
     "redes": [],
     "destacados": [
       {
@@ -109,6 +195,26 @@
         "texto": "Mejor anotadora, mejor saque, mejor recepción y equipo ideal del Final Six NORCECA 2026",
         "anio": 2026,
         "fuente": "https://www.fivb.com/empowerment-funded-mexico-and-puerto-rico-medal-at-norceca-womens-final-six/"
+      },
+      {
+        "texto": "MVP de la final de la Major League Volleyball",
+        "anio": 2026,
+        "fuente": "https://www.olimpiadatododia.com.br/volei/746450-sesi-bauru-acerta-contratacao-de-destaque-mexicana-para-2026-27"
+      },
+      {
+        "texto": "Campeona de la Major League Volleyball",
+        "anio": 2026,
+        "fuente": "https://www.olimpiadatododia.com.br/volei/746450-sesi-bauru-acerta-contratacao-de-destaque-mexicana-para-2026-27"
+      },
+      {
+        "texto": "Mejor atacante (ponteira) de la NCAA",
+        "anio": 2024,
+        "fuente": "https://www.olimpiadatododia.com.br/volei/746450-sesi-bauru-acerta-contratacao-de-destaque-mexicana-para-2026-27"
+      },
+      {
+        "texto": "Vice-campeona de la NCAA",
+        "anio": 2024,
+        "fuente": "https://www.melhordovolei.com.br/2026/06/01/sesi-volei-bauru-anuncia-sofia-maldonado-atacante-destaque-em-liga-dos-eua"
       }
     ],
     "fotos": {
@@ -122,9 +228,11 @@
     "fuentes": {
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
-      "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+      "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "fechaNacimiento": "https://www.melhordovolei.com.br/2026/06/01/sesi-volei-bauru-anuncia-sofia-maldonado-atacante-destaque-em-liga-dos-eua",
+      "estaturaCm": "https://www.melhordovolei.com.br/2026/06/01/sesi-volei-bauru-anuncia-sofia-maldonado-atacante-destaque-em-liga-dos-eua"
     },
-    "revisado": null
+    "revisado": "2026-11-05"
   },
   {
     "slug": "grecia-castro",
@@ -134,20 +242,48 @@
     "posicion": "Atacante",
     "numero": 6,
     "capitana": false,
-    "fechaNacimiento": null,
-    "origen": null,
-    "estaturaCm": null,
+    "fechaNacimiento": "2001-03-05",
+    "origen": {
+      "ciudad": null,
+      "estado": "Sinaloa",
+      "pais": "México"
+    },
+    "estaturaCm": 180,
     "clubId": null,
     "historialClubes": [
       {
+        "club": "Tijuca Tênis Clube",
+        "pais": "Brasil",
+        "temporada": "2025-26",
+        "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275"
+      },
+      {
         "club": "Avarca de Menorca",
         "pais": "España",
-        "temporada": null,
-        "fuente": null
+        "temporada": "2024-25",
+        "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275"
+      },
+      {
+        "club": "Vitória SC",
+        "pais": "Portugal",
+        "temporada": "2022-23",
+        "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275"
+      },
+      {
+        "club": "Ireris Uruapan",
+        "pais": "México",
+        "temporada": "2019-20",
+        "fuente": "https://www.ceroacero.es/jugador/grecia-lopez/1010275"
       }
     ],
     "redes": [],
-    "destacados": [],
+    "destacados": [
+      {
+        "texto": "Medallista de bronce en los XIX Juegos Panamericanos",
+        "anio": 2023,
+        "fuente": "https://deportesmenorca.com/2024/05/10/grecia-castro-nueva-incorporacion-para-el-avarca-menorca"
+      }
+    ],
     "fotos": {
       "foco": "50% 30%"
     },
@@ -160,9 +296,12 @@
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
-      "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158792"
+      "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158792",
+      "fechaNacimiento": "https://www.ceroacero.es/jugador/grecia-lopez/1010275",
+      "origen": "https://www.ceroacero.es/jugador/grecia-lopez/1010275",
+      "estaturaCm": "https://www.ceroacero.es/jugador/grecia-lopez/1010275"
     },
-    "revisado": null
+    "revisado": "2026-11-05"
   },
   {
     "slug": "argentina-ung",
@@ -172,7 +311,7 @@
     "posicion": "Acomodadora",
     "numero": 7,
     "capitana": false,
-    "fechaNacimiento": null,
+    "fechaNacimiento": "2002-04-25",
     "origen": {
       "ciudad": "Hermosillo",
       "estado": "Sonora",
@@ -186,10 +325,22 @@
         "pais": "Estados Unidos",
         "temporada": "2026",
         "fuente": "https://www.elimparcial.com/deporte/2026/07/26/de-hermosillo-a-miami-argentina-ung-jugara-con-la-nueva-franquicia-de-la-liga-profesional-de-voleibol-de-estados-unidos/"
+      },
+      {
+        "club": "LOVB Miami",
+        "pais": "Estados Unidos",
+        "temporada": "2026-27",
+        "fuente": "https://auprosports.com/read/lovb-announces-new-signings-for-2027-season"
       }
     ],
     "redes": [],
-    "destacados": [],
+    "destacados": [
+      {
+        "texto": "2024 All-Big 12 First Team",
+        "anio": 2024,
+        "fuente": "https://sports.yahoo.com/articles/lovb-miami-now-roster-first-170322750.html"
+      }
+    ],
     "fotos": {
       "foco": "50% 30%"
     },
@@ -202,9 +353,10 @@
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
-      "clubId": "https://www.elimparcial.com/deporte/2026/07/26/de-hermosillo-a-miami-argentina-ung-jugara-con-la-nueva-franquicia-de-la-liga-profesional-de-voleibol-de-estados-unidos/"
+      "clubId": "https://www.elimparcial.com/deporte/2026/07/26/de-hermosillo-a-miami-argentina-ung-jugara-con-la-nueva-franquicia-de-la-liga-profesional-de-voleibol-de-estados-unidos/",
+      "fechaNacimiento": "https://women.volleybox.net/es/argentina-ung-p24593"
     },
-    "revisado": null
+    "revisado": "2026-11-05"
   },
   {
     "slug": "marian-ovalle",
@@ -214,11 +366,28 @@
     "posicion": "Opuesta",
     "numero": 8,
     "capitana": false,
-    "fechaNacimiento": null,
-    "origen": null,
-    "estaturaCm": null,
-    "clubId": null,
-    "historialClubes": [],
+    "fechaNacimiento": "2002-09-14",
+    "origen": {
+      "ciudad": "Ciudad Juárez",
+      "estado": "Chihuahua",
+      "pais": "México"
+    },
+    "estaturaCm": 178,
+    "clubId": "ok-formis",
+    "historialClubes": [
+      {
+        "club": "OK Formis",
+        "pais": "Eslovenia",
+        "temporada": "2026-27",
+        "fuente": "https://diario.mx/deportes/2026/aug/31/voleibolista-juarense-acuerda-con-el-ok-formis-para-la-temporada-2026-2027-1136031.html"
+      },
+      {
+        "club": "Texas at El Paso (UTEP)",
+        "pais": "Estados Unidos",
+        "temporada": "2023-24",
+        "fuente": "https://women.volleybox.net/texas-at-el-paso-univ-t5282"
+      }
+    ],
     "redes": [],
     "destacados": [],
     "fotos": {
@@ -232,32 +401,52 @@
     "fuentes": {
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
-      "nombreCompleto": "https://www.adiario.mx/deportes/se-prepara-voleibolista-juarense-marian-ovalle-para-los-juegos-centroamericanos-y-del-caribe-2026/"
+      "nombreCompleto": "https://www.adiario.mx/deportes/se-prepara-voleibolista-juarense-marian-ovalle-para-los-juegos-centroamericanos-y-del-caribe-2026/",
+      "fechaNacimiento": "https://women.volleybox.net/es/marian-ovalle-p24597",
+      "origen": "https://www.adiario.mx/deportes/se-prepara-voleibolista-juarense-marian-ovalle-para-los-juegos-centroamericanos-y-del-caribe-2026/",
+      "estaturaCm": "https://women.volleybox.net/es/marian-ovalle-p24597",
+      "clubId": "https://diario.mx/deportes/2026/aug/31/voleibolista-juarense-acuerda-con-el-ok-formis-para-la-temporada-2026-2027-1136031.html"
     },
-    "revisado": null
+    "revisado": "2026-11-05"
   },
   {
     "slug": "arleth-marquez",
     "nombre": "Arleth Márquez",
-    "nombreCompleto": null,
+    "nombreCompleto": "Arleth Yuridia Márquez Ceja",
     "estado": "activa",
     "posicion": "Central",
     "numero": 10,
     "capitana": false,
-    "fechaNacimiento": null,
-    "origen": null,
-    "estaturaCm": null,
-    "clubId": null,
+    "fechaNacimiento": "2005-12-26",
+    "origen": {
+      "ciudad": null,
+      "estado": "Nayarit",
+      "pais": "México"
+    },
+    "estaturaCm": 197,
+    "clubId": "tigres-uanl",
     "historialClubes": [
       {
         "club": "Juanio's Guasave",
         "pais": "México",
         "temporada": null,
         "fuente": null
+      },
+      {
+        "club": "Tigres UANL",
+        "pais": "México",
+        "temporada": "2026-27",
+        "fuente": "https://women.volleybox.net/es/arleth-marquez-p100594"
       }
     ],
     "redes": [],
-    "destacados": [],
+    "destacados": [
+      {
+        "texto": "Participación con la Selección Mexicana mayor en NORCECA Championships 2026",
+        "anio": 2026,
+        "fuente": "https://women.volleybox.net/usa-mexico-c379134"
+      }
+    ],
     "fotos": {
       "foco": "50% 30%"
     },
@@ -268,25 +457,59 @@
     },
     "fuentes": {
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
-      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
+      "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
+      "nombreCompleto": "https://meridiano.mx/wp-content/uploads/2024/05/DEPORTES-8.pdf",
+      "fechaNacimiento": "https://women.volleybox.net/es/arleth-marquez-p100594",
+      "origen": "https://meridiano.mx/wp-content/uploads/2024/05/DEPORTES-8.pdf",
+      "estaturaCm": "https://women.volleybox.net/es/arleth-marquez-p100594",
+      "clubId": "https://women.volleybox.net/es/arleth-marquez-p100594"
     },
-    "revisado": null
+    "revisado": "2026-11-05"
   },
   {
     "slug": "jocelyn-urias",
     "nombre": "Jocelyn Urías",
-    "nombreCompleto": null,
+    "nombreCompleto": "Jocelyn Urías Castro",
     "estado": "activa",
     "posicion": "Central",
     "numero": 11,
     "capitana": true,
-    "fechaNacimiento": null,
-    "origen": null,
-    "estaturaCm": null,
+    "fechaNacimiento": "1996-02-16",
+    "origen": {
+      "ciudad": "Tijuana",
+      "estado": "Baja California",
+      "pais": "México"
+    },
+    "estaturaCm": 190,
     "clubId": "mackenzie",
-    "historialClubes": [],
+    "historialClubes": [
+      {
+        "club": "Batavo Mackenzie",
+        "pais": "Brasil",
+        "temporada": "2026-27",
+        "fuente": "https://www.itatiaia.com.br/esportes/volei/mackenzie-anuncia-contratacao-da-capita-da-selecao-mexicana-para-a-temporada-2026-27"
+      },
+      {
+        "club": "Tapatías Voleibol",
+        "pais": "México",
+        "temporada": "2025-26",
+        "fuente": "https://bajacalifornia.quadratin.com.mx/deportes/se-integra-jocelyn-urias-al-voleibol-profesional-de-brasil"
+      },
+      {
+        "club": "Washington State Univ.",
+        "pais": "Estados Unidos",
+        "temporada": "2015-19",
+        "fuente": "https://wsucougars.com/sports/womens-volleyball/roster/jocelyn-urias/8261"
+      }
+    ],
     "redes": [],
-    "destacados": [],
+    "destacados": [
+      {
+        "texto": "Medalla de Oro en el Final Four NORCECA",
+        "anio": 2026,
+        "fuente": "https://www.clarosports.com/otros-deportes/la-capitana-de-mexico-da-el-salto-a-brasil-jocelyn-urias-firma-con-batavo-mackenzie"
+      }
+    ],
     "fotos": {
       "foco": "50% 30%"
     },
@@ -299,9 +522,13 @@
       "numero": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "clubId": "https://www.clarosports.com/otros-deportes/la-capitana-de-mexico-da-el-salto-a-brasil-jocelyn-urias-firma-con-batavo-mackenzie/",
-      "capitana": "https://www.clarosports.com/otros-deportes/la-capitana-de-mexico-da-el-salto-a-brasil-jocelyn-urias-firma-con-batavo-mackenzie/"
+      "capitana": "https://www.clarosports.com/otros-deportes/la-capitana-de-mexico-da-el-salto-a-brasil-jocelyn-urias-firma-con-batavo-mackenzie/",
+      "nombreCompleto": "https://www.otempo.com.br/sports/volei/2026/6/3/volei-mackenzie-anuncia-central-mexicana-para-a-temporada-2026-27",
+      "fechaNacimiento": "https://women.volleybox.net/jocelyn-urias-p23369",
+      "origen": "https://bajacalifornia.quadratin.com.mx/deportes/se-integra-jocelyn-urias-al-voleibol-profesional-de-brasil",
+      "estaturaCm": "https://www.otempo.com.br/sports/volei/2026/6/3/volei-mackenzie-anuncia-central-mexicana-para-a-temporada-2026-27"
     },
-    "revisado": null
+    "revisado": "2026-11-05"
   },
   {
     "slug": "joseline-landeros",

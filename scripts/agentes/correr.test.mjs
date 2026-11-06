@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { correr } from './correr.mjs';
+import { temporadaActual } from './perfil.mjs';
 import { crearVerificador } from '../lib/fuentes.mjs';
 import { crearClienteSimulado } from '../lib/gemini.mjs';
 import { validarDatos } from '../lib/validar.mjs';
@@ -1206,6 +1207,64 @@ describe('calendario del club: lo que Gemini omite', () => {
       buscador: { investigar: async () => ({ resultados: [{ url: 'https://noticias.it/nota', titulo: 'x', contenido: PAGINA }] }), resumen: async () => ({ proveedor: 'Tavily', corrida: 1, mes: 1, limite: 800 }), usarPrevios: () => {} },
     });
     expect(llamar.llamadas.filter((l) => l.clave === 'uyba')).toHaveLength(1);
+  });
+});
+
+describe('club desde el historial', () => {
+  const FUENTE = 'https://volleybox.net/x';
+  const SLUG = 'uxue-guereca';
+  const sinClub = () => cambiar('jugadoras.json', (js) => { js.find((j) => j.slug === SLUG).clubId = null; });
+  const historial = (club, cambios = {}) => ({ '02-perfil': (c) => (c === SLUG ? { slug: c, historialClubes: [{ club, pais: 'Eslovenia', temporada: '2026-27', fuente: FUENTE, ...cambios }] } : undefined) });
+
+  it('propone el cambio y crea el club', async () => {
+    await sinClub();
+    const r = await ejecutar(historial('OK Formis'));
+    expect(await jugadora(SLUG)).toMatchObject({ clubId: 'ok-formis' });
+    expect((await jugadora(SLUG)).fuentes.clubId).toBe(FUENTE);
+    expect((await leer('clubes.json'))['ok-formis']).toMatchObject({ nombre: 'OK Formis', pais: 'Eslovenia', zona: 'Europe/Ljubljana', ligaId: null });
+    expect(r.cuerpoPr).toContain('## Cambios de club');
+    expect(r.cuerpoPr).toContain('sin club → OK Formis');
+  });
+  it('funciona con lo que ya estaba en el historial', async () => {
+    await cambiar('jugadoras.json', (js) => {
+      const j = js.find((x) => x.slug === SLUG);
+      j.clubId = null;
+      j.historialClubes = [{ club: 'OK Formis', pais: 'Eslovenia', temporada: '2026/27', fuente: 'https://otra.mx/nota' }];
+    });
+    await ejecutar({ '02-perfil': (c) => (c === SLUG ? { slug: c } : undefined) });
+    expect(await jugadora(SLUG)).toMatchObject({ clubId: 'ok-formis' });
+    expect((await jugadora(SLUG)).fuentes.clubId).toBe('https://otra.mx/nota');
+  });
+  it('un club que ya existe no se duplica', async () => {
+    await sinClub();
+    const antes = Object.keys(await leer('clubes.json')).length;
+    await ejecutar(historial('Sesi Bauru', { pais: 'Brasil' }));
+    expect(await jugadora(SLUG)).toMatchObject({ clubId: 'sesi-bauru' });
+    expect(Object.keys(await leer('clubes.json'))).toHaveLength(antes);
+  });
+  it('el club que reporta el agente también llega a una jugadora sin club', async () => {
+    await sinClub();
+    await ejecutar({ '02-perfil': (c) => (c === SLUG ? { slug: c, club: { valor: { nombre: 'OK Formis', pais: 'Eslovenia', zonaHoraria: 'Europe/Ljubljana' }, fuente: FUENTE, confianza: 'alta' } } : undefined) });
+    expect(await jugadora(SLUG)).toMatchObject({ clubId: 'ok-formis' });
+  });
+  it('otra temporada no cuenta', async () => {
+    await sinClub();
+    await ejecutar(historial('OK Formis', { temporada: '2025-26' }));
+    expect(await jugadora(SLUG)).toMatchObject({ clubId: null });
+  });
+  it('si ya tiene club no lo toca', async () => {
+    const { clubId } = await jugadora(SLUG);
+    await ejecutar(historial('OK Formis'));
+    expect((await jugadora(SLUG)).clubId).toBe(clubId);
+  });
+  it('sin zona conocida va a dudas', async () => {
+    await sinClub();
+    const r = await ejecutar(historial('Club Nuevo', { pais: 'Brasil' }));
+    expect(await jugadora(SLUG)).toMatchObject({ clubId: null });
+    expect(r.cuerpoPr).toContain('estaría en Club Nuevo, pero falta su zona horaria');
+  });
+  it.each([['2026-11-05', '2026-27'], ['2027-03-01', '2026-27'], ['2026-07-01', '2026-27'], ['2026-06-30', '2025-26']])('%s es la temporada %s', (hoy, temporada) => {
+    expect(temporadaActual(hoy)).toBe(temporada);
   });
 });
 

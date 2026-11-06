@@ -419,8 +419,8 @@ Detalles técnicos:
 
 - Todo dato nuevo necesita `fuente`; sin fuente se descarta.
 - Fuentes con `BUSQUEDA=tavily`: una URL vale solo si vino en los resultados de esa misma tarea. Otra página del mismo dominio no vale.
-- Nunca valen como fuente las redes sociales (Instagram, LinkedIn, X, Facebook, TikTok) ni la portada de un sitio.
-- Perfiles: la página debe mencionar a la jugadora en el título, la URL o el texto que vino en los resultados, y no puede ser un listado (búsquedas, filtros por país, listas de jugadoras; `esListado`).
+- Nunca valen como fuente las redes sociales (Instagram, LinkedIn, X, Facebook, TikTok, Threads), los videos sueltos de YouTube (`youtube.com/watch`, shorts, `youtu.be`; un canal sí) ni la portada de un sitio.
+- Perfiles: la página debe mencionar a la jugadora en el título, la URL o el texto que vino en los resultados, y no puede ser un listado (búsquedas, filtros por país, listas de jugadoras o subpáginas de Volleybox como `/teammates`, `/movies` y `/fans`; `esListado`).
 - Fuentes con `BUSQUEDA=google`: una URL se acepta si su dominio aparece entre las fuentes de `groundingMetadata` de esa misma respuesta o si responde al abrirla (2xx/3xx; Volleybox contesta 403 a los bots y se acepta si viene en `groundingMetadata`). Los enlaces de redirección de Google en `groundingMetadata` (`vertexaisearch.cloud.google.com/grounding-api-redirect/…`) se resuelven a su URL final antes de guardarlos. Si ninguna fuente del dato pasa, se descarta.
 - Partidos: fecha válida, futura, a menos de 120 días, zona IANA válida, local y visitante presentes. La hora llega como la publica la fuente (`fecha`, `hora`, `zonaHoraria`), junto con `zonaSede`. El código calcula el instante con `hora` + `zonaHoraria` y guarda `inicio` en `zonaSede` (`relojLocalAUtc` e `isoEnZona` del v1). El desfase de `inicio` debe coincidir con `zonaSede`.
 - Evidencia (`scripts/lib/evidencia.mjs`): la fila puede traer todo junto, o la fecha y la hora pueden ir en el encabezado del bloque (Lega Volley: fecha, hora, sede y al final los equipos). Un partido nuevo o un cambio solo se acepta si en el texto de la fuente aparecen el rival y la fecha en la misma fila o bloque; si no, se descarta (o queda "Por revisar" si ya existía). Si la hora no aparece junto al rival, entra con hora por confirmar. "6 matchs à partir de 14:00" no cuenta como hora de un partido. Sin texto de la fuente (modo simulado) no se coteja.
@@ -432,6 +432,7 @@ Detalles técnicos:
 - Si un agente falla o su respuesta no valida, se conservan los datos anteriores y se avisa en el resumen.
 - Fuentes oficiales para un alta: `fmvb.org`, `norceca.net`, `norceca.info`, `fivb.com`, `fivb.org`, `volleyballworld.com`, `panamsports.org`, `centrocaribesports.org`.
 - Un torneo terminado sin fechas toma las que ya se conocen: el `proximoTorneo` que acaba de terminar, lo guardado en `torneos.json` o las `ediciones` del catálogo. Sin ninguna de esas, se descarta.
+- Una jugadora sin club cuyo historial trae un club de la temporada actual, con fuente, genera la propuesta de cambio de club con su entrada en `clubes.json`. La zona sale del país; si el país tiene varias, va a dudas.
 - Un torneo ya guardado no se pisa: el agente solo completa los campos vacíos. Un cambio de club con confianza baja va a dudas.
 - Un partido de la Selección sin `zonaSede` la deja en `null`, aunque México juegue de local.
 

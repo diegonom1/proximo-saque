@@ -50,22 +50,30 @@ export function dominio(url) {
   }
 }
 
-export const REDES_SOCIALES = ['instagram.com', 'linkedin.com', 'x.com', 'twitter.com', 'facebook.com', 'tiktok.com'];
+export const REDES_SOCIALES = ['instagram.com', 'linkedin.com', 'x.com', 'twitter.com', 'facebook.com', 'tiktok.com', 'threads.com', 'threads.net'];
 
 export const esDominio = (url, lista) => {
   const propio = dominio(url);
   return Boolean(propio) && lista.some((d) => propio === d || propio.endsWith(`.${d}`));
 };
 
-// Ni las redes sociales ni la portada de un sitio sirven como fuente de un dato.
+// Un video suelto no se puede citar: el dato no se lee en la página. El canal (`/@nombre`) sí vale.
+export function esVideoSuelto(url) {
+  if (!urlValida(url) || !esDominio(url, ['youtube.com', 'youtu.be'])) return false;
+  const { hostname, pathname } = new URL(url);
+  return hostname.endsWith('youtu.be') || /^\/(watch|shorts|live|embed)(\/|$)/.test(pathname);
+}
+
+// Ni las redes sociales, ni los videos sueltos, ni la portada de un sitio sirven como fuente de un dato.
 export function fuenteAdmisible(url) {
-  if (!urlValida(url) || esDominio(url, REDES_SOCIALES)) return false;
+  if (!urlValida(url) || esDominio(url, REDES_SOCIALES) || esVideoSuelto(url)) return false;
   const { pathname, search } = new URL(url);
   return pathname.replace(/\/+$/, '') !== '' || search !== '';
 }
 
-// Búsquedas, filtros y listas de jugadoras: nombrar a alguien no las vuelve una ficha suya.
-const SEGMENTOS_LISTADO = /^(players?|jugadoras?|atletas?|athletes?|roster|rosters|squad|team|teams|equipos?|plantilla|plantel|elenco|search|buscar|busqueda|tag|tags|category|categoria|clubs?|clubes)$/i;
+// Búsquedas, filtros, listas de jugadoras y subpáginas de Volleybox (compañeras, videos, fans):
+// nombrar a alguien no las vuelve una ficha suya.
+const SEGMENTOS_LISTADO = /^(players?|jugadoras?|atletas?|athletes?|roster|rosters|squad|team|teams|equipos?|plantilla|plantel|elenco|search|buscar|busqueda|tag|tags|category|categoria|clubs?|clubes|teammates|movies|videos|fans)$/i;
 const PARAMETROS_LISTADO = /^(country|pais|nationality|q|s|search|query|filter|sort|page|gender)$/i;
 
 export function esListado(url) {
