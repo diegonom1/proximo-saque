@@ -3,7 +3,7 @@ import { Picture } from 'astro:assets';
 import Base from '../components/Base.astro';
 import Cuenta from '../components/Cuenta.astro';
 import PartidoAgenda from '../components/PartidoAgenda.astro';
-import { activas, clubes, estados, ligas, partidosAgenda } from '../lib/datos';
+import { activas, clubes, estados, jugadorasDe, ligas, partidosAgenda } from '../lib/datos';
 import { colorDeDia } from '../lib/agenda';
 import { anchosPara, fotosAgenda, fotosJugadora } from '../lib/fotos';
 import { porNombre } from '../lib/partido';
@@ -17,6 +17,8 @@ const [primero, ...resto] = lista;
 const dias = agruparPorDia(resto, ZONA_SITIO);
 
 const encabezado = fotosAgenda();
+// El mismo color que le pone el navegador: si no, el bloque cambiaría al cargar.
+const colorDestacado = !primero || primero.tipo === 'seleccion' ? 'rojo' : jugadorasDe(primero)[0]?.fotos.color ?? 'carbon';
 const jugadorasFiltro = porNombre(activas);
 const idsLiga = [...new Set(activas.flatMap((j) => (j.clubId && clubes[j.clubId]?.ligaId ? [clubes[j.clubId].ligaId as string] : [])))];
 const ligasFiltro = idsLiga.map((id) => ({ id, nombre: ligas[id].nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
@@ -64,7 +66,7 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
             return (
               <button type="button" class="chip chip--cara" data-chip-jugadora={j.slug} data-color={j.fotos.color ?? 'rojo'} aria-label={j.nombre}>
                 <span class="chip__cara">
-                  {cara ? <Picture src={cara} alt="" formats={['webp']} fallbackFormat="webp" widths={anchosPara(cara, [96])} sizes="48px" /> : iniciales(j.nombre)}
+                  {cara ? <Picture src={cara} alt="" formats={['webp']} fallbackFormat="webp" widths={anchosPara(cara, [96])} sizes="48px" loading="eager" /> : iniciales(j.nombre)}
                 </span>
                 {apellido(j.nombre)}
               </button>
@@ -83,7 +85,7 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
   </div>
 
   <div data-agenda data-validos={validos}>
-    <section class="seccion--oscura destacada" aria-label="Próximo partido" data-destacada data-color={primero ? 'rojo' : undefined} hidden={!primero}>
+    <section class="seccion--oscura destacada" aria-label="Próximo partido" data-destacada data-color={colorDestacado} hidden={!primero}>
       <div class="marco destacada__rejilla">
         <div>
           <p class="dato destacada__rotulo">Próximo partido</p>

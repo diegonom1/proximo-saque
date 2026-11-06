@@ -408,6 +408,7 @@ const {
 
   .cuenta p > span {
     display: block;
+    white-space: nowrap; /* cada dígito es un bloque: sin esto pueden caer en dos renglones */
     font-family: var(--fuente-display);
     font-size: clamp(2.5rem, 10vw, 4.5rem);
     font-variant-numeric: tabular-nums;
