@@ -10,11 +10,13 @@ const lista = vigentes(partidos, ahora).slice(0, 30).map(paraCliente);
 const v = vistaBoton(lista, ahora, ZONA_SITIO);
 ---
 
+<aside aria-label="Acceso a la agenda">
 <a id="boton-proximo" class="boton-proximo" href={ruta('agenda')} aria-label="Próximo partido" hidden={!v}>
   <span class="boton-proximo__cuando" data-boton="cuando">{v?.cuando}</span>
   <span class="boton-proximo__texto" data-boton="quien">{v?.quien}</span>
   <span class="boton-proximo__texto boton-proximo__equipos" data-boton="equipos">{v?.equipos}</span>
 </a>
+</aside>
 <script type="application/json" id="datos-boton" set:html={JSON.stringify(lista).replace(/</g, '\\u003c')} />
 
 <script>

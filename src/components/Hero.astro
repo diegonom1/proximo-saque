@@ -132,7 +132,9 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     const el = document.querySelector<HTMLElement>(`[data-h="${campo}"]`);
     if (!el) return;
     el.hidden = !valor;
-    if (valor && el.textContent !== valor) el.textContent = valor;
+    if (!valor || el.textContent === valor) return;
+    el.textContent = valor;
+    if (el.hasAttribute('aria-label')) el.setAttribute('aria-label', valor);
   }
 
   function pintar() {
@@ -164,8 +166,12 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
       const fecha = document.querySelector<HTMLElement>('.hero__fecha');
       if (!fecha || fecha.hidden) return;
       const { chars } = SplitText.create(fecha, { type: 'chars', mask: 'chars' });
+      // SplitText esconde los dígitos y deja un aria-label, que en un párrafo no se lee: sin esto la
+      // fecha quedaría muda para los lectores de pantalla.
+      fecha.setAttribute('role', 'img');
       gsap.set(fecha, { opacity: 1 });
       gsap.fromTo(chars, { yPercent: 110 }, { yPercent: 0, stagger: 0.06, delay: espera });
+      return () => fecha.removeAttribute('role');
     });
   });
 </script>

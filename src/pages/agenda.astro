@@ -17,6 +17,7 @@ const [primero, ...resto] = lista;
 const dias = agruparPorDia(resto, ZONA_SITIO);
 
 const encabezado = fotosAgenda();
+const TEXTOS_ENCABEZADO = ['Selección Mexicana femenil de voleibol en foto de equipo antes de un partido', 'Selección Mexicana femenil de voleibol celebrando en la cancha'];
 // El mismo color que le pone el navegador: si no, el bloque cambiaría al cargar.
 const colorDestacado = !primero || primero.tipo === 'seleccion' ? 'rojo' : jugadorasDe(primero)[0]?.fotos.color ?? 'carbon';
 const jugadorasFiltro = porNombre(activas);
@@ -40,11 +41,11 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
 
 <Base titulo="Agenda | Próximo Saque" descripcion="Todos los partidos de la Selección Mexicana femenil de voleibol y de cada seleccionada con su club, en tu hora.">
   <header class="cabeza">
-    <div class="cabeza__fotos" aria-hidden="true">
+    <div class="cabeza__fotos">
       {
-        encabezado.map((foto) => (
+        encabezado.map((foto, i) => (
           <div class="duotono cabeza__foto">
-            <Picture src={foto} alt="" formats={['avif', 'webp']} widths={anchosPara(foto, [480, 800])} sizes="(min-width: 768px) 50vw, 100vw" loading="eager" />
+            <Picture src={foto} alt={TEXTOS_ENCABEZADO[i] ?? 'Selección Mexicana femenil de voleibol'} formats={['avif', 'webp']} widths={anchosPara(foto, [480, 800])} sizes="(min-width: 768px) 50vw, 100vw" loading="eager" />
           </div>
         ))
       }
