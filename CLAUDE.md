@@ -432,6 +432,7 @@ Detalles técnicos:
 - Si un agente falla o su respuesta no valida, se conservan los datos anteriores y se avisa en el resumen.
 - Fuentes oficiales para un alta: `fmvb.org`, `norceca.net`, `norceca.info`, `fivb.com`, `fivb.org`, `volleyballworld.com`, `panamsports.org`, `centrocaribesports.org`.
 - Un torneo terminado sin fechas toma las que ya se conocen: el `proximoTorneo` que acaba de terminar, lo guardado en `torneos.json` o las `ediciones` del catálogo. Sin ninguna de esas, se descarta.
+- Una jugadora sin club cuyo historial trae un club de la temporada actual, con fuente, genera la propuesta de cambio de club con su entrada en `clubes.json`. La zona sale del país; si el país tiene varias, va a dudas.
 - Un torneo ya guardado no se pisa: el agente solo completa los campos vacíos. Un cambio de club con confianza baja va a dudas.
 - Un partido de la Selección sin `zonaSede` la deja en `null`, aunque México juegue de local.
 

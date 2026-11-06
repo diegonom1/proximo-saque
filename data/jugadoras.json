@@ -373,7 +373,7 @@
       "pais": "México"
     },
     "estaturaCm": 178,
-    "clubId": null,
+    "clubId": "ok-formis",
     "historialClubes": [
       {
         "club": "OK Formis",
@@ -404,7 +404,8 @@
       "nombreCompleto": "https://www.adiario.mx/deportes/se-prepara-voleibolista-juarense-marian-ovalle-para-los-juegos-centroamericanos-y-del-caribe-2026/",
       "fechaNacimiento": "https://women.volleybox.net/es/marian-ovalle-p24597",
       "origen": "https://www.adiario.mx/deportes/se-prepara-voleibolista-juarense-marian-ovalle-para-los-juegos-centroamericanos-y-del-caribe-2026/",
-      "estaturaCm": "https://women.volleybox.net/es/marian-ovalle-p24597"
+      "estaturaCm": "https://women.volleybox.net/es/marian-ovalle-p24597",
+      "clubId": "https://diario.mx/deportes/2026/aug/31/voleibolista-juarense-acuerda-con-el-ok-formis-para-la-temporada-2026-2027-1136031.html"
     },
     "revisado": "2026-11-05"
   },
@@ -423,7 +424,7 @@
       "pais": "México"
     },
     "estaturaCm": 197,
-    "clubId": null,
+    "clubId": "tigres-uanl",
     "historialClubes": [
       {
         "club": "Juanio's Guasave",
@@ -460,7 +461,8 @@
       "nombreCompleto": "https://meridiano.mx/wp-content/uploads/2024/05/DEPORTES-8.pdf",
       "fechaNacimiento": "https://women.volleybox.net/es/arleth-marquez-p100594",
       "origen": "https://meridiano.mx/wp-content/uploads/2024/05/DEPORTES-8.pdf",
-      "estaturaCm": "https://women.volleybox.net/es/arleth-marquez-p100594"
+      "estaturaCm": "https://women.volleybox.net/es/arleth-marquez-p100594",
+      "clubId": "https://women.volleybox.net/es/arleth-marquez-p100594"
     },
     "revisado": "2026-11-05"
   },

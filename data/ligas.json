@@ -88,5 +88,21 @@
     "calendarioOficialUrl": null,
     "plataformas": [],
     "revisado": null
+  },
+  "superliga-si": {
+    "nombre": "Superliga ženske",
+    "pais": "Eslovenia",
+    "temporada": "2026-27",
+    "calendarioOficialUrl": null,
+    "plataformas": [],
+    "revisado": null
+  },
+  "conferencia-nacional-mx": {
+    "nombre": "Conferencia Nacional de Voleibol",
+    "pais": "México",
+    "temporada": "2026-27",
+    "calendarioOficialUrl": null,
+    "plataformas": [],
+    "revisado": null
   }
 }

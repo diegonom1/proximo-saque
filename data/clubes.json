@@ -121,5 +121,39 @@
     },
     "sitio": null,
     "calendarioUrl": null
+  },
+  "ok-formis": {
+    "nombre": "OK Formis",
+    "alias": [
+      "Formis",
+      "Formis Rogoza Hoče",
+      "Odbojkarski klub Formis"
+    ],
+    "ligaId": "superliga-si",
+    "pais": "Eslovenia",
+    "ciudad": "Hoče",
+    "zona": "Europe/Ljubljana",
+    "volleybox": {
+      "url": null,
+      "widgetId": null
+    },
+    "sitio": "https://okformis.si/",
+    "calendarioUrl": null
+  },
+  "tigres-uanl": {
+    "nombre": "Tigres UANL",
+    "alias": [
+      "Tigres"
+    ],
+    "ligaId": "conferencia-nacional-mx",
+    "pais": "México",
+    "ciudad": "Monterrey",
+    "zona": "America/Monterrey",
+    "volleybox": {
+      "url": "https://women.volleybox.net/tigres-uanl-t6380",
+      "widgetId": null
+    },
+    "sitio": null,
+    "calendarioUrl": null
   }
 }
