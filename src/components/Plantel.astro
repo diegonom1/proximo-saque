@@ -3,17 +3,118 @@ import { activas } from '../lib/datos';
 import TarjetaJugadora from './TarjetaJugadora.astro';
 ---
 
-<section id="plantel" class="seccion" aria-labelledby="plantel-titulo">
+<section id="plantel" class="seccion plantilla" aria-labelledby="plantel-titulo" data-plantilla>
   <div class="marco">
     <div class="seccion__cabeza">
       <h2 id="plantel-titulo" class="titulo-seccion">Plantilla</h2>
       <p class="dato">{activas.length} seleccionadas</p>
     </div>
   </div>
-  <ul class="carrusel" tabindex="0" aria-label="Seleccionadas">
-    {activas.map((jugadora) => <li><TarjetaJugadora jugadora={jugadora} /></li>)}
+  <ul class="carrusel" tabindex="0" aria-label="Seleccionadas" data-carrusel>
+    {activas.map((jugadora, indice) => <li><TarjetaJugadora jugadora={jugadora} indice={indice} /></li>)}
   </ul>
 </section>
+
+<script>
+  const seccion = document.querySelector<HTMLElement>('[data-plantilla]');
+  const carrusel = document.querySelector<HTMLElement>('[data-carrusel]');
+  const tarjetas = [...document.querySelectorAll<HTMLElement>('[data-tarjeta]')];
+
+  // La foto de la tarjeta se convierte en la del perfil. El nombre se pone solo en la que se tocó:
+  // si no, el navegador capturaría las 16.
+  for (const tarjeta of tarjetas) {
+    tarjeta.addEventListener('click', () => {
+      const foto = tarjeta.querySelector<HTMLElement>('[data-foto-vt]');
+      if (foto) foto.style.viewTransitionName = `foto-${foto.dataset.fotoVt}`;
+    });
+  }
+
+  import('../lib/movimiento').then(({ conMovimiento, contar, gsap, ponerEnCero, rellenar, ScrollTrigger }) => {
+    // Al pasar, el apellido se rellena y el número cuenta; al irse, regresa.
+    function momentoDe(tarjeta: HTMLElement, moverApellido: boolean) {
+      const apellido = tarjeta.querySelector<HTMLElement>('[data-tarjeta-apellido]');
+      const numero = tarjeta.querySelector<HTMLElement>('[data-contar]');
+      if (!apellido) return null;
+      const momento = rellenar(apellido, { paused: true });
+      if (moverApellido) momento.fromTo(apellido, { xPercent: 6 }, { xPercent: -14 }, 0);
+      if (numero) {
+        ponerEnCero(numero);
+        momento.add(contar(numero), 0);
+      }
+      return momento;
+    }
+
+    conMovimiento(({ escritorio }) => {
+      if (!seccion || !carrusel) return;
+
+      if (!escritorio) {
+        const momentos = new Map(tarjetas.map((t) => [t, momentoDe(t, true)]));
+        const observador = new IntersectionObserver((entradas) => {
+          for (const { target, isIntersecting } of entradas) {
+            const momento = momentos.get(target as HTMLElement);
+            if (isIntersecting) momento?.play();
+            else momento?.reverse();
+          }
+        }, { threshold: 0.6 });
+        tarjetas.forEach((t) => observador.observe(t));
+        return () => observador.disconnect();
+      }
+
+      carrusel.classList.add('carrusel--riel');
+      const distancia = () => carrusel.scrollWidth - document.documentElement.clientWidth;
+      const riel = gsap.to(carrusel, {
+        x: () => -distancia(),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: seccion,
+          pin: true,
+          start: 'top top',
+          end: () => `+=${distancia()}`,
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      for (const tarjeta of tarjetas) {
+        const momento = momentoDe(tarjeta, false);
+        const apellido = tarjeta.querySelector('[data-tarjeta-apellido]');
+        if (!momento || !apellido) continue;
+        // Las que ya se ven cuando la sección llega no esperan a que el riel se mueva.
+        if ((tarjeta.parentElement?.offsetLeft ?? 0) < window.innerWidth * 0.78) {
+          ScrollTrigger.create({ trigger: seccion, start: 'top 40%', once: true, onEnter: () => momento.play() });
+        }
+        ScrollTrigger.create({
+          trigger: tarjeta,
+          containerAnimation: riel,
+          start: 'left 78%',
+          end: 'right 12%',
+          onToggle: ({ isActive }) => (isActive ? momento.play() : momento.reverse()),
+        });
+        // Va contra el riel: las tarjetas avanzan a la izquierda y su apellido a la derecha.
+        gsap.fromTo(apellido, { xPercent: -30 }, {
+          xPercent: 10,
+          ease: 'none',
+          scrollTrigger: { trigger: tarjeta, containerAnimation: riel, start: 'left right', end: 'right left', scrub: true },
+        });
+      }
+
+      // Con el teclado el foco puede caer en una tarjeta que está fuera de la pantalla.
+      const alEnfocar = (evento: FocusEvent) => {
+        const tarjeta = (evento.target as HTMLElement).closest<HTMLElement>('[data-tarjeta]');
+        const disparo = riel.scrollTrigger;
+        if (!tarjeta || !disparo) return;
+        const avance = Math.min(1, Math.max(0, tarjeta.parentElement!.offsetLeft / distancia()));
+        window.scrollTo(0, disparo.start + avance * (disparo.end - disparo.start));
+      };
+      carrusel.addEventListener('focusin', alEnfocar);
+
+      return () => {
+        carrusel.classList.remove('carrusel--riel');
+        carrusel.removeEventListener('focusin', alEnfocar);
+      };
+    });
+  });
+</script>
 
 <style>
   /* Celular: carrusel deslizable con snap. */
@@ -39,7 +140,7 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
     scroll-snap-align: start;
   }
 
-  /* Escritorio: rejilla. El scroll horizontal fijado llega en la fase 6. */
+  /* Sin JavaScript o con movimiento reducido, en escritorio queda una rejilla. */
   @media (min-width: 768px) {
     .carrusel {
       grid-auto-columns: auto;
@@ -55,6 +156,34 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
   @media (min-width: 1024px) {
     .carrusel {
       grid-template-columns: repeat(4, 1fr);
+    }
+
+    /* Riel fijado: la sección ocupa la pantalla y las tarjetas pasan de lado. */
+    .plantilla:has(.carrusel--riel) {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100svh;
+      padding-block: 24px;
+      overflow: hidden;
+    }
+
+    .plantilla:has(.carrusel--riel) .seccion__cabeza {
+      margin-bottom: 16px;
+    }
+
+    .carrusel--riel {
+      display: flex;
+      gap: 24px;
+      width: max-content;
+      max-width: none;
+      margin: 0;
+      overflow: visible;
+    }
+
+    .carrusel--riel > li {
+      flex: none;
+      width: min(340px, 44svh);
     }
   }
 </style>
