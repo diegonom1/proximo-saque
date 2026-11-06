@@ -144,14 +144,17 @@ async function procesarApariciones(ctx, crudas, verificar) {
   }
 }
 
+const plantelDe = (datos) => datos.jugadoras.filter((j) => j.estado !== 'exseleccionada').map(({ slug, nombre }) => ({ slug, nombre }));
+
 // Una baja necesita anuncio explícito. Faltar a un torneo nunca es baja.
 async function procesarBajas(ctx, crudas, verificar) {
-  for (const b of validos(crudas, esquemaBaja, (x, motivo) => ctx.reporte.descarto(AGENTE, `baja de ${x?.slug ?? '?'}`, `formato inválido (${motivo})`))) {
+  // De quien no está en la plantilla no se guarda ni se menciona nada, ni siquiera en el resumen.
+  const plantilla = new Set(plantelDe(ctx.datos).map((j) => j.slug));
+  const propias = (crudas ?? []).filter((b) => plantilla.has(b?.slug));
+  for (const b of validos(propias, esquemaBaja, (x, motivo) => ctx.reporte.descarto(AGENTE, `baja de ${x.slug}`, `formato inválido (${motivo})`))) {
     const j = ctx.datos.jugadoras.find((x) => x.slug === b.slug);
     const fuente = await verificar(b.fuente);
-    if (!j) {
-      ctx.reporte.descarto(AGENTE, `baja de ${b.slug}`, 'no está en la plantilla');
-    } else if (!fuente || !b.evidencia?.trim()) {
+    if (!fuente || !b.evidencia?.trim()) {
       ctx.reporte.descarto(AGENTE, `baja de ${j.nombre}`, 'sin evidencia o sin fuente verificable');
     } else if (b.tipo === 'otra' || b.confianza === 'baja') {
       ctx.reporte.duda(`Posible baja de ${j.nombre}: ${b.evidencia}`, fuente);
@@ -200,8 +203,6 @@ export function listasPorRevisar(datos, hoy) {
     .map((t) => `lista:${t.id}`);
 }
 
-const plantelDe = (datos) => datos.jugadoras.filter((j) => j.estado !== 'exseleccionada').map(({ slug, nombre }) => ({ slug, nombre }));
-
 async function revisarLista(ctx, clave) {
   const id = clave.slice('lista:'.length);
   const t = ctx.datos.torneos.torneos.find((x) => x.id === id);
@@ -222,6 +223,8 @@ export async function correr(ctx, clave = null) {
   }
   const entrada = { tarea: 'retiros', plantelActual: plantelDe(ctx.datos) };
   const { respuesta, verificar } = await consultar(ctx, AGENTE, null, entrada, esquema, planRetiros(ctx));
-  await aplicar(ctx, respuesta, verificar);
+  const activas = ctx.datos.jugadoras.filter((j) => j.estado !== 'exseleccionada');
+  const dudas = (respuesta.dudas ?? []).filter((d) => resolverJugadora(d.nombre ?? '', null, activas).jugadora);
+  await aplicar(ctx, { ...respuesta, dudas }, verificar);
   bajasPorInactividad(ctx);
 }

@@ -218,6 +218,27 @@ describe('plantilla: nombres', () => {
   });
 });
 
+describe('plantilla: anuncios de quien no está', () => {
+  const anuncio = { tipo: 'retiro', evidencia: 'Anunció su retiro por motivos personales', fecha: '2025-06-05', fuente: OFICIAL, confianza: 'alta' };
+  const sinRastro = (r) => {
+    expect(r.resumen).not.toContain('baja de');
+    expect(r.resumen).not.toContain('Andrea');
+    expect(r.resumen).not.toContain('motivos personales');
+    expect(r.cuerpoPr).not.toContain('Andrea');
+  };
+  it('una baja sin slug se ignora sin mencionarla', async () => sinRastro(await ejecutar(plantel({ bajas: [{ ...anuncio, slug: null }] }))));
+  it('una baja de alguien que no está en la plantilla tampoco', async () => sinRastro(await ejecutar(plantel({ bajas: [{ ...anuncio, slug: 'andrea-rangel' }] }))));
+  it('una duda sobre alguien que no está tampoco', async () => sinRastro(await ejecutar(plantel({ dudas: [{ nombre: 'Andrea Rangel', motivo: 'motivos personales' }] }))));
+  it('una duda sobre alguien de la plantilla sí sale', async () => {
+    const r = await ejecutar(plantel({ dudas: [{ nombre: 'Sofía Maldonado', motivo: 'revisar' }] }));
+    expect(r.cuerpoPr).toContain('Sofía Maldonado: revisar');
+  });
+  it('quien ya salió de la plantilla tampoco genera baja', async () => {
+    await cambiar('jugadoras.json', (js) => { js.find((j) => j.slug === 'ximena-solar').estado = 'exseleccionada'; });
+    sinRastro(await ejecutar(plantel({ bajas: [{ ...anuncio, slug: 'ximena-solar' }] })));
+  });
+});
+
 describe('plantilla: bajas', () => {
   const baja = (cambios) => ({ slug: 'jocelyn-urias', tipo: 'retiro', evidencia: 'Anunció su retiro', fecha: '2026-10-01', fuente: OFICIAL, confianza: 'alta', ...cambios });
 

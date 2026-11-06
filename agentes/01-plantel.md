@@ -32,7 +32,7 @@ Dónde suelen estar: boletines PDF de NORCECA (traen la lista con número, nombr
 1. En la tarea `"lista"`, copia a todas las jugadoras que aparezcan: nombre, número, posición, si es capitana (en los boletines suele venir como "C") y club si aparece. Copia el nombre tal como viene, sin completarlo. Indica si la lista está completa (`"completa": true`) o si solo encontraste algunos nombres. Una nota que menciona a una o dos jugadoras no es una lista: en ese caso `"completa": false`.
 2. Relaciona cada nombre con un `slug` de `plantelActual` cuando sea la misma persona (cuidado con apellidos repetidos). Si es alguien nuevo o no estás segura de que sea la misma, `"slug": null`.
 3. Si la fuente dice quién dirige al equipo, repórtalo en `entrenador`.
-4. En la tarea `"retiros"`, repórtalo solo si el texto lo dice de forma explícita.
+4. En la tarea `"retiros"`, repórtalo solo si el texto lo dice de forma explícita y solo si es de alguien de `plantelActual`, con su `slug`. Si el anuncio es de otra persona, no lo menciones en ningún campo: ni en `bajas` ni en `dudas`. No reportes bajas sin `slug`.
 
 ## Formato de respuesta
 
