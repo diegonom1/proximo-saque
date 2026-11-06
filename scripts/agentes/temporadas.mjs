@@ -44,6 +44,7 @@ export async function revisar(ctx) {
   const avisar = (texto, fuente = null) => {
     ctx.reporte.porRevisar(AGENTE, texto);
     ctx.reporte.duda(texto, fuente);
+    ctx.avisosTemporada.push({ texto, fuente });
   };
   for (const id of ligasConSeleccionadas(ctx.datos)) {
     const liga = ctx.datos.ligas[id];

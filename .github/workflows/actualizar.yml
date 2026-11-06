@@ -27,6 +27,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     env:
       GH_TOKEN: ${{ github.token }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -72,6 +73,12 @@ jobs:
         run: npm run agentes
         env:
           DIAGNOSTICO: ${{ runner.temp }}/diagnostico.json
+
+      # Si falla no detiene la corrida: los avisos también quedan en el resumen.
+      - name: Avisar de temporadas en un issue
+        if: env.SOLO_VERIFICAR != 'true'
+        continue-on-error: true
+        run: node scripts/agentes/issue-temporadas.mjs
 
       # Las respuestas crudas de Gemini: sin ellas no se puede saber por qué una corrida trajo menos partidos.
       - uses: actions/upload-artifact@v7

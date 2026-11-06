@@ -134,6 +134,15 @@ describe('temporadas de las ligas', () => {
     expect(r.resumen).toContain('el calendario oficial respondió 404');
     expect(r.cuerpoPr).toContain('https://liga.mx/calendario');
   });
+  it('entrega los avisos para el issue, con su enlace', async () => {
+    const id = await ligaDe('sofia-maldonado');
+    await liga(id, { calendarioOficialUrl: 'https://liga.mx/calendario' });
+    const caido = async (url) => (url === 'https://liga.mx/calendario' ? { responde: false, detalle: 'respondió 404' } : { responde: true, detalle: 'ok' });
+    const r = await ejecutar({}, { comprobarUrl: caido });
+    expect(r.avisosTemporada).toHaveLength(1);
+    expect(r.avisosTemporada[0]).toMatchObject({ fuente: 'https://liga.mx/calendario' });
+    expect((await ejecutar({}, { comprobarUrl: vivo })).avisosTemporada).toEqual([]);
+  });
   it('no cambia ninguna liga: solo avisa', async () => {
     const antes = await readFile(join(dir, 'ligas.json'), 'utf8');
     await correr({ dirDatos: dir, dirFotos: fotos, llamar: null, comprobarUrl: async () => ({ responde: false, detalle: 'no se pudo conectar' }), verificar: crearVerificador({ red: false }), ahora: despues });

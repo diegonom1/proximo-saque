@@ -11,4 +11,5 @@ fotos-originales/
 __pycache__/
 *.pyc
 revision-semanal.md
+avisos-temporada.md
 .tavily-creditos.json

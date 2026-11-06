@@ -17,10 +17,11 @@
 //   DIAGNOSTICO      archivo donde guardar respuestas crudas y la comparación de partidos.
 // Opción --seco: corre todo y muestra el resumen, pero no escribe nada. Opción --verificar: como SOLO_VERIFICAR.
 
-import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { sumarDias } from './comun.mjs';
+import { ARCHIVO_AVISOS } from './issue-temporadas.mjs';
 import * as partidos from './partidos.mjs';
 import * as perfil from './perfil.mjs';
 import * as plantel from './plantel.mjs';
@@ -231,7 +232,7 @@ export async function correr({
   const aprobados = { clubes: new Set(Object.keys(archivosAprobados.clubes)), jugadoras: new Set(archivosAprobados.jugadoras.map((j) => j.slug)) };
   const diagnostico = [];
   const comparacion = [];
-  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, descargar, comprobarUrl, ahora, hoy, diasAdelante: soloVerificar ? diasVerificar : diasAdelante, diasVerificar, soloVerificar, reporte, aprobados, altas: [], nuevos: {}, torneosDetectados: [] };
+  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, descargar, comprobarUrl, ahora, hoy, diasAdelante: soloVerificar ? diasVerificar : diasAdelante, diasVerificar, soloVerificar, reporte, aprobados, altas: [], nuevos: {}, torneosDetectados: [], avisosTemporada: [] };
   if (!soloVerificar) {
     atenderPr(ctx.datos.estado, prEstado, hoy);
     // Con el PR abierto, una `propuesta` todavía no está aprobada.
@@ -301,6 +302,7 @@ export async function correr({
     reporte,
     resumen: reporte.resumen({ modo, llamadas: estado.llamadas, maximo: maxLlamadas, pendientes, busqueda }),
     cuerpoPr: reporte.cuerpoPr(ctx.datos.estado.propuestas),
+    avisosTemporada: ctx.avisosTemporada,
     hayPr: ctx.datos.estado.propuestas.length > 0 || cambiados.some((a) => ARCHIVOS_PR.includes(a)),
   };
 }
@@ -369,6 +371,12 @@ async function main() {
   if (process.env.DIAGNOSTICO) await writeFile(process.env.DIAGNOSTICO, JSON.stringify({ tareas: r.diagnostico, comparacion: r.comparacion }, null, 2));
   console.log(`Archivos con cambios${seco ? ' (no se escribieron)' : ''}: ${r.cambiados.join(', ') || 'ninguno'}`);
   if (!seco) await writeFile(join(RAIZ, 'revision-semanal.md'), r.cuerpoPr);
+  // Lo lee issue-temporadas.mjs. Sin avisos no queda archivo: uno viejo abriría un issue de más.
+  const archivoAvisos = join(RAIZ, ARCHIVO_AVISOS);
+  await rm(archivoAvisos, { force: true });
+  if (!seco && r.avisosTemporada.length) {
+    await writeFile(archivoAvisos, r.avisosTemporada.map(({ texto, fuente }) => `- ${texto}${fuente ? ` ([calendario](${fuente}))` : ''}`).join('\n'));
+  }
   if (r.hayPr) console.log(`\n${r.cuerpoPr}`);
   if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, r.resumen);
 }
