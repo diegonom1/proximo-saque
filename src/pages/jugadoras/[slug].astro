@@ -42,19 +42,19 @@ const datos = [
   {
     rotulo: 'Nacimiento',
     valor: j.fechaNacimiento,
-    marcador: j.fechaNacimiento ? { antes: `${fechaLarga(j.fechaNacimiento)} (`, numero: edad(j.fechaNacimiento, ahora), texto: String(edad(j.fechaNacimiento, ahora)), despues: ' años)', decimales: 0 } : null,
+    marcador: j.fechaNacimiento ? { antes: `${fechaLarga(j.fechaNacimiento)} `, abre: '(', numero: edad(j.fechaNacimiento, ahora), texto: String(edad(j.fechaNacimiento, ahora)), despues: ' años)', decimales: 0 } : null,
   },
   { rotulo: 'Lugar de origen', valor: origenTexto(j.origen) },
   {
     rotulo: 'Estatura',
     valor: j.estaturaCm,
-    marcador: j.estaturaCm ? { antes: '', numero: j.estaturaCm / 100, texto: estaturaTexto(j.estaturaCm).replace(' m', ''), despues: ' m', decimales: 2 } : null,
+    marcador: j.estaturaCm ? { antes: '', abre: '', numero: j.estaturaCm / 100, texto: estaturaTexto(j.estaturaCm).replace(' m', ''), despues: ' m', decimales: 2 } : null,
   },
   { rotulo: 'Posición', valor: j.posicion },
   {
     rotulo: 'Número',
     valor: j.numero,
-    marcador: j.numero === null ? null : { antes: '', numero: j.numero, texto: String(j.numero), despues: '', decimales: 0 },
+    marcador: j.numero === null ? null : { antes: '', abre: '', numero: j.numero, texto: String(j.numero), despues: '', decimales: 0 },
   },
 ];
 const redes = j.redes.flatMap((r) => {
@@ -136,8 +136,9 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
                 {d.marcador ? (
                   <>
                     {d.marcador.antes}
-                    <span data-contar={d.marcador.numero} data-decimales={d.marcador.decimales}>{d.marcador.texto}</span>
-                    {d.marcador.despues}
+                    <span class="sin-corte">
+                      {d.marcador.abre}<span data-contar={d.marcador.numero} data-decimales={d.marcador.decimales}>{d.marcador.texto}</span>{d.marcador.despues}
+                    </span>
                   </>
                 ) : (
                   d.valor ?? POR_CONFIRMAR
@@ -577,6 +578,11 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
     margin: 0;
     font-weight: 600;
     overflow-wrap: anywhere;
+  }
+
+  /* "(24 años)" y "1.82 m" no se parten, aunque el contador sea un bloque aparte. */
+  .sin-corte {
+    white-space: nowrap;
   }
 
   .redes {
