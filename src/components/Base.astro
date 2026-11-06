@@ -44,8 +44,6 @@ const {
         }, 2500);
         // Al volver de un perfil, su foto regresa a su tarjeta. Tiene que quedar antes de pintar.
         addEventListener('pagereveal', function (evento) {
-          // Si el navegador omite la transición, la página carga normal: no es un error.
-          if (evento.viewTransition) evento.viewTransition.ready.catch(function () {});
           var origen = window.navigation && navigation.activation && navigation.activation.from;
           var jugadora = origen && origen.url.match(/jugadoras\/([^/?#]+)/);
           var foto = jugadora && document.querySelector('[data-foto-vt="' + jugadora[1] + '"]');
