@@ -33,7 +33,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 
 ```
 /
-├─ CLAUDE.md  LEEME.md
+├─ CLAUDE.md  README.md
 ├─ fotos-originales/        fotos sin procesar; no se sube al repo
 ├─ agentes/                 contextos (prompts) de cada agente; los lee el orquestador
 ├─ data/                    única fuente de verdad del sitio (JSON)
