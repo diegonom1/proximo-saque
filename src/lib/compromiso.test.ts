@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { elegirCompromiso, textoBoton, vistaHero, type PartidoCliente, type TorneoCliente } from './compromiso';
+import { elegirCompromiso, vistaBoton, vistaHero, type PartidoCliente, type TorneoCliente } from './compromiso';
 
 const CDMX = 'America/Mexico_City';
 const AHORA = Date.parse('2026-11-04T18:00:00-06:00');
@@ -79,18 +79,25 @@ describe('estados del partido', () => {
   });
 });
 
-describe('textoBoton', () => {
-  const p = (inicio: string, horaConfirmada = true) => ({ inicio, horaConfirmada });
-  it('muestra la cuenta corta', () => {
-    expect(textoBoton([p('2026-11-07T00:30:00-06:00')], AHORA, CDMX)).toBe('Próximo partido · 2d 6h');
+describe('vistaBoton', () => {
+  const p = (inicio: string, horaConfirmada = true) => ({ ...club, inicio, horaConfirmada });
+  it('muestra la cuenta corta, la jugadora y los equipos', () => {
+    expect(vistaBoton([p('2026-11-07T00:30:00-06:00')], AHORA, CDMX)).toEqual({
+      cuando: '2d 6h',
+      quien: club.jugadoras.map((j) => j.nombre).join(' y '),
+      equipos: `${club.local} vs ${club.visitante}`,
+    });
   });
   it('sin hora confirmada cuenta días', () => {
-    expect(textoBoton([p('2026-11-07T12:00:00-06:00', false)], AHORA, CDMX)).toBe('Próximo partido · 3d');
+    expect(vistaBoton([p('2026-11-07T12:00:00-06:00', false)], AHORA, CDMX)?.cuando).toBe('3d');
   });
   it('avisa si hay partido en juego', () => {
-    expect(textoBoton([p('2026-11-04T17:30:00-06:00')], AHORA, CDMX)).toBe('Partido en juego');
+    expect(vistaBoton([p('2026-11-04T17:30:00-06:00')], AHORA, CDMX)?.cuando).toBe('En juego');
+  });
+  it('en la Selección el nombre es el del equipo', () => {
+    expect(vistaBoton([{ ...p('2026-11-07T00:30:00-06:00'), tipo: 'seleccion' as const, jugadoras: [] }], AHORA, CDMX)?.quien).toBe('Selección Mexicana');
   });
   it('sin partidos no hay botón', () => {
-    expect(textoBoton([], AHORA, CDMX)).toBeNull();
+    expect(vistaBoton([], AHORA, CDMX)).toBeNull();
   });
 });

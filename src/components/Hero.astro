@@ -60,23 +60,21 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
       {
         v.linea && (
           <>
-            {v.linea.hora}
-            {' · '}
-            {v.linea.seleccion && <>{SELECCION}{' · '}</>}
+            <span class="hero__linea-hora">{v.linea.hora}</span>
+            {v.linea.seleccion && <span class="hero__linea-texto">{SELECCION}</span>}
             {
               !v.linea.seleccion && v.linea.jugadoras.length > 0 && (
-                <>
+                <span class="hero__linea-texto">
                   {v.linea.jugadoras.map((j, i) => (
                     <>
                       {separador(i, v.linea?.jugadoras.length ?? 0)}
                       <a href={ruta(`jugadoras/${j.slug}`)}>{j.nombre}</a>
                     </>
                   ))}
-                  {' · '}
-                </>
+                </span>
               )
             }
-            {v.linea.equipos}
+            <span class="hero__linea-texto hero__linea-equipos">{v.linea.equipos}</span>
           </>
         )
       }
@@ -109,19 +107,24 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     const firma = JSON.stringify(l);
     if (!l || firma === lineaPintada) return;
     lineaPintada = firma;
-    const nodos: (Node | string)[] = [`${l.hora} · `];
+    const pieza = (clase: string, ...contenido: (Node | string)[]) => {
+      const el = document.createElement('span');
+      el.className = clase;
+      el.append(...contenido);
+      return el;
+    };
+    const nodos = [pieza('hero__linea-hora', l.hora)];
     if (l.seleccion) {
-      nodos.push(`${SELECCION} · `);
+      nodos.push(pieza('hero__linea-texto', SELECCION));
     } else if (l.jugadoras.length > 0) {
-      l.jugadoras.forEach((j, i) => {
+      nodos.push(pieza('hero__linea-texto', ...l.jugadoras.flatMap((j, i) => {
         const enlace = document.createElement('a');
         enlace.href = `${hero?.dataset.base ?? '/'}jugadoras/${j.slug}`;
         enlace.textContent = j.nombre;
-        nodos.push(separador(i, l.jugadoras.length), enlace);
-      });
-      nodos.push(' · ');
+        return [separador(i, l.jugadoras.length), enlace];
+      })));
     }
-    nodos.push(l.equipos);
+    nodos.push(pieza('hero__linea-texto hero__linea-equipos', l.equipos));
     linea.replaceChildren(...nodos);
   }
 
@@ -295,6 +298,10 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
   }
 
   .hero__linea {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 14px;
+    align-items: baseline;
     max-width: 40ch;
     margin-top: 4px;
     font-size: clamp(1.125rem, 3.2vw, 1.5rem);
@@ -313,6 +320,25 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
 
   .hero__linea a {
     text-underline-offset: 3px;
+  }
+
+  /* El navegador también los crea, por eso van en global. */
+  .hero__linea :global(.hero__linea-hora) {
+    grid-row: span 2;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hero__linea :global(.hero__linea-texto) {
+    grid-column: 2;
+  }
+
+  .hero__linea :global(.hero__linea-equipos) {
+    color: rgb(255 255 255 / 82%);
+    font-weight: 400;
+  }
+
+  .hero[data-modo='partido'] .hero__linea :global(.hero__linea-equipos) {
+    font-weight: 800;
   }
 
   .hero__detalle {

@@ -283,13 +283,18 @@ Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los ree
 
 ### Texto de un partido
 
-En todo el sitio (hero, "Esta semana", perfil, agenda) un partido se escribe igual: hora, jugadora y equipos, separados por `·`.
+En todo el sitio (hero, "Esta semana", perfil, agenda, botón flotante) un partido se escribe igual: la hora en su columna y, a su lado, dos líneas. En la primera va solo el nombre; en la segunda, los equipos.
 
-- Club: `21:00 · Sofía Maldonado · Sesi Vôlei Bauru vs E.C. Pinheiros`.
+```
+21:00   Sofía Maldonado
+        Sesi Vôlei Bauru vs E.C. Pinheiros
+```
+
 - Dos del mismo club, en orden alfabético: `Argentina Ung y Uxue Guereca`.
-- Selección: `Selección Mexicana · México vs Estados Unidos`.
+- Selección: `Selección Mexicana` y abajo `México vs Estados Unidos`.
 - Cada nombre lleva a su perfil. Se arma con `src/components/LineaPartido.astro` y `src/lib/partido.ts`.
-- El título del evento de Google Calendar usa el mismo texto, sin la hora.
+- En el botón flotante la cuenta ocupa el lugar de la hora (`vistaBoton`).
+- El cintillo y el título del evento de Google Calendar son de una sola línea: `Sofía Maldonado · Sesi Vôlei Bauru vs E.C. Pinheiros` (`tituloPartido`).
 
 ### Inicio `/`
 
@@ -326,7 +331,7 @@ Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin 
 - Filtros: Todas, Selección, por jugadora y por liga. `?j=<slug>` preselecciona una jugadora. El filtro se recuerda en `localStorage` (con try/catch).
 - El build genera `calendario.ics` (todos) y `calendario/<slug>.ics` (por jugadora) para suscribirse desde Google Calendar y recibir los cambios solos. Un partido sin hora confirmada va como evento de todo el día.
 
-Acceso desde todo el sitio: enlace "Agenda" en la navegación y, en celular, un botón flotante "Próximo partido · 2d 4h" que lleva a `/agenda`.
+Acceso desde todo el sitio: enlace "Agenda" en la navegación y, en celular, un botón flotante con la cuenta y el texto del próximo partido que lleva a `/agenda`.
 
 ### Torneos `/torneos` (opcional)
 

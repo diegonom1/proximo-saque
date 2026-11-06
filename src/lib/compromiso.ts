@@ -3,7 +3,7 @@
 // terminan entre una construcción y otra.
 
 import { cuentaCorta, diaCorto, diasHasta, enJuego, fechaGrande, hora, horaDelLugar, msDe, vigentes, ymd } from './tiempo';
-import { equipos, type Nombrada } from './partido';
+import { SELECCION, equipos, unirNombres, type Nombrada } from './partido';
 import { DIA_MS } from '../../scripts/lib/tiempo.mjs';
 
 export interface PartidoCliente {
@@ -138,11 +138,14 @@ export function vistaHero(c: Compromiso, ahora: number, zona?: string): VistaHer
 
 /* ---------- Botón flotante ---------- */
 
-export function textoBoton(partidos: Pick<PartidoCliente, 'inicio' | 'horaConfirmada'>[], ahora: number, zona?: string) {
+// Lo mismo que el texto de un partido, con la cuenta en lugar de la hora.
+export function vistaBoton(partidos: PartidoCliente[], ahora: number, zona?: string) {
   const p = vigentes(partidos, ahora)[0];
   if (!p) return null;
-  if (enJuego(p, ahora)) return 'Partido en juego';
-  if (p.horaConfirmada) return `Próximo partido · ${cuentaCorta(msDe(p), ahora)}`;
+  const quien = p.tipo === 'seleccion' ? SELECCION : unirNombres(p.jugadoras.map((j) => j.nombre));
   const dias = diasHasta(msDe(p), ahora, zona);
-  return `Próximo partido · ${dias <= 0 ? 'hoy' : `${dias}d`}`;
+  const cuando = enJuego(p, ahora)
+    ? 'En juego'
+    : p.horaConfirmada ? cuentaCorta(msDe(p), ahora) : dias <= 0 ? 'Hoy' : `${dias}d`;
+  return { cuando, quien, equipos: equipos(p) };
 }
