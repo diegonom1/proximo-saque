@@ -1436,6 +1436,166 @@ describe('perfiles: un listado no es fuente', () => {
   });
 });
 
+describe('un null no borra lo que ya existe', () => {
+  const SLUG = 'uxue-guereca';
+  const nulos = { nombreCompleto: null, fechaNacimiento: { valor: null, fuente: null }, origen: null, estaturaCm: { valor: null, fuente: OFICIAL }, posicion: null, club: null, historialClubes: null, redes: null, destacados: null };
+  const perfil = (cambios) => ({ '02-perfil': (c) => (c === SLUG ? { slug: c, ...cambios } : undefined) });
+  const completa = (j) => {
+    j.nombreCompleto = 'Uxue Amaya Guereca Parra';
+    j.fechaNacimiento = '2001-02-12';
+    j.origen = { ciudad: 'Guadalajara', estado: 'Jalisco', pais: 'México' };
+    j.estaturaCm = 176;
+    j.historialClubes = [{ club: 'UNI Opole', pais: 'Polonia', temporada: '2025-26', fuente: OFICIAL }, { club: 'UNI Opole', pais: 'Polonia', temporada: null, fuente: PRENSA }];
+    j.redes = [{ red: 'instagram', url: 'https://www.instagram.com/x', fuente: OFICIAL }];
+    j.destacados = [{ texto: 'Mejor atacante', anio: 2026, fuente: OFICIAL }];
+  };
+  const prepararPerfil = () => cambiar('jugadoras.json', (js) => completa(js.find((j) => j.slug === SLUG)));
+
+  describe('perfiles', () => {
+    it('una respuesta sin datos no cambia nada', async () => {
+      await prepararPerfil();
+      const antes = await jugadora(SLUG);
+      await ejecutar(perfil(nulos));
+      expect(await jugadora(SLUG)).toEqual(antes);
+    });
+    it('un origen a medias no borra la ciudad', async () => {
+      await prepararPerfil();
+      await ejecutar(perfil({ origen: { valor: { ciudad: null, estado: 'Jalisco', pais: 'México' }, fuente: PRENSA } }));
+      expect((await jugadora(SLUG)).origen).toEqual({ ciudad: 'Guadalajara', estado: 'Jalisco', pais: 'México' });
+    });
+    it('un origen a medias sí completa lo que faltaba', async () => {
+      await cambiar('jugadoras.json', (js) => { js.find((j) => j.slug === SLUG).origen = { ciudad: null, estado: 'Jalisco', pais: 'México' }; });
+      await ejecutar(perfil({ origen: { valor: { ciudad: 'Zapopan', estado: null, pais: null }, fuente: PRENSA } }));
+      expect((await jugadora(SLUG)).origen).toEqual({ ciudad: 'Zapopan', estado: 'Jalisco', pais: 'México' });
+    });
+    it('una fuente que no pasa no reemplaza', async () => {
+      await prepararPerfil();
+      await ejecutar(perfil({ estaturaCm: { valor: 180, fuente: 'https://no-esta-en-los-resultados.com/x' } }));
+      expect((await jugadora(SLUG)).estaturaCm).toBe(176);
+    });
+    it('un valor nuevo con fuente válida reemplaza, y va por el PR', async () => {
+      await prepararPerfil();
+      const r = await ejecutar(perfil({ estaturaCm: { valor: 178, fuente: 'https://volleybox.net/x' } }));
+      expect((await jugadora(SLUG)).estaturaCm).toBe(178);
+      expect(r.hayPr).toBe(true);
+      expect(r.cuerpoPr).toContain('estaturaCm 178');
+    });
+    it('una lista sin número ni posición no los borra', async () => {
+      const antes = await jugadora('sofia-maldonado');
+      await ejecutar(plantel({ listas: [lista([{ nombre: 'Sofía Maldonado', numero: null, posicion: null, slug: 'sofia-maldonado' }])] }));
+      expect(await jugadora('sofia-maldonado')).toMatchObject({ numero: antes.numero, posicion: antes.posicion });
+    });
+  });
+
+  describe('partidos', () => {
+    const DIA = '2026-11-20';
+    const FUENTE = 'https://cbv.com.br/tabela';
+    const base = {
+      tipo: 'club', torneoId: null, inicio: `${DIA}T19:00:00-03:00`, zonaSede: 'America/Sao_Paulo', horaConfirmada: true, nuestro: 'visita', competencia: 'Superliga Feminina · Rodada 9',
+      sede: 'São Paulo', convocadas: null, transmision: [{ nombre: 'Canal', url: 'https://canal.tv/x', fuente: FUENTE }], fuente: FUENTE, confianza: 'alta', origen: 'ia',
+    };
+    const guardado = { ...base, id: `club-sesi-bauru-${DIA}`, clubId: 'sesi-bauru', ligaId: 'superliga-br', local: 'E.C. Pinheiros', visitante: 'Sesi Vôlei Bauru' };
+    const seleccionado = {
+      ...base, id: `seleccion-${DIA}`, tipo: 'seleccion', clubId: null, ligaId: null, torneoId: 'copa-x-2026', nuestro: 'local', local: 'México', visitante: 'Cuba', convocadas: ['sofia-maldonado'],
+    };
+    const delDia = async (id) => (await leer('partidos.json')).partidos.find((p) => p.id === id);
+    const reporte = (extra = {}) => ({ fecha: DIA, hora: '19:00', zonaHoraria: 'America/Sao_Paulo', local: 'E.C. Pinheiros', visitante: 'Sesi Vôlei Bauru', fuente: FUENTE, ...extra });
+    const sesi = (partidos2, extra = {}) => ({ '03-partidos-club': (c) => (c === 'sesi-bauru' ? { clubId: c, partidos: partidos2, ...extra } : undefined) });
+    const guardar2 = (p) => cambiar('partidos.json', (d) => { d.partidos.push(p); });
+
+    it('si el agente no lo vuelve a traer, se conserva', async () => {
+      await guardar2(guardado);
+      await ejecutar(sesi([]));
+      expect(await delDia(guardado.id)).toEqual(guardado);
+    });
+    it('el mismo partido sin sede ni competencia conserva lo que tenía', async () => {
+      await guardar2(guardado);
+      await ejecutar(sesi([reporte()]));
+      expect(await delDia(guardado.id)).toMatchObject({ sede: 'São Paulo', competencia: 'Superliga Feminina · Rodada 9', zonaSede: 'America/Sao_Paulo', transmision: guardado.transmision, confianza: 'alta', inicio: guardado.inicio });
+    });
+    it('sin zona de la sede la conserva y deja la hora en esa zona', async () => {
+      await guardar2({ ...guardado, inicio: `${DIA}T18:00:00-04:00`, zonaSede: 'America/Manaus' });
+      await ejecutar(sesi([reporte()]));
+      expect(await delDia(guardado.id)).toMatchObject({ zonaSede: 'America/Manaus', inicio: `${DIA}T18:00:00-04:00` });
+    });
+    it('lo que sí trae el agente gana', async () => {
+      await guardar2(guardado);
+      await ejecutar(sesi([reporte({ sede: 'Ginásio Nuevo' })]));
+      expect(await delDia(guardado.id)).toMatchObject({ sede: 'Ginásio Nuevo', competencia: 'Superliga Feminina · Rodada 9' });
+    });
+    it('otro rival en la misma fecha no hereda la sede', async () => {
+      await guardar2(guardado);
+      await ejecutar(sesi([reporte({ local: 'Minas Tênis Clube' })]));
+      expect(await delDia(guardado.id)).toMatchObject({ local: 'Minas Tênis Clube', sede: null });
+    });
+    it('el mismo partido de la Selección sin lista conserva sus convocadas', async () => {
+      await guardar2(seleccionado);
+      await ejecutar({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], partidos: [{ fecha: DIA, hora: '19:00', zonaHoraria: 'America/Sao_Paulo', zonaSede: 'America/Sao_Paulo', local: 'México', visitante: 'Cuba', mexico: 'local', fuente: 'https://www.fivb.com/x' }] } });
+      expect((await delDia(seleccionado.id)).convocadas).toEqual(['sofia-maldonado']);
+    });
+    it('un estado de temporada vacío no borra el que había', async () => {
+      await cambiar('partidos.json', (d) => { d.estados['sesi-bauru'] = { texto: 'En pausa', fuente: FUENTE, revisado: '2026-11-01' }; });
+      await ejecutar(sesi([], { estadoTemporada: null }));
+      expect((await leer('partidos.json')).estados['sesi-bauru'].texto).toBe('En pausa');
+    });
+  });
+
+  describe('Selección y torneos', () => {
+    const proximo = { id: 'copa-del-mundo-fivb-2027', nombre: 'Copa del Mundo FIVB', edicion: 2027, ciudad: 'Bangkok', pais: 'Tailandia', fechaInicio: '2027-08-20', fechaFin: '2027-09-05', fuente: OFICIAL };
+    const seleccion = (cambios) => ({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], ...cambios } });
+    const conProximo = () => cambiar('seleccion.json', (s) => { s.proximoTorneo = proximo; });
+
+    it('sin próximo torneo en la respuesta conserva el guardado', async () => {
+      await conProximo();
+      await ejecutar(seleccion({ proximoTorneo: null }));
+      expect((await leer('seleccion.json')).proximoTorneo).toEqual(proximo);
+    });
+    it('el mismo torneo con datos vacíos conserva lo que tenía', async () => {
+      await conProximo();
+      await ejecutar(seleccion({ proximoTorneo: { nombre: 'Copa del Mundo FIVB', edicion: 2027, ciudad: null, pais: null, fechaInicio: null, fechaFin: null, fuente: PRENSA } }));
+      expect((await leer('seleccion.json')).proximoTorneo).toEqual({ ...proximo, fuente: PRENSA });
+    });
+    it('el mismo torneo sin edición conserva la edición', async () => {
+      await conProximo();
+      await ejecutar(seleccion({ proximoTorneo: { nombre: 'Copa del Mundo FIVB', edicion: null, fuente: PRENSA } }));
+      expect((await leer('seleccion.json')).proximoTorneo).toEqual({ ...proximo, fuente: PRENSA });
+    });
+    it('el mismo torneo completa lo que faltaba', async () => {
+      await cambiar('seleccion.json', (s) => { s.proximoTorneo = { ...proximo, ciudad: null }; });
+      await ejecutar(seleccion({ proximoTorneo: { nombre: 'Copa del Mundo FIVB', edicion: 2027, ciudad: 'Bangkok', fuente: PRENSA } }));
+      expect((await leer('seleccion.json')).proximoTorneo).toEqual({ ...proximo, fuente: PRENSA });
+    });
+    it('un entrenador vacío no borra el que hay', async () => {
+      const antes = (await leer('seleccion.json')).entrenador;
+      await ejecutar(plantel({ entrenador: { nombre: null, fuente: null } }));
+      expect((await leer('seleccion.json')).entrenador).toEqual(antes);
+    });
+    it('un torneo guardado no pierde datos si el agente los trae vacíos', async () => {
+      const antes = (await leer('torneos.json')).torneos.find((t) => t.id === 'norceca-final-six-2026');
+      await ejecutar(seleccion({ torneosTerminados: [{ nombre: 'NORCECA Final Six', edicion: 2026, fechaFin: '2026-09-27', posicion: null, medalla: null, record: null, premios: [], fuente: OFICIAL }] }));
+      expect((await leer('torneos.json')).torneos.find((t) => t.id === 'norceca-final-six-2026')).toEqual(antes);
+    });
+  });
+
+  describe('rankings', () => {
+    const copia = (nombre) => readFile(new URL(`../pruebas/paginas/${nombre}`, import.meta.url), 'utf8');
+    const buena = crearDescargaSimulada(copia);
+    const sinPuntos = async (url) => {
+      const texto = await buena(url);
+      return url.includes('volleyballworld') ? texto.replace(/"decimalPoints":\s*[\d.]+/g, '"decimalPoints":null') : texto;
+    };
+    it('una fuente con el dato vacío no lo borra ni lo manda al historial', async () => {
+      await ejecutar({}, { descargar: buena });
+      const antes = await leer('rankings.json');
+      const r = await ejecutar({}, { descargar: sinPuntos });
+      const despues = await leer('rankings.json');
+      expect(despues.fivb).toEqual(antes.fivb);
+      expect(despues.historial).toEqual(antes.historial);
+      expect(r.resumen).toContain('fivb');
+    });
+  });
+});
+
 describe('Pull Request que acumula', () => {
   const nueva = { nombre: 'Rosa Hernández', numero: 9, posicion: 'Central', capitana: false, club: null, slug: null };
   const conAlta = (fuente = OFICIAL) => plantel({ listas: [lista([nueva], { fuente })] });

@@ -475,6 +475,7 @@ Detalles técnicos:
 
 ### Validación (código, no IA)
 
+- **Un null no borra.** Un null, un campo vacío o un dato no encontrado nunca borra ni reemplaza lo que ya existe, en ningún agente. Lo guardado se conserva hasta que un agente traiga un valor nuevo con fuente válida, y en datos de perfil eso pasa por el PR. Si un dato llega a medias (un origen sin ciudad, el mismo partido sin sede o sin convocadas, el mismo próximo torneo sin fechas), solo cambia lo que trae y lo demás se queda. Lo único que sale sin un valor nuevo son las reglas de este documento: partidos ya jugados, un próximo torneo terminado, torneos que quedan fuera de `maximo` y la baja por 24 meses, que va por el PR. Las pruebas están en `scripts/agentes/correr.test.mjs` ("un null no borra lo que ya existe").
 - Todo dato nuevo necesita `fuente`; sin fuente se descarta.
 - Fuentes con `BUSQUEDA=tavily`: una URL vale solo si vino en los resultados de esa misma tarea. Otra página del mismo dominio no vale.
 - Nunca valen como fuente las redes sociales (Instagram, LinkedIn, X, Facebook, TikTok, Threads), los videos sueltos de YouTube (`youtube.com/watch`, shorts, `youtu.be`; un canal sí) ni la portada de un sitio.

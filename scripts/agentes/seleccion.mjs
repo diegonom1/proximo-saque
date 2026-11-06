@@ -87,18 +87,21 @@ async function proximoTorneo(ctx, crudo, verificar, resultados = []) {
     ctx.reporte.descarto(AGENTE, t.nombre, `${fuente} no dice que México (mayor femenil) participe o haya clasificado`);
     return;
   }
+  // Si es el mismo torneo, lo que el agente deja vacío se queda como estaba.
+  const previo = guardado && !yaTermino && mismoTorneo(guardado, { ...t, edicion: t.edicion ?? guardado.edicion }) ? guardado : {};
+  const edicion = t.edicion ?? previo.edicion ?? null;
   seleccion.proximoTorneo = {
-    id: idTorneo(t.nombre, t.edicion),
-    nombre: nombreCanonico(t.nombre, t.edicion),
-    edicion: t.edicion ?? null,
-    ciudad: t.ciudad ?? null,
-    pais: t.pais ?? null,
-    fechaInicio: t.fechaInicio ?? null,
-    fechaFin: t.fechaFin ?? null,
+    id: idTorneo(t.nombre, edicion),
+    nombre: nombreCanonico(t.nombre, edicion),
+    edicion,
+    ciudad: t.ciudad ?? previo.ciudad ?? null,
+    pais: t.pais ?? previo.pais ?? null,
+    fechaInicio: t.fechaInicio ?? previo.fechaInicio ?? null,
+    fechaFin: t.fechaFin ?? previo.fechaFin ?? null,
     fuente,
   };
   ctx.proximoHallado = seleccion.proximoTorneo; // manual.json puede ganarle: se compara al final
-  ctx.reporte.encontro(AGENTE, `próximo torneo: ${nombreCanonico(t.nombre, t.edicion)} ${t.edicion ?? ''}`.trim());
+  ctx.reporte.encontro(AGENTE, `próximo torneo: ${nombreCanonico(t.nombre, edicion)} ${edicion ?? ''}`.trim());
 }
 
 async function partidos(ctx, respuesta, verificar, resultados) {

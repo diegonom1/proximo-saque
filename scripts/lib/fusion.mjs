@@ -1,6 +1,6 @@
 // Fusión de partidos (lógica probada del v1): manual > ia > inicial.
 
-import { DIA_MS, fechaEnZona } from './tiempo.mjs';
+import { DIA_MS, fechaEnZona, isoEnZona } from './tiempo.mjs';
 
 /* ---------- Nombres de equipos ---------- */
 
@@ -42,12 +42,31 @@ export const conMs = (p) => {
 
 const PRIORIDAD = { manual: 3, ia: 2, inicial: 1 };
 
+const vacio = (v) => v === null || v === undefined || (Array.isArray(v) && v.length === 0);
+
+// El mismo partido reportado otra vez: lo que el agente no trae se queda como estaba.
+function heredar(nuevo, previo) {
+  const h = { ...nuevo };
+  for (const campo of ['competencia', 'sede', 'convocadas', 'transmision', 'confianza']) {
+    if (vacio(h[campo]) && !vacio(previo[campo])) h[campo] = previo[campo];
+  }
+  if (!h.zonaSede && previo.zonaSede) {
+    h.zonaSede = previo.zonaSede;
+    h.inicio = isoEnZona(nuevo.ms, previo.zonaSede); // `inicio` siempre va en la zona de la sede
+  }
+  return Object.defineProperty(h, 'ms', { value: nuevo.ms, enumerable: false });
+}
+
 // `entidad`: { id, zona }. Todas las listas traen `ms` (ver conMs y convertir).
 export function fusionar(entidad, previos, nuevos, manuales) {
   const clave = (p) => `${entidad.id}|${fechaEnZona(p.ms, entidad.zona)}`;
   // Lo que ya teníamos se queda, salvo que la IA traiga ese mismo cruce (quizá reprogramado).
   const lista = previos.filter((p) => !nuevos.some((n) => clave(n) === clave(p) || mismoCruce(p, n)));
-  lista.push(...nuevos);
+  lista.push(...nuevos.map((n) => {
+    const cruces = previos.filter((p) => mismoCruce(p, n));
+    const previo = cruces.find((p) => clave(p) === clave(n)) ?? cruces[0];
+    return previo ? heredar(n, previo) : n;
+  }));
   const mejor = new Map();
   for (const p of lista) {
     const k = clave(p);

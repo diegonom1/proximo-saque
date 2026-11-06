@@ -39,10 +39,11 @@ const VALIDADORES = {
     const edad = Number(ctx.hoy.slice(0, 4)) - Number(v.slice(0, 4));
     return edad >= 15 && edad <= 50 ? v : null; // fuera de eso casi seguro es otra persona
   },
-  origen(v) {
+  // Lo que el agente deja vacío no borra lo que ya estaba.
+  origen(v, _, j) {
     const r = esquemaOrigen.safeParse(v);
     if (!r.success || !(r.data.ciudad || r.data.estado || r.data.pais)) return null;
-    return { ciudad: r.data.ciudad ?? null, estado: r.data.estado ?? null, pais: r.data.pais ?? null };
+    return { ciudad: r.data.ciudad ?? j.origen?.ciudad ?? null, estado: r.data.estado ?? j.origen?.estado ?? null, pais: r.data.pais ?? j.origen?.pais ?? null };
   },
   estaturaCm: (v) => (Number.isInteger(v) && v >= 150 && v <= 215 ? v : null),
   posicion: (v) => (POSICIONES.includes(v) ? v : null),
@@ -174,7 +175,7 @@ export async function correr(ctx, slug) {
   for (const [nombre, validar] of Object.entries(VALIDADORES)) {
     const c = respuesta[nombre];
     if (c?.valor == null) continue;
-    const valor = validar(c.valor, ctx);
+    const valor = validar(c.valor, ctx, j);
     // Lo que ya tenemos no necesita fuente nueva: la del boletín no llega en los resultados de Tavily.
     if (mismoValor(valor, j[nombre])) continue;
     const fuente = await verificar(c.fuente);
@@ -200,8 +201,10 @@ export async function correr(ctx, slug) {
     formar: (h) => ({ club: h.club, pais: h.pais ?? null, temporada: h.temporada ?? null, fuente: h.fuente }),
     verificar,
   });
-  // Una entrada sin temporada es la misma que la que ya trae temporada.
-  j.historialClubes = historial.lista.filter((h, _, todos) => h.temporada || !todos.some((o) => o.temporada && normal(o.club) === normal(h.club)));
+  // Una entrada sin temporada es la misma que la que trae temporada, si una de las dos es nueva:
+  // lo que ya estaba guardado no se quita porque el agente no haya encontrado nada.
+  const guardadas = new Set(j.historialClubes);
+  j.historialClubes = historial.lista.filter((h, _, todos) => h.temporada || !todos.some((o) => o.temporada && normal(o.club) === normal(h.club) && !(guardadas.has(h) && guardadas.has(o))));
   if (!j.clubId && await clubDelHistorial(ctx, j)) datosNuevos += 1;
   const redes = await agregar(ctx, j, {
     actual: j.redes,
