@@ -52,7 +52,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  │  └─ jugadoras/<slug>/  tarjeta.jpg, fondo.jpg, recorte.png (opcional), credito.txt
 │  ├─ pages/                index.astro, agenda.astro, jugadoras/[slug].astro, torneos.astro
 │  ├─ components/
-│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, tratamiento.ts, compromiso.ts, presentacion.ts, partido.ts, perfil.ts, iconos.ts, agenda.ts, ics.ts, cuenta.ts
+│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, tratamiento.ts, compromiso.ts, presentacion.ts, partido.ts, perfil.ts, iconos.ts, agenda.ts, ics.ts, cuenta.ts, numeros.ts, movimiento.ts, marcador.ts
 └─ .github/workflows/       actualizar.yml (semanal), deploy.yml (push a main)
 ```
 
@@ -96,6 +96,7 @@ Cualquier campo puede ser `null`. En pantalla, `null` se muestra como "Por confi
 - `fuentes`: URL por campo (`{ "clubId": "https://...", "fechaNacimiento": "https://..." }`).
 - `fotos.foco`: `object-position` para recortar bien en cualquier pantalla. Los créditos salen de `credito.txt`.
 - `fotos.tratamiento`: `completa` | `duotono` | `recorte` | `null` (ver "Tratamientos" en Fotos).
+- `fotos.orilla`: `derecha` | `null`. Pega el recorte a esa orilla, en la tarjeta y en el perfil, para ocultar un corte de la foto.
 - `revisado`: fecha del último cambio que trajo el agente de perfil. La rotación usa `estado-agentes.json`.
 
 ### `data/clubes.json` (objeto por id)
@@ -296,11 +297,13 @@ En todo el sitio (hero, "Esta semana", perfil, agenda) un partido se escribe igu
    1. el próximo partido de la Selección;
    2. si no hay partido, el inicio del próximo torneo (cuenta en días);
    3. si no hay torneo confirmado: "Próximo torneo por confirmar" y abajo "Mientras, la próxima en jugar:", el texto del partido y su cuenta regresiva.
+   Abajo, un cintillo de TV con los próximos partidos (`Cintillo.astro`). Repite lo de "Esta semana": es decorativo para lectores de pantalla, se puede pausar y con movimiento reducido no sale.
 2. **Esta semana**: los 3 próximos partidos de cualquier tipo, con enlace "Ver agenda completa".
-3. **Rankings**: FIVB y NORCECA en dos bloques grandes: lugar (número grande), puntos, fecha de actualización y flecha si subió o bajó contra el registro anterior. La FMVB solo muestra los puntos; nosotros mostramos más.
-4. **Plantilla**: tarjetas con retrato (`tarjeta.jpg`), nombre, número, posición y club. Toca una y abre su perfil.
-5. **Últimos 7 torneos**: tarjeta por torneo con medalla o lugar, sede, fechas, récord y premios individuales.
-6. **Pie**: fecha de última actualización, fuentes generales, créditos de fotos y aviso para autores con enlace a los issues del repo.
+3. **La Selección en números**: seleccionadas, países donde juegan, ligas, partidos en los próximos 45 días y medallas en los últimos torneos, calculado de `data/` (`src/lib/numeros.ts`).
+4. **Rankings**: FIVB y NORCECA en dos bloques grandes: lugar (número grande), puntos, fecha de actualización y flecha si subió o bajó contra el registro anterior. La FMVB solo muestra los puntos; nosotros mostramos más.
+5. **Plantilla**: cada tarjeta es el recorte sobre un bloque de color, con el apellido gigante detrás, número, nombre, posición y club. Sin recorte usa `tarjeta.jpg`. Toca una y abre su perfil.
+6. **Últimos 7 torneos**: tarjeta por torneo con medalla o lugar, sede, fechas, récord y premios individuales.
+7. **Pie**: fecha de última actualización, fuentes generales, créditos de fotos y aviso para autores con enlace a los issues del repo.
 
 ### Perfil `/jugadoras/[slug]`
 
@@ -344,18 +347,38 @@ Los 7 torneos con más detalle: resultado, récord y premios.
 - Números de camiseta en contorno gigante como recurso gráfico detrás de las jugadoras.
 - Las fotos vienen de fuentes distintas: un duotono tinta/rojo opcional las unifica y disimula la baja resolución.
 
-## Animaciones (en orden de prioridad)
+## Animaciones
 
-1. **De tarjeta a perfil**: transición de elemento compartido (`view-transition-name: foto-<slug>` en la tarjeta y en el hero del perfil); la foto crece hasta ser el fondo.
-2. **Perfil con profundidad**: apellido gigante detrás del `recorte.png`; al hacer scroll el texto se mueve más lento que la foto (2–3 capas). Sin recorte: foto con el nombre encima.
-3. **Hero de inicio**: la foto empieza a pantalla completa y con el scroll se reduce a una tarjeta redondeada; la fecha y la cuenta quedan fijas (pin) mientras tanto.
-4. **Plantilla**: en escritorio, sección fijada con scroll horizontal de tarjetas; en celular, carrusel deslizable con snap.
-5. **Intro de carga** (solo la primera visita de la sesión, máximo 1.2 s, saltable): "PRÓXIMO SAQUE" con contador 0–100 % que se abre como máscara sobre el hero. Guiño al sitio de referencia (spidermanbrandnewday.es), que usa pantalla de carga con porcentaje, video de fondo y una fecha grande.
-6. Títulos que entran por líneas (SplitText), rankings que cuentan hacia arriba y dígitos de la cuenta regresiva que ruedan.
+Dirección: póster deportivo con gráficos de transmisión de TV. Una sola animación principal por sección.
 
-Presupuesto: animar solo `transform` y `opacity`; nada bloquea la lectura; con `prefers-reduced-motion` no hay pin ni parallax, solo fundidos. Meta Lighthouse móvil ≥ 85 en rendimiento.
+Todo sale de cuatro recursos (`src/lib/movimiento.ts`) con la misma curva y duración (`--curva` y `--duracion` en `Base.astro`, `DURACION` y la curva `saque` en GSAP):
 
-Video de fondo: solo si es material propio o con permiso; las transmisiones tienen dueño. Sin video, la foto con movimiento lento basta.
+1. **Revelado con máscara** (`revelar`).
+2. **Contorno que se rellena** (`rellenar`): dos capas que se mueven en sentido contrario, para animar solo `transform`.
+3. **Números como marcador**: `contar` y, en la cuenta regresiva, `rodar` (`src/lib/marcador.ts`, sin GSAP).
+4. **Capas a distinta velocidad** (`capa`).
+
+| Sección | Animación principal |
+|---|---|
+| Intro (`Intro.astro`) | Una vez por sesión, máximo 1.2 s, se salta con un toque o una tecla. Contador 0–100 (0.5 s) y cortina roja (0.7 s). No depende de GSAP. |
+| Hero | La fecha se arma dígito por dígito, la cuenta rueda y corre el cintillo (CSS). |
+| La Selección en números, Rankings | Lugar, puntos y cifras cuentan desde 0 al aparecer. |
+| Plantilla | Escritorio: scroll horizontal fijado y el apellido va contra el riel. Celular: carrusel con snap. Al pasar, el apellido se rellena y el número cuenta. |
+| Perfil | El recorte crece desde la tarjeta (View Transitions, `foto-<slug>`), el apellido se desliza y el recorte va más lento. Edad, estatura y número cuentan. La trayectoria es una línea que se dibuja. |
+| Torneos | Un brillo cruza cada medalla. |
+| Agenda | Las filas salen de atrás de su borde, escalonadas. El filtro las repite y los partidos de la Selección llevan un barrido rojo. |
+| Títulos de sección | Gigantes, en contorno, se rellenan con el scroll. |
+
+Reglas:
+
+- Solo se anima `transform` y `opacity`. `gsap.matchMedia` (`conMovimiento`) separa celular y escritorio. Lenis y el pin, solo en escritorio.
+- Con `prefers-reduced-motion`, `conMovimiento` no corre: sin pin, parallax ni cintillo, y los números salen con su valor final.
+- El HTML trae el estado final. Lo que se esconde antes de animar depende de `.con-movimiento`, que pone un script en el `<head>`; si el motor no carga, un seguro la quita a los 2.5 s.
+- El motor se carga con `import()`: si falla, lo esencial (horas, filtros, cuenta) sigue funcionando. Lo que ocupa lugar y llena JavaScript (`.cuenta`, filtros) se muestra con `.con-js` desde el primer pintado, para que no brinque nada.
+- El apellido gigante es decorativo (`aria-hidden`) y puede salirse de la pantalla, como en un póster. El nombre legible siempre se ve completo.
+- Los recortes van en WebP con transparencia. Meta Lighthouse móvil ≥ 85 en rendimiento.
+
+Video de fondo: solo si es material propio o con permiso; las transmisiones tienen dueño.
 
 ## Fotos
 
@@ -369,7 +392,7 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 | `credito.txt` | Crédito visible; se llena en `fotos-originales/<slug>/` | `Foto: autor o cuenta — URL` |
 
 - En el build de producción una foto sin `credito.txt` lleno no se usa: sale con iniciales, el build lo avisa y el archivo tampoco llega a `dist/` (`scripts/lib/fotos-sin-credito.mjs`). En `npm run dev` sí se ve, para revisarla.
-- **Tratamientos** (`fotos.tratamiento`, `src/lib/tratamiento.ts`), para el hero del perfil; las tarjetas de la Plantilla siempre van a color. Ninguna foto se muestra más grande que su tamaño real, y no se usa IA para agrandarlas ni para inventar detalle.
+- **Tratamientos** (`fotos.tratamiento`, `src/lib/tratamiento.ts`), para el hero del perfil y la tarjeta de la Plantilla. Ninguna foto se muestra más grande que su tamaño real, y no se usa IA para agrandarlas ni para inventar detalle.
   - `completa`: `fondo.jpg` a pantalla completa. Solo si llega a 2000 px en su lado largo; si no, el sitio usa `duotono`.
   - `duotono`: `fondo.jpg` en tinta y rojo con grano, en un panel en celular y a media pantalla en escritorio.
   - `recorte`: `recorte.png` sobre un bloque rojo, con el apellido gigante y el número en contorno detrás. Es el tratamiento de la plantilla, porque la fase 6 juega con su nombre y su foto recortada. Solo si el recorte quedó bien; si no hay archivo, el sitio usa `duotono`.
