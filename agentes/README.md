@@ -39,4 +39,4 @@ El agente 05 (dónde ver) ya no existe: se apagó cuando el sitio dejó de mostr
 
 Si un agente se equivoca seguido en lo mismo, se corrige editando su archivo: agreguen una regla o un ejemplo de lo que no debe hacer. No hace falta tocar el código.
 
-Los rankings los lee el código: `scripts/lib/rankings-oficiales.mjs` los lee directo de la FIVB y de NORCECA.
+Los rankings no usan IA: `scripts/lib/rankings-oficiales.mjs` los lee directo de la FIVB y de NORCECA.
