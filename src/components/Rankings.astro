@@ -23,7 +23,7 @@ const puntos = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 2 });
             <p class="dato bloque__alcance">{alcance}</p>
             <p class="bloque__lugar" class:list={{ 'bloque__lugar--vacio': datos.posicion === null }}>
               <span class="oculto">Lugar: </span>
-              {datos.posicion ?? `Lugar ${POR_CONFIRMAR.toLowerCase()}`}
+              {datos.posicion === null ? `Lugar ${POR_CONFIRMAR.toLowerCase()}` : <span data-contar={datos.posicion}>{datos.posicion}</span>}
               {cambio && (
                 <span class:list={['flecha', `flecha--${cambio}`]}>
                   <span aria-hidden="true">{cambio === 'sube' ? '▲' : '▼'}</span>
@@ -34,7 +34,11 @@ const puntos = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 2 });
             <dl>
               <div>
                 <dt class="dato">Puntos</dt>
-                <dd>{datos.puntos === null ? POR_CONFIRMAR : puntos.format(datos.puntos)}</dd>
+                <dd>
+                  {datos.puntos === null ? POR_CONFIRMAR : (
+                    <span data-contar={datos.puntos} data-decimales={Number.isInteger(datos.puntos) ? 0 : 2}>{puntos.format(datos.puntos)}</span>
+                  )}
+                </dd>
               </div>
               <div>
                 <dt class="dato">Actualizado</dt>

@@ -58,6 +58,16 @@ const premiosDe = (t: (typeof lista)[number]) => {
   </div>
 </section>
 
+<script>
+  import { alAparecer, conMovimiento } from '../lib/movimiento';
+
+  conMovimiento(() => {
+    for (const medalla of document.querySelectorAll('.medalla')) {
+      alAparecer(medalla, () => medalla.classList.add('medalla--brilla'));
+    }
+  });
+</script>
+
 <style>
   .torneos {
     display: grid;
@@ -78,9 +88,31 @@ const premiosDe = (t: (typeof lista)[number]) => {
   }
 
   .medalla {
-    width: 26px;
-    height: 26px;
+    position: relative;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
     border-radius: 50%;
+  }
+
+  /* Una franja de luz cruza la medalla una vez. */
+  .medalla::after {
+    position: absolute;
+    inset: -20% auto -20% 0;
+    width: 45%;
+    background: rgb(255 255 255 / 75%);
+    content: '';
+    transform: translateX(-150%) skewX(-20deg);
+  }
+
+  .medalla--brilla::after {
+    animation: medalla-brillo var(--duracion) var(--curva) 0.15s;
+  }
+
+  @keyframes medalla-brillo {
+    to {
+      transform: translateX(320%) skewX(-20deg);
+    }
   }
 
   .medalla--oro {
