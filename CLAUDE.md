@@ -321,7 +321,7 @@ Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin 
 ### Agenda `/agenda`
 
 - Encabezado: `agenda-1.jpg` y `agenda-2.jpg` en duotono, rojo y verde, con AGENDA gigante encima.
-- Filtros: chips de Todas, Selección y uno por jugadora con su cara (`cara.jpg`) y un anillo de su color, más un selector de liga. `?j=<slug>` preselecciona una jugadora y tocar la activa quita el filtro. El filtro se recuerda en `localStorage` (con try/catch).
+- Filtros: chips de Todas, Selección y uno por jugadora con su cara (`cara.jpg`) y un anillo de su color, más un selector de liga. `?j=<slug>` preselecciona una jugadora y tocar la activa quita el filtro. El filtro se recuerda en `localStorage` (con try/catch). En pantallas táctiles los chips van en una fila que se desliza; con mouse salen todos en varias líneas y la barra deja de ser fija.
 - El próximo partido va destacado en el color de su jugadora, con la cuenta regresiva grande, tipo marcador. Es la única cuenta de la página.
 - Todos los partidos futuros (clubes y Selección) en orden, agrupados por día en la hora del visitante. Cada día es un bloque grande de fecha (`SÁB 07 NOV`), con los colores en rotación (`colorDeDia`): banda en celular y columna fija en escritorio. Los de la Selección salen siempre, haya lista o no, también al filtrar por jugadora y en su `.ics`.
 - Cada partido: tarjeta blanca sin foto con el texto del partido (con el lado mexicano resaltado), "allá" (si hay `zonaSede`), competencia, etiqueta roja "Selección" cuando aplique, botón de Google Calendar y enlace "Fuente". Si no hay fuente, enlace "Verificar en el calendario oficial".
@@ -399,7 +399,7 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 - Lo decorativo no se lee: apellido gigante, número en contorno y cintillo van con `aria-hidden`.
 - SplitText parte el texto en letras. La fecha del hero lleva `role="img"` y su `aria-label` mientras está partida. axe no avisó de esto: al animar un texto, hay que leer el árbol de accesibilidad con y sin movimiento.
 - Foco visible: anillo blanco en el encabezado, el hero, el pie y `.seccion--oscura`; rojo otra vez en `.sobre-papel`. `scroll-margin-block` evita que el encabezado fijo o el botón flotante tapen lo enfocado.
-- Plantilla: Tab recorre las tarjetas en orden. En escritorio el foco mueve el scroll de la página para llevar el riel hasta la tarjeta; en celular, `scrollIntoView`. El `tabindex` del carrusel solo existe fuera del riel, para moverlo con las flechas.
+- Plantilla: Tab recorre las tarjetas en orden. En escritorio el foco mueve el scroll de la página para llevar el riel hasta la tarjeta; en celular, `scrollIntoView`. Esto es solo con `:focus-visible`: con el mouse el foco llega al presionar, la tarjeta se movería antes de soltar y el clic se perdería. El `tabindex` del carrusel solo existe fuera del riel, para moverlo con las flechas.
 - Filtros de la agenda: el chip enfocado se centra (`centrarChip`).
 - Todo el contenido vive en una región: el botón flotante va en `<aside aria-label="Acceso a la agenda">`.
 

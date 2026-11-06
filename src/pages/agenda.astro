@@ -693,6 +693,34 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
       gap: 24px;
     }
   }
+
+  /* Con mouse la fila no se puede deslizar: salen todas, en varias líneas. Así ya no cabe como barra fija. */
+  @media (hover: hover) and (pointer: fine) {
+    .filtros {
+      position: static;
+    }
+
+    .filtros__chips {
+      flex-wrap: wrap;
+      margin-inline: 0;
+      padding-inline: 0;
+      overflow-x: visible;
+    }
+
+    .chip,
+    select {
+      min-height: 36px;
+    }
+
+    .chip--cara {
+      padding-left: 3px;
+    }
+
+    .chip__cara {
+      width: 28px;
+      height: 28px;
+    }
+  }
 </style>
 
 <style is:global>
