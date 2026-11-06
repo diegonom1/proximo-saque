@@ -104,5 +104,13 @@
     "calendarioOficialUrl": null,
     "plataformas": [],
     "revisado": null
+  },
+  "lvp-mx": {
+    "nombre": "Liga de Voleibol Profesional de México",
+    "pais": "México",
+    "temporada": "2027",
+    "calendarioOficialUrl": "https://lvpmx.torneomax.com/matches",
+    "plataformas": [],
+    "revisado": null
   }
 }
