@@ -1,4 +1,0 @@
-{
-  "_ayuda": "Partidos que quieres fijar o corregir a mano. Siempre ganan sobre lo que encuentre la IA. Usa 'inicio' con la hora local del lugar y su desfase (ej. 2027-01-08T19:00:00-05:00), o bien 'fecha', 'hora' y 'zonaHoraria'. Para quitar un partido equivocado agrega uno con el mismo equipo y fecha y \"eliminar\": true.",
-  "partidos": []
-}

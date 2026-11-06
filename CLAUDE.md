@@ -14,7 +14,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 - No descargues fotos de internet ni enlaces fotos de Volleybox u otros sitios. Las fotos las ponemos nosotros en `src/assets/fotos/`.
 - No edites `data/*.json` a mano salvo que te lo pidamos: los escribe el orquestador. Las correcciones humanas van en `data/manual.json`.
 - Todo lo animado respeta `prefers-reduced-motion`.
-- La carpeta `v1/` es el sitio anterior. Reutiliza su lógica probada (`v1/scripts/actualizar.mjs`, `v1/index.html`): conversión de zonas horarias, fusión de partidos, enlace a Google Calendar, cuenta regresiva y agrupación por día. No la borres hasta que v2 esté en línea.
+- El sitio anterior (`v1/`) ya se borró; sigue en el historial de git (`git log --all -- v1/`).
 
 ## Stack
 
@@ -53,7 +53,6 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  ├─ pages/                index.astro, agenda.astro, jugadoras/[slug].astro, torneos.astro
 │  ├─ components/
 │  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, compromiso.ts, presentacion.ts, partido.ts, perfil.ts, iconos.ts, agenda.ts, ics.ts, cuenta.ts
-├─ v1/                      sitio anterior (referencia)
 └─ .github/workflows/       actualizar.yml (semanal), deploy.yml (push a main)
 ```
 
