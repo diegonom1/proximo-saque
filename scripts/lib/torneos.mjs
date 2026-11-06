@@ -12,6 +12,8 @@ const CATALOGO = [
     nombre: 'Campeonato Mundial',
     alias: ['Mundial', 'World Championship', 'World Championships', 'Campeonato del Mundo', 'Copa del Mundo', 'World Cup', 'Copa Mundial'],
     renombrado: { desde: 2027, nombre: 'Copa del Mundo FIVB' },
+    // Ya no cabe en los últimos torneos: con su fecha, el agente no lo vuelve a buscar.
+    ediciones: { 2025: { fechaInicio: '2025-08-22', fechaFin: '2025-09-07' } },
   },
   { nombre: 'Liga de Naciones', alias: ['Nations League', 'VNL'] },
   { nombre: 'Copa Challenger', alias: ['Challenger Cup'] },

@@ -197,11 +197,16 @@ async function torneos(ctx, lista, verificar, conocidos = []) {
 export function torneosPorRevisar(ctx) {
   const { torneos: doc, estado } = ctx.datos;
   const anio = Number(ctx.hoy.slice(0, 4));
-  const masViejo = doc.torneos.length >= doc.maximo ? Number(doc.torneos.at(-1).fechaFin.slice(0, 4)) : 0;
+  // Con la lista llena, lo anterior al más viejo ya no cabe: no vale una llamada.
+  const llena = doc.torneos.length >= doc.maximo;
+  const finMasViejo = llena ? doc.torneos.at(-1).fechaFin : '';
+  const masViejo = llena ? Number(finMasViejo.slice(0, 4)) : 0;
+  // Las menciones de Gemini no traen fechas: se usan las que se conocen.
+  const finDe = (t) => t.fechaFin ?? fechasDeCatalogo(t.nombre, t.edicion)?.fechaFin ?? null;
   const reciente = (id) => estado.revisado[`torneo:${id}`] && sumarDias(estado.revisado[`torneo:${id}`], DIAS_ENTRE_REVISIONES) > ctx.hoy;
   const porId = new Map();
   for (const t of ctx.torneosDetectados) {
-    if (!delCatalogo(t.nombre) || t.edicion > anio || t.edicion < masViejo) continue;
+    if (!delCatalogo(t.nombre) || t.edicion > anio || t.edicion < masViejo || (finDe(t) && finDe(t) < finMasViejo)) continue;
     const id = idTorneo(t.nombre, t.edicion);
     if (doc.torneos.some((g) => mismoTorneo(g, t)) || reciente(id)) continue;
     const previo = porId.get(id);

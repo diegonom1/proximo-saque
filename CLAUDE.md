@@ -199,7 +199,7 @@ Cada plataforma (la llena el agente 05):
 
 ```json
 {
-  "maximo": 7,
+  "maximo": 6,
   "torneos": [
     {
       "id": "norceca-final-six-2026",
@@ -309,7 +309,7 @@ En todo el sitio (hero, "Esta semana", perfil, agenda, botón flotante) un parti
 3. **La Selección en números**: seleccionadas, países donde juegan, ligas, partidos en los próximos 45 días y medallas en los últimos torneos, calculado de `data/` (`src/lib/numeros.ts`).
 4. **Plantilla**: sobre fondo oscuro, cada tarjeta es un bloque de su color con espacio alrededor: el recorte, el apellido gigante detrás, número, nombre, posición y club. Sin recorte usa `tarjeta.jpg`. Toca una y abre su perfil.
 5. **Esta semana**: los 3 próximos partidos de cualquier tipo, con enlace "Ver agenda completa".
-6. **Últimos 7 torneos**: tarjeta por torneo con medalla o lugar, sede, fechas, récord y premios individuales.
+6. **Últimos 6 torneos**: tarjeta por torneo con medalla o lugar, sede, fechas, récord y premios individuales.
 7. **Pie**: fecha de última actualización, fuentes generales, créditos de fotos y aviso para autores con enlace a los issues del repo.
 
 ### Perfil `/jugadoras/[slug]`
@@ -337,7 +337,7 @@ Acceso desde todo el sitio: enlace "Agenda" en la navegación y, en celular, un 
 
 ### Torneos `/torneos` (opcional)
 
-Los 7 torneos con más detalle: resultado, récord y premios.
+Los 6 torneos con más detalle: resultado, récord y premios.
 
 ## Reglas de tiempo y estados
 
@@ -475,7 +475,7 @@ Detalles técnicos:
 - Plantilla: un alta necesita aparecer en una lista oficial (FMVB, NORCECA, FIVB/Volleyball World, Panam Sports, Centro Caribe Sports) de los últimos 12 meses. Una baja necesita anuncio explícito o 24 meses sin aparecer en listas oficiales (se calcula con `ultimaListaOficial.fecha`; si la fecha es `null`, nunca hay baja por inactividad). Faltar a un torneo nunca es baja. De quien no está en la plantilla no se guarda ni se menciona nada: una baja sin `slug` o de alguien más se ignora sin salir en el resumen.
 - Nombres: el `slug` que propone el agente se acepta solo si el apellido coincide (comparado sin acentos ni mayúsculas). Si una lista trae solo apellidos, se fusiona cuando el apellido es único en la plantilla; si no, va a dudas del PR.
 - Próximo torneo: solo vale si el texto de la fuente dice que México (mayor femenil) participa o clasificó (`evidenciaParticipacion`): México junto a un verbo de participación, y el torneo y la edición ahí mismo o en el título. Varonil, playa y categorías juveniles no cuentan.
-- Torneos: máximo 7 por fecha de fin. El `id` sale del nombre canónico y la edición (`norceca-final-six-2026`, `campeonato-mundial-2025`). `scripts/lib/torneos.mjs` tiene el catálogo: "Mundial" y "World Championship" son el mismo torneo. Desde 2027 la FIVB lo llama Copa del Mundo: el nombre va según la edición (`campeonato-mundial-2025`, `copa-del-mundo-fivb-2027`), y cualquiera de sus nombres cae en la misma entrada. También son el mismo dos con la misma edición y fechas traslapadas, porque la Selección no juega dos torneos a la vez.
+- Torneos: máximo 6 por fecha de fin (`maximo` en `torneos.json`). Con la lista llena, lo anterior al más viejo no gasta llamadas. El `id` sale del nombre canónico y la edición (`norceca-final-six-2026`, `campeonato-mundial-2025`). `scripts/lib/torneos.mjs` tiene el catálogo: "Mundial" y "World Championship" son el mismo torneo. Desde 2027 la FIVB lo llama Copa del Mundo: el nombre va según la edición (`campeonato-mundial-2025`, `copa-del-mundo-fivb-2027`), y cualquiera de sus nombres cae en la misma entrada. También son el mismo dos con la misma edición y fechas traslapadas, porque la Selección no juega dos torneos a la vez.
 - Si un agente falla o su respuesta no valida, se conservan los datos anteriores y se avisa en el resumen.
 - Fuentes oficiales para un alta: `fmvb.org`, `norceca.net`, `norceca.info`, `fivb.com`, `fivb.org`, `volleyballworld.com`, `panamsports.org`, `centrocaribesports.org`.
 - Un torneo terminado sin fechas toma las que ya se conocen: el `proximoTorneo` que acaba de terminar, lo guardado en `torneos.json` o las `ediciones` del catálogo. Sin ninguna de esas, se descarta.

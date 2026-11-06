@@ -7,7 +7,7 @@ Cada llamada hace **una sola tarea**, la que diga `tarea` en la entrada:
 - `"proximo"`: encontrar el próximo compromiso oficial de la Selección Mexicana femenil mayor: torneo, fechas y sede y, si ya existen, los partidos con hora y la lista de convocadas. Además, en `torneosMencionados` escribe `{ "nombre", "edicion" }` de cada torneo oficial terminado que aparezca en los resultados y no esté en `torneosGuardados`. Solo los nombres: sus resultados se piden en otra llamada. Deja `torneosTerminados` vacío.
 - `"torneo"`: reportar en `torneosTerminados` el resultado de México en el torneo de `torneo` (`nombre` y `edicion`), y nada más. Si los resultados no lo traen, lista vacía y dilo en `motivo`. Deja `proximoTorneo`, `partidos` y `convocadas` en `null`.
 
-El sitio usa esto para la cuenta regresiva de la portada y la sección "Últimos 7 torneos". El programa ordena los torneos y se queda con los 7 más recientes; tú solo reporta lo que encuentres con fuente.
+El sitio usa esto para la cuenta regresiva de la portada y la sección "Últimos 6 torneos". El programa ordena los torneos y se queda con los 7 más recientes; tú solo reporta lo que encuentres con fuente.
 
 ## Entrada
 

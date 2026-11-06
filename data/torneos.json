@@ -1,5 +1,5 @@
 {
-  "maximo": 7,
+  "maximo": 6,
   "torneos": [
     {
       "id": "norceca-final-six-2026",
@@ -134,21 +134,6 @@
       "premios": [],
       "fase": null,
       "fuente": "https://norceca.net/2025%20Events%20&%20Activities/Events/Final%20Six/Women%20Final%20Six/2025%20NORCECA%20Women%20Final%206.htm"
-    },
-    {
-      "id": "campeonato-mundial-2025",
-      "nombre": "Campeonato Mundial",
-      "edicion": 2025,
-      "ciudad": "Chiang Mai",
-      "pais": "Tailandia",
-      "fechaInicio": "2025-08-22",
-      "fechaFin": "2025-09-07",
-      "posicion": null,
-      "medalla": null,
-      "record": "1-2",
-      "premios": [],
-      "fase": "Fase de grupos",
-      "fuente": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/news/maldonado-fires-33-to-help-mexico-finish-on-a-high"
     }
   ]
 }

@@ -83,6 +83,31 @@ describe('rankings', () => {
   });
 });
 
+describe('torneos con la lista llena', () => {
+  const detectado = (nombre) => ({ '04-seleccion-torneos': (clave) => (clave ? undefined : { ...VACIAS['04-seleccion-torneos'], torneosMencionados: [{ nombre, edicion: 2025 }] }) });
+  const llena = (d) => {
+    d.maximo = 2;
+    d.torneos = [
+      { ...d.torneos[0], id: 'norceca-final-six-2026', nombre: 'NORCECA Final Six', edicion: 2026, fechaInicio: '2026-09-21', fechaFin: '2026-09-27' },
+      { ...d.torneos[0], id: 'norceca-final-six-2025', nombre: 'NORCECA Final Six', edicion: 2025, fechaInicio: '2025-09-15', fechaFin: '2025-09-21' },
+    ];
+  };
+  const pidio = (llamar, nombre) => llamar.llamadas.some((l) => l.agente === '04-seleccion-torneos' && String(l.clave).startsWith(nombre));
+
+  it('no gasta una llamada en un torneo que ya no cabe', async () => {
+    await cambiar('torneos.json', llena);
+    const llamar = llamarCon(detectado('Mundial'));
+    await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA, maxLlamadas: 99 });
+    expect(pidio(llamar, 'Campeonato Mundial')).toBe(false);
+  });
+  it('sin fecha conocida sí lo revisa: podría caber', async () => {
+    await cambiar('torneos.json', llena);
+    const llamar = llamarCon(detectado('Copa Panamericana'));
+    await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA, maxLlamadas: 99 });
+    expect(pidio(llamar, 'Copa Panamericana')).toBe(true);
+  });
+});
+
 describe('Selección y torneos', () => {
   const torneo = (cambios) => ({ nombre: 'Copa Panamericana', edicion: 2025, ciudad: 'Colima', pais: 'México', fechaInicio: '2025-06-01', fechaFin: '2025-06-08', posicion: 3, medalla: 'bronce', record: '4-2', premios: [], fuente: OFICIAL, ...cambios });
   const seleccion = (cambios) => ({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], ...cambios } });
