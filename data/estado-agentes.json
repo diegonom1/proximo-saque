@@ -1,5 +1,5 @@
 {
-  "ultimaCorrida": "2026-11-05T08:35:00-06:00",
+  "ultimaCorrida": "2026-11-05T18:03:00-06:00",
   "revisado": {
     "rankings": "2026-11-05",
     "perfil:uxue-guereca": "2026-11-05",
@@ -7,7 +7,13 @@
     "perfil:sofia-maldonado": "2026-11-05",
     "perfil:grecia-castro": "2026-11-05",
     "dondever:proximo-torneo": "2026-11-05",
-    "dondever:serie-a1-it": "2026-11-05"
+    "dondever:serie-a1-it": "2026-11-05",
+    "perfil:argentina-ung": "2026-11-05",
+    "perfil:marian-ovalle": "2026-11-05",
+    "perfil:arleth-marquez": "2026-11-05",
+    "perfil:jocelyn-urias": "2026-11-05",
+    "dondever:superliga-br": "2026-11-05",
+    "dondever:superliga-cn": "2026-11-05"
   },
   "pendientes": [],
   "propuestas": [
@@ -255,11 +261,179 @@
       "texto": "Serie A1 femminile: temporada 2026-27",
       "fuente": null,
       "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:argentina-ung:fechaNacimiento:\"2002-04-25\"",
+      "seccion": "Perfiles",
+      "texto": "Argentina Ung: fechaNacimiento 2002-04-25",
+      "fuente": "https://women.volleybox.net/es/argentina-ung-p24593",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:argentina-ung:club:lovb miami|2026-27",
+      "seccion": "Perfiles",
+      "texto": "Argentina Ung: club LOVB Miami (2026-27)",
+      "fuente": "https://auprosports.com/read/lovb-announces-new-signings-for-2027-season",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:argentina-ung:destacado:2024 all big 12 first team",
+      "seccion": "Perfiles",
+      "texto": "Argentina Ung: 2024 All-Big 12 First Team",
+      "fuente": "https://sports.yahoo.com/articles/lovb-miami-now-roster-first-170322750.html",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:marian-ovalle:fechaNacimiento:\"2002-09-14\"",
+      "seccion": "Perfiles",
+      "texto": "Marian Ovalle: fechaNacimiento 2002-09-14",
+      "fuente": "https://women.volleybox.net/es/marian-ovalle-p24597",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:marian-ovalle:origen:{\"ciudad\":\"Ciudad Juárez\",\"estado\":\"Chihuahua\",\"pais\":\"México\"}",
+      "seccion": "Perfiles",
+      "texto": "Marian Ovalle: origen {\"ciudad\":\"Ciudad Juárez\",\"estado\":\"Chihuahua\",\"pais\":\"México\"}",
+      "fuente": "https://women.volleybox.net/tr/marian-ovalle-p24597/fans",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:marian-ovalle:estaturaCm:178",
+      "seccion": "Perfiles",
+      "texto": "Marian Ovalle: estaturaCm 178",
+      "fuente": "https://women.volleybox.net/es/marian-ovalle-p24597",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:marian-ovalle:club:ok formis|2026-27",
+      "seccion": "Perfiles",
+      "texto": "Marian Ovalle: club OK Formis (2026-27)",
+      "fuente": "https://diario.mx/deportes/2026/aug/31/voleibolista-juarense-acuerda-con-el-ok-formis-para-la-temporada-2026-2027-1136031.html",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:marian-ovalle:club:texas at el paso utep|2023-24",
+      "seccion": "Perfiles",
+      "texto": "Marian Ovalle: club Texas at El Paso (UTEP) (2023-24)",
+      "fuente": "https://women.volleybox.net/texas-at-el-paso-univ-t5282",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:arleth-marquez:nombreCompleto:\"Arleth Yuridia Márquez Ceja\"",
+      "seccion": "Perfiles",
+      "texto": "Arleth Márquez: nombreCompleto Arleth Yuridia Márquez Ceja",
+      "fuente": "https://meridiano.mx/wp-content/uploads/2024/05/DEPORTES-8.pdf",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:arleth-marquez:fechaNacimiento:\"2005-12-26\"",
+      "seccion": "Perfiles",
+      "texto": "Arleth Márquez: fechaNacimiento 2005-12-26",
+      "fuente": "https://women.volleybox.net/es/arleth-marquez-p100594",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:arleth-marquez:origen:{\"ciudad\":null,\"estado\":\"Nayarit\",\"pais\":\"México\"}",
+      "seccion": "Perfiles",
+      "texto": "Arleth Márquez: origen {\"ciudad\":null,\"estado\":\"Nayarit\",\"pais\":\"México\"}",
+      "fuente": "https://meridiano.mx/wp-content/uploads/2024/05/DEPORTES-8.pdf",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:arleth-marquez:estaturaCm:197",
+      "seccion": "Perfiles",
+      "texto": "Arleth Márquez: estaturaCm 197",
+      "fuente": "https://women.volleybox.net/es/arleth-marquez-p100594",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:arleth-marquez:club:tigres uanl|2026-27",
+      "seccion": "Perfiles",
+      "texto": "Arleth Márquez: club Tigres UANL (2026-27)",
+      "fuente": "https://women.volleybox.net/es/arleth-marquez-p100594",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:arleth-marquez:destacado:participacion con la seleccion mexicana mayor en norceca championships 2026",
+      "seccion": "Perfiles",
+      "texto": "Arleth Márquez: Participación con la Selección Mexicana mayor en NORCECA Championships 2026",
+      "fuente": "https://women.volleybox.net/usa-mexico-c379134",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:jocelyn-urias:nombreCompleto:\"Jocelyn Urías Castro\"",
+      "seccion": "Perfiles",
+      "texto": "Jocelyn Urías: nombreCompleto Jocelyn Urías Castro",
+      "fuente": "https://www.threads.com/@sitemelhordovolei/post/DZIP0nhjn3b/mercado-bienvenida-jocelyn-a-central-jocelyn-urias-castro-e-a-mais-nova-atleta",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:jocelyn-urias:fechaNacimiento:\"1996-02-16\"",
+      "seccion": "Perfiles",
+      "texto": "Jocelyn Urías: fechaNacimiento 1996-02-16",
+      "fuente": "https://women.volleybox.net/jocelyn-urias-p23369",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:jocelyn-urias:origen:{\"ciudad\":\"Tijuana\",\"estado\":\"Baja California\",\"pais\":\"México\"}",
+      "seccion": "Perfiles",
+      "texto": "Jocelyn Urías: origen {\"ciudad\":\"Tijuana\",\"estado\":\"Baja California\",\"pais\":\"México\"}",
+      "fuente": "https://bajacalifornia.quadratin.com.mx/deportes/se-integra-jocelyn-urias-al-voleibol-profesional-de-brasil",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:jocelyn-urias:estaturaCm:190",
+      "seccion": "Perfiles",
+      "texto": "Jocelyn Urías: estaturaCm 190",
+      "fuente": "https://www.threads.com/@sitemelhordovolei/post/DZIP0nhjn3b/mercado-bienvenida-jocelyn-a-central-jocelyn-urias-castro-e-a-mais-nova-atleta",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:jocelyn-urias:club:batavo mackenzie|2026-27",
+      "seccion": "Perfiles",
+      "texto": "Jocelyn Urías: club Batavo Mackenzie (2026-27)",
+      "fuente": "https://www.itatiaia.com.br/esportes/volei/mackenzie-anuncia-contratacao-da-capita-da-selecao-mexicana-para-a-temporada-2026-27",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:jocelyn-urias:club:tapatias voleibol|2025-26",
+      "seccion": "Perfiles",
+      "texto": "Jocelyn Urías: club Tapatías Voleibol (2025-26)",
+      "fuente": "https://bajacalifornia.quadratin.com.mx/deportes/se-integra-jocelyn-urias-al-voleibol-profesional-de-brasil",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:jocelyn-urias:club:washington state univ|2018-19",
+      "seccion": "Perfiles",
+      "texto": "Jocelyn Urías: club Washington State Univ. (2018-19)",
+      "fuente": "https://volleybox.net/penny-tusa-p29605/teammates",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "perfil:jocelyn-urias:destacado:medalla de oro en el final four norceca",
+      "seccion": "Perfiles",
+      "texto": "Jocelyn Urías: Medalla de Oro en el Final Four NORCECA",
+      "fuente": "https://www.clarosports.com/otros-deportes/la-capitana-de-mexico-da-el-salto-a-brasil-jocelyn-urias-firma-con-batavo-mackenzie",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "plataforma:superliga-br:https://www.youtube.com/@CanalVoleiBrasil",
+      "seccion": "Plataformas nuevas",
+      "texto": "Superliga Feminina: Canal Vôlei Brasil",
+      "fuente": "https://cbv.com.br/volei-de-quadra/superliga-a-feminina",
+      "fecha": "2026-11-05"
+    },
+    {
+      "clave": "temporada:superliga-cn:2025-26",
+      "seccion": "Plataformas nuevas",
+      "texto": "Superliga china (CVL): temporada 2025-26",
+      "fuente": null,
+      "fecha": "2026-11-05"
     }
   ],
   "rechazos": [],
   "tavily": {
     "mes": "2026-11",
-    "creditos": 197
+    "creditos": 268
   }
 }
