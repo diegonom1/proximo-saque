@@ -501,7 +501,7 @@ Detalles técnicos:
 - **Pull Request de revisión semanal** (rama `revision-semanal`, uno abierto a la vez; acumula lo de semanas anteriores: la corrida parte de la rama, después de integrarle `main`; si se cerró sin aprobar, parte de `main`): cambios en `jugadoras.json`, `clubes.json`, `ligas.json` y `torneos.json`. El cuerpo del PR resume altas, bajas, cambios de club, torneos nuevos, datos de perfil y dudas, cada uno con su fuente. Un alta crea también `src/assets/fotos/jugadoras/<slug>/.gitkeep`. Se aprueba desde la app de GitHub en el celular.
 - Lo que se guarda directo debe ser válido contra lo aprobado en `main` (`DIR_APROBADOS`): `partidos.json` no puede citar un club o una convocada que solo existen en el PR. Si no lo es, la corrida falla sin escribir. Por eso la rotación del agente 02 sale de `estado-agentes.json`, no de los `revisado` de `jugadoras.json`.
 - Un alta entra como `propuesta` por el PR. Si la siguiente corrida la encuentra en `main`, el PR se aprobó y pasa a `activa`.
-- Cuando se confirma el nombre de `tanguma`, el agente actualiza `nombre` y avisa en dudas; renombrar `slug` y carpeta es a mano.
+- Cuando se confirma un nombre incompleto, el agente actualiza `nombre` y avisa en dudas; renombrar `slug` y carpeta es a mano.
 - El cuerpo del PR se escribe en `revision-semanal.md` y los avisos de temporadas en `avisos-temporada.md` (los dos ignorados por git). Sin avisos, este último no existe.
 - Requisito: en el repo, Settings → Actions → General → *Allow GitHub Actions to create and approve pull requests*. Usar `peter-evans/create-pull-request`.
 
@@ -540,7 +540,7 @@ Es el punto de partida; lo vigente está en `data/jugadoras.json`. Jugadoras que
 | `arleth-marquez` | Arleth Márquez | 10 | Central | Mundial 2025, Final Four 2026 |
 | `jocelyn-urias` | Jocelyn Urías (capitana) | 11 | Central | Mundial 2025, Final Four 2026 |
 | `joseline-landeros` | Joseline Landeros | 12 | Líbero | Mundial 2025, Final Four 2026 |
-| `tanguma` | Tanguma (nombre por confirmar) | 13 | Central | Final Four 2026 |
+| `aitana-tanguma` | Aitana Tanguma | 13 | Central | Final Four 2026 |
 | `paola-rivera` | Paola Rivera | 15 | Acomodadora | Mundial 2025, Final Four 2026 |
 | `paulett-munoz` | Paulet Muñoz | 16 | Atacante en 2026; en 2025 aparecía como líbero (el agente 01 confirma que sea la misma Muñoz) | Mundial 2025, Final Four 2026 |
 | `aime-topete` | Aime Topete | 20 | Atacante | Mundial 2025, Final Four 2026 |
@@ -548,4 +548,4 @@ Es el punto de partida; lo vigente está en `data/jugadoras.json`. Jugadoras que
 | `melanie-parra` | Melanie Parra | — | Atacante | Mundial 2025 |
 | `ximena-solar` | Ximena Solar | — | Central | Mundial 2025 |
 
-Nombres completos según el boletín: Uxue Amaya Guereca Parra, Sofía Maldonado Díaz, Grecia Esther Castro López, Gloria Argentina Ung Enríquez, Joseline Landeros Palacios, Karina Angélica Flores Gámez. Tavily no trae ese PDF, así que el agente 02 no puede citarlo: si reporta el mismo valor (sin contar acentos), se ignora sin verificar. Cuando se confirme el nombre de `tanguma`, renombrar carpeta y `slug`.
+Nombres completos según el boletín: Uxue Amaya Guereca Parra, Sofía Maldonado Díaz, Grecia Esther Castro López, Gloria Argentina Ung Enríquez, Joseline Landeros Palacios, Karina Angélica Flores Gámez. Tavily no trae ese PDF, así que el agente 02 no puede citarlo: si reporta el mismo valor (sin contar acentos), se ignora sin verificar.

@@ -312,11 +312,11 @@ describe('plantilla: nombres', () => {
   });
   it('una lista con solo apellidos se fusiona si el apellido es único', async () => {
     await ejecutar(plantel({ listas: [lista([{ nombre: 'Tanguma', numero: 77, slug: null }])] }));
-    expect((await jugadora('tanguma')).numero).toBe(77);
+    expect((await jugadora('aitana-tanguma')).numero).toBe(77);
   });
   it('un nombre confirmado se guarda y avisa que falta renombrar', async () => {
-    const r = await ejecutar(plantel({ listas: [lista([{ nombre: 'María Tanguma', numero: 13, slug: 'tanguma' }])] }));
-    expect((await jugadora('tanguma')).nombre).toBe('María Tanguma');
+    const r = await ejecutar(plantel({ listas: [lista([{ nombre: 'María Tanguma', numero: 13, slug: 'aitana-tanguma' }])] }));
+    expect((await jugadora('aitana-tanguma')).nombre).toBe('María Tanguma');
     expect(r.cuerpoPr).toContain('renombrar');
   });
   it('una lista vieja no pisa una más reciente', async () => {

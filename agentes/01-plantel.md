@@ -83,7 +83,7 @@ Pega esto en el chat después de cargar las instrucciones (00 + este archivo):
     { "slug": "arleth-marquez", "nombre": "Arleth Márquez", "ultimaLista": "NORCECA Final Four 2026", "fecha": "2026-06-08" },
     { "slug": "jocelyn-urias", "nombre": "Jocelyn Urías", "ultimaLista": "NORCECA Final Four 2026", "fecha": "2026-06-08" },
     { "slug": "joseline-landeros", "nombre": "Joseline Landeros", "ultimaLista": "NORCECA Final Four 2026", "fecha": "2026-06-08" },
-    { "slug": "tanguma", "nombre": "Tanguma", "ultimaLista": "NORCECA Final Four 2026", "fecha": "2026-06-08" },
+    { "slug": "aitana-tanguma", "nombre": "Aitana Tanguma", "ultimaLista": "NORCECA Final Four 2026", "fecha": "2026-06-08" },
     { "slug": "paola-rivera", "nombre": "Paola Rivera", "ultimaLista": "NORCECA Final Four 2026", "fecha": "2026-06-08" },
     { "slug": "paulett-munoz", "nombre": "Paulett Muñoz", "ultimaLista": "NORCECA Final Four 2026", "fecha": "2026-06-08" },
     { "slug": "aime-topete", "nombre": "Aime Topete", "ultimaLista": "NORCECA Final Four 2026", "fecha": "2026-06-08" },
@@ -95,4 +95,4 @@ Pega esto en el chat después de cargar las instrucciones (00 + este archivo):
 }
 ```
 
-Qué revisar en la respuesta: que traiga la lista del Final Six 2026 (Zinacantepec, septiembre) y la de los Juegos Centroamericanos y del Caribe 2026 si existen, que complete el nombre de Tanguma solo con fuente, y que no proponga como baja a nadie solo por faltar a un torneo.
+Qué revisar en la respuesta: que traiga la lista del Final Six 2026 (Zinacantepec, septiembre) y la de los Juegos Centroamericanos y del Caribe 2026 si existen y que no proponga como baja a nadie solo por faltar a un torneo.
