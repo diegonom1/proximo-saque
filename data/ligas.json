@@ -9,20 +9,20 @@
         "nombre": "DAZN",
         "tipo": "streaming",
         "url": "https://www.dazn.com/",
-        "alcance": "mundial",
+        "alcance": null,
         "costo": "pago",
-        "notas": "Transmite todos los partidos de Serie A1 y A2.",
-        "fuente": "https://www.youtube.com/watch?v=A4LupRHEcS0",
+        "notas": "Transmite toda la temporada de Serie A1: fase regular, playoffs, Copa Italia y Supercopa.",
+        "fuente": "https://www.dazn.com/it-IT/news/volley/calendario-completo-serie-a1-femminile-volley/t7kwzbdfn5zh1w02x8hcdrogp",
         "revisado": "2026-11-05"
       },
       {
         "nombre": "Lega Volley Femminile YouTube",
         "tipo": "youtube",
         "url": "https://www.youtube.com/@legavolleyfemminile",
-        "alcance": "mundial",
+        "alcance": null,
         "costo": "gratis",
-        "notas": "Transmite algunos partidos seleccionados; revisar la programación en el sitio oficial.",
-        "fuente": "https://www.youtube.com/watch?v=A4LupRHEcS0",
+        "notas": "Tres partidos por jornada de la fase regular en los canales oficiales de la Lega.",
+        "fuente": "https://www.volleybergamo1991.it/le-partite-della-stagione-2026-2027-saranno-visibili-su-rai-dazn-youtube-e-sui-social-media-della-lega-dei-club-e-delle-giocatrici/",
         "revisado": "2026-11-05"
       },
       {
