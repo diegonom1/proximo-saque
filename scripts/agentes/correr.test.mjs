@@ -876,6 +876,12 @@ describe('manual.json: próximo torneo', () => {
     const r = await ejecutar(llamaProximo);
     expect(r.resumen).toContain('**Por revisar:** El agente halló un torneo antes del de manual.json: Copa Challenger 2027, desde el 2027-05-01');
   });
+  it('el agente puede llamarlo Mundial: es el mismo y no avisa', async () => {
+    await mano({ ...base, nombre: 'Copa del Mundo FIVB', fechaInicio: '2027-08-20', fechaFin: '2027-09-05' });
+    const r = await ejecutar({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], proximoTorneo: { nombre: 'Campeonato Mundial', edicion: 2027, fuente: OFICIAL, confianza: 'alta' } } });
+    expect(await proximo()).toMatchObject({ id: 'copa-del-mundo-fivb-2027', nombre: 'Copa del Mundo FIVB' });
+    expect(r.resumen).not.toContain('antes del de manual.json');
+  });
   it('uno posterior no molesta', async () => {
     await mano({ ...base, fechaInicio: '2027-01-01', fechaFin: '2027-01-08' });
     const r = await ejecutar(llamaProximo);
@@ -1136,7 +1142,7 @@ describe('próximo torneo: la fuente debe decir que México participa', () => {
 
   it('con México en la lista de clasificados entra', async () => {
     await corre('Sweden, Mexico, Ukraine, Greece, Korea, Bulgaria and Switzerland qualified through this pathway.');
-    expect(await proximo()).toMatchObject({ id: 'copa-del-mundo-2027', nombre: 'Copa del Mundo', edicion: 2027 });
+    expect(await proximo()).toMatchObject({ id: 'copa-del-mundo-fivb-2027', nombre: 'Copa del Mundo FIVB', edicion: 2027 });
   });
   it('si la fuente no dice que México clasificó se descarta y queda lo anterior', async () => {
     await cambiar('seleccion.json', (s) => { s.proximoTorneo = null; });

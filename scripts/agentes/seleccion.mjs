@@ -89,7 +89,7 @@ async function proximoTorneo(ctx, crudo, verificar, resultados = []) {
   }
   seleccion.proximoTorneo = {
     id: idTorneo(t.nombre, t.edicion),
-    nombre: nombreCanonico(t.nombre),
+    nombre: nombreCanonico(t.nombre, t.edicion),
     edicion: t.edicion ?? null,
     ciudad: t.ciudad ?? null,
     pais: t.pais ?? null,
@@ -98,7 +98,7 @@ async function proximoTorneo(ctx, crudo, verificar, resultados = []) {
     fuente,
   };
   ctx.proximoHallado = seleccion.proximoTorneo; // manual.json puede ganarle: se compara al final
-  ctx.reporte.encontro(AGENTE, `próximo torneo: ${nombreCanonico(t.nombre)} ${t.edicion ?? ''}`.trim());
+  ctx.reporte.encontro(AGENTE, `próximo torneo: ${nombreCanonico(t.nombre, t.edicion)} ${t.edicion ?? ''}`.trim());
 }
 
 async function partidos(ctx, respuesta, verificar, resultados) {
@@ -124,7 +124,7 @@ async function partidos(ctx, respuesta, verificar, resultados) {
       ctx.reporte.descarto(AGENTE, etiqueta, p?.fuente ? `no se pudo verificar ${p.fuente}` : 'sin fuente');
       continue;
     }
-    const torneoId = torneo && nombreCanonico(p.torneo ?? '') === torneo.nombre ? torneo.id : idTorneo(p.torneo ?? 'amistoso', p.fecha?.slice(0, 4));
+    const torneoId = torneo && nombreCanonico(p.torneo ?? '', torneo.edicion) === torneo.nombre ? torneo.id : idTorneo(p.torneo ?? 'amistoso', p.fecha?.slice(0, 4));
     const partido = convertirSeleccion({ ...p, fuente, convocadas }, torneoId, 'ia', ctx.ahora);
     if (!partido || !esquemaPartido.safeParse({ ...partido }).success) {
       ctx.reporte.descarto(AGENTE, etiqueta, 'fecha, zona horaria o equipos inválidos');
@@ -176,7 +176,7 @@ async function torneos(ctx, lista, verificar, conocidos = []) {
       continue;
     }
     const nuevo = {
-      id, nombre: nombreCanonico(t.nombre), edicion: t.edicion, ciudad: t.ciudad ?? null, pais: t.pais ?? null, fechaInicio: t.fechaInicio ?? null, fechaFin: t.fechaFin,
+      id, nombre: nombreCanonico(t.nombre, t.edicion), edicion: t.edicion, ciudad: t.ciudad ?? null, pais: t.pais ?? null, fechaInicio: t.fechaInicio ?? null, fechaFin: t.fechaFin,
       posicion: t.posicion ?? null, medalla: t.medalla ?? null, record: t.record ?? null, premios, fase: t.fase ?? null, fuente,
     };
     if (!esquemaTorneo.safeParse(nuevo).success) {
@@ -207,7 +207,7 @@ export function torneosPorRevisar(ctx) {
     porId.set(id, { ...t, fechaInicio: t.fechaInicio ?? previo?.fechaInicio, fechaFin: t.fechaFin ?? previo?.fechaFin });
   }
   // Las fechas conocidas viajan en la clave: una tarea pendiente se puede correr hasta la semana siguiente.
-  return [...porId.values()].slice(0, MAX_TORNEOS).map((t) => [nombreCanonico(t.nombre), t.edicion, ...(t.fechaFin ? [t.fechaInicio ?? '', t.fechaFin] : [])].join('|'));
+  return [...porId.values()].slice(0, MAX_TORNEOS).map((t) => [nombreCanonico(t.nombre, t.edicion), t.edicion, ...(t.fechaFin ? [t.fechaInicio ?? '', t.fechaFin] : [])].join('|'));
 }
 
 async function revisarTorneo(ctx, clave) {

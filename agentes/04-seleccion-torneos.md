@@ -29,7 +29,7 @@ Calendarios y noticias de NORCECA (norceca.net, norceca.info), FMVB (fmvb.org), 
 
 - `proximoTorneo` es el siguiente torneo que **no ha terminado** (puede estar en curso). Si hay varios confirmados, el más cercano.
 - Solo reporta un `proximoTorneo` si la fuente dice que México (selección mayor femenil de sala) participa o clasificó. Que el torneo exista no basta, y el programa lo comprueba en el texto de la fuente: cita la página donde se lee eso.
-- Copia el nombre del torneo como lo escribe la fuente. "Copa del Mundo" y "Campeonato Mundial" son nombres distintos: no cambies uno por otro.
+- Desde 2027 la FIVB llama Copa del Mundo a lo que antes era el Campeonato Mundial: es el mismo torneo, y la prensa todavía le dice Mundial.
 - Un torneo está terminado cuando se jugó su último partido. Si está en curso, va en `proximoTorneo` y sus partidos pendientes en `partidos`.
 - `posicion`: lugar final de México (1, 2, 3…). `medalla`: `oro`, `plata`, `bronce` o `null`.
 - `fase`: hasta dónde llegó México si no se publicó su lugar final, por ejemplo `"Fase de grupos"` o `"Cuartos de final"`; si hay `posicion`, déjala en `null`.

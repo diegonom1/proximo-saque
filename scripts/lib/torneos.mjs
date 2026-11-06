@@ -7,8 +7,12 @@ import { slugDe } from './nombres.mjs';
 const CATALOGO = [
   { nombre: 'Juegos Olímpicos', alias: ['Olimpiadas', 'Olympic Games', 'Olympics', 'Juegos Olimpicos'] },
   { nombre: 'Preolímpico', alias: ['Clasificatorio Olímpico', 'Olympic Qualification Tournament', 'Olympic Qualifier', 'Preolimpico'] },
-  { nombre: 'Campeonato Mundial', alias: ['Mundial', 'World Championship', 'World Championships', 'Campeonato del Mundo'] },
-  { nombre: 'Copa del Mundo', alias: ['World Cup', 'Copa Mundial'] },
+  // Desde 2027 la FIVB llama Copa del Mundo a lo que antes era el Campeonato Mundial: es el mismo torneo.
+  {
+    nombre: 'Campeonato Mundial',
+    alias: ['Mundial', 'World Championship', 'World Championships', 'Campeonato del Mundo', 'Copa del Mundo', 'World Cup', 'Copa Mundial'],
+    renombrado: { desde: 2027, nombre: 'Copa del Mundo FIVB' },
+  },
   { nombre: 'Liga de Naciones', alias: ['Nations League', 'VNL'] },
   { nombre: 'Copa Challenger', alias: ['Challenger Cup'] },
   // Fechas que anunció Panam Sports el 30 de enero de 2026.
@@ -33,7 +37,13 @@ const huella = (nombre) => normal(nombre).split(' ')
 
 const CANONICOS = new Map(CATALOGO.flatMap(({ nombre, alias }) => [nombre, ...alias].map((a) => [huella(a), nombre])));
 
-export const nombreCanonico = (nombre) => CANONICOS.get(huella(nombre)) ?? nombre.trim();
+// Con la edición, el nombre que tenía ese año; sin ella, el de su entrada del catálogo.
+export function nombreCanonico(nombre, edicion = null) {
+  const base = CANONICOS.get(huella(nombre));
+  if (!base) return nombre.trim();
+  const renombrado = CATALOGO.find((t) => t.nombre === base).renombrado;
+  return renombrado && Number(edicion) >= renombrado.desde ? renombrado.nombre : base;
+}
 
 // Las fechas de una edición, si el catálogo las sabe.
 export const fechasDeCatalogo = (nombre, edicion) => CATALOGO.find((t) => t.nombre === nombreCanonico(nombre))?.ediciones?.[edicion] ?? null;
@@ -46,7 +56,7 @@ export function nombresDe(nombre) {
 
 export const delCatalogo = (nombre) => CANONICOS.has(huella(nombre));
 
-export const idTorneo = (nombre, edicion) => slugDe(`${nombreCanonico(nombre)} ${edicion ?? ''}`);
+export const idTorneo = (nombre, edicion) => slugDe(`${nombreCanonico(nombre, edicion)} ${edicion ?? ''}`);
 
 const rango = (t) => [t.fechaInicio ?? t.fechaFin ?? null, t.fechaFin ?? t.fechaInicio ?? null];
 

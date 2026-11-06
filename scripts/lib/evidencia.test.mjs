@@ -106,6 +106,10 @@ describe('evidenciaParticipacion', () => {
   it('acepta la lista de clasificados de la FIVB, con el torneo en el título', () => {
     expect(ver2('Qualified Teams confirmed for the 2027 FIVB Volleyball Women\'s World Cup', FIVB, COPA)).toBe(true);
   });
+  it('acepta la nota de la FIVB en español', () => {
+    const texto = 'se clasificaron por esta vía los Países Bajos, Rusia, Alemania, Chequia, Bélgica, Francia, Eslovenia, Suecia, México, Ucrania, Grecia, Corea, Bulgaria y Suiza.';
+    expect(ver2('Equipos clasificados confirmados para la Copa del Mundo Femenina de Voleibol de la FIVB de 2027 – FIVB', texto, COPA)).toBe(true);
+  });
   it('sin México en la lista no vale', () => {
     expect(ver2('Qualified Teams confirmed for the 2027 FIVB Volleyball Women\'s World Cup', FIVB.replace('Mexico, ', ''), COPA)).toBe(false);
   });

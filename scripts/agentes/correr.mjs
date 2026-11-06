@@ -185,7 +185,7 @@ function aplicarManualSeleccion(ctx, manual) {
   }
   ctx.datos.seleccion.proximoTorneo = {
     id: t.id ?? idTorneo(t.nombre, t.edicion),
-    nombre: nombreCanonico(t.nombre),
+    nombre: nombreCanonico(t.nombre, t.edicion),
     edicion: t.edicion,
     ciudad: t.ciudad ?? null,
     pais: t.pais ?? null,

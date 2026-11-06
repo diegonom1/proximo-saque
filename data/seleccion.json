@@ -4,14 +4,14 @@
     "fuente": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf"
   },
   "proximoTorneo": {
-    "id": "campeonato-mundial-2027",
-    "nombre": "Campeonato Mundial",
+    "id": "copa-del-mundo-fivb-2027",
+    "nombre": "Copa del Mundo FIVB",
     "edicion": 2027,
     "ciudad": "Anaheim, Omaha, Orlando, Montreal y Quebec",
     "pais": "Estados Unidos y Canadá",
     "fechaInicio": "2027-08-20",
     "fechaFin": "2027-09-05",
-    "fuente": "https://www.clarosports.com/otros-deportes/mexico-clasifica-mundial-voleibol-2027/"
+    "fuente": "https://www.fivb.com/es/equipos-clasificados-confirmados-para-la-copa-del-mundo-femenina-de-voleibol-de-la-fivb-de-2027"
   },
   "plataformas": [
     {

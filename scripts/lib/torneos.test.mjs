@@ -83,24 +83,29 @@ describe('fechasDeCatalogo', () => {
   });
 });
 
-describe('Copa del Mundo y Campeonato Mundial', () => {
-  it('son entradas distintas del catálogo', () => {
-    expect(nombreCanonico('Copa del Mundo Femenina de Voleibol de la FIVB')).toBe('Copa del Mundo');
-    expect(nombreCanonico('FIVB Volleyball Women\'s World Cup')).toBe('Copa del Mundo');
-    expect(nombreCanonico('Copa Mundial')).toBe('Copa del Mundo');
-    expect(nombreCanonico('Campeonato del Mundo')).toBe('Campeonato Mundial');
-    expect(idTorneo('World Cup', 2027)).not.toBe(idTorneo('World Championship', 2027));
+describe('Copa del Mundo: el nombre del Mundial desde 2027', () => {
+  const NOMBRES = ['Campeonato Mundial', 'Mundial', 'World Championship', 'Copa del Mundo', 'Copa del Mundo FIVB', 'Copa Mundial', 'FIVB Volleyball Women\'s World Cup', 'Copa del Mundo Femenina de Voleibol de la FIVB'];
+
+  it.each(NOMBRES)('"%s" en 2027 es la Copa del Mundo FIVB', (nombre) => {
+    expect(nombreCanonico(nombre, 2027)).toBe('Copa del Mundo FIVB');
+    expect(idTorneo(nombre, 2027)).toBe('copa-del-mundo-fivb-2027');
   });
-  it('sin fechas no se confunden', () => {
-    expect(mismo({ nombre: 'Copa del Mundo', edicion: 2027 }, { nombre: 'Campeonato Mundial', edicion: 2027 })).toBe(false);
+  it.each(NOMBRES)('"%s" en 2025 sigue siendo el Campeonato Mundial', (nombre) => {
+    expect(nombreCanonico(nombre, 2025)).toBe('Campeonato Mundial');
+    expect(idTorneo(nombre, 2025)).toBe('campeonato-mundial-2025');
   });
-  it('con fechas traslapadas siguen siendo uno: la Selección no juega dos torneos a la vez', () => {
-    const fechas = { fechaInicio: '2027-08-20', fechaFin: '2027-09-05' };
-    expect(mismo({ nombre: 'Copa del Mundo', edicion: 2027, ...fechas }, { nombre: 'Campeonato Mundial', edicion: 2027, ...fechas })).toBe(true);
+  it('las ediciones siguientes conservan el nombre nuevo', () => expect(nombreCanonico('Mundial', 2029)).toBe('Copa del Mundo FIVB'));
+  it('el año también puede llegar como texto', () => expect(idTorneo('World Cup', '2027')).toBe('copa-del-mundo-fivb-2027'));
+  it('sin edición usa el nombre de su entrada', () => expect(nombreCanonico('World Cup')).toBe('Campeonato Mundial'));
+  it('es el mismo torneo aunque no haya fechas', () => {
+    expect(mismo({ nombre: 'Copa del Mundo', edicion: 2027 }, { nombre: 'Campeonato Mundial', edicion: 2027 })).toBe(true);
+  });
+  it('otra edición es otro torneo', () => {
+    expect(mismo({ nombre: 'Copa del Mundo', edicion: 2027 }, { nombre: 'Campeonato Mundial', edicion: 2025 })).toBe(false);
   });
 });
 
 describe('nombresDe', () => {
-  it('trae el nombre canónico y sus alias', () => expect(nombresDe('World Cup')).toEqual(['Copa del Mundo', 'World Cup', 'Copa Mundial']));
+  it('trae el nombre canónico y sus alias', () => expect(nombresDe('World Cup')).toEqual(expect.arrayContaining(['Campeonato Mundial', 'Mundial', 'Copa del Mundo', 'World Cup'])));
   it('un torneo fuera del catálogo solo tiene su nombre', () => expect(nombresDe('Torneo X')).toEqual(['Torneo X']));
 });
