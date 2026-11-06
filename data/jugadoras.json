@@ -113,12 +113,6 @@
       {
         "club": "Shanghai Bright Ubest",
         "pais": "China",
-        "temporada": "2023-24",
-        "fuente": "https://women.volleybox.net/samantha-bricio-p5050/movies"
-      },
-      {
-        "club": "Shanghai Bright Ubest",
-        "pais": "China",
         "temporada": "2022-23",
         "fuente": "https://www.clarosports.com/otros-deportes/la-voleibolista-mexicana-samantha-bricio-tendra-una-nueva-aventura-en-asia"
       }
@@ -127,8 +121,8 @@
     "destacados": [
       {
         "texto": "MVP de la Supercopa Italiana",
-        "anio": 2017,
-        "fuente": "https://women.volleybox.net/samantha-bricio-p5050/movies?orderValue=add_date&orderDirection=asc"
+        "anio": 2016,
+        "fuente": "https://www.informador.mx/Deportes/La-tapatia-Samantha-Bricio-hace-historia-en-el-voleibol-de-Italia-20161208-0078.html"
       }
     ],
     "fotos": {
@@ -144,7 +138,7 @@
       "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "clubId": "https://www.clarosports.com/otros-deportes/la-voleibolista-mexicana-samantha-bricio-tendra-una-nueva-aventura-en-asia/",
       "nombreCompleto": "https://women.volleybox.net/samantha-bricio-p5050",
-      "fechaNacimiento": "https://women.volleybox.net/samantha-bricio-p5050/movies?orderValue=add_date&orderDirection=asc"
+      "fechaNacimiento": "https://www.elfinanciero.com.mx/deportes/2022/06/04/fue-bastante-dificil-samantha-bricio-cuenta-su-experiencia-con-la-pandemia-y-el-conflicto-rusia-ucrania/"
     },
     "revisado": "2026-11-05"
   },
