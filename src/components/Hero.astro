@@ -279,7 +279,7 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
   .hero[data-modo='espera'] .hero__titulo {
     max-width: 12ch;
     margin-top: 0;
-    font-size: clamp(3.75rem, 17vw, 10rem);
+    font-size: clamp(3rem, 15vw, 10rem);
     font-weight: 900;
     line-height: 0.9;
   }
@@ -380,7 +380,8 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     }
 
     .hero[data-foto='panel']:has(.hero__foto) .hero__contenido {
-      padding-block: calc(min(var(--foto-ancho), 100vw) / 2.09 * 0.84) 72px;
+      /* Lo que quede de alto después del texto: en una laptop el texto sube sobre la foto, que ahí ya se funde. */
+      padding-block: min(calc(min(var(--foto-ancho), 100vw) / 2.09 * 0.84), calc(100svh - 432px)) 72px;
     }
 
     .hero[data-foto='panel'] .hero__fecha {
@@ -389,6 +390,12 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
 
     .hero[data-foto='panel'] .hero__titulo {
       max-width: none;
+    }
+
+    /* Sin torneo el título es largo: chico para que la cuenta quepa en la primera pantalla. */
+    .hero[data-foto='panel'][data-modo='espera'] .hero__titulo {
+      max-width: none;
+      font-size: clamp(3rem, 6.5vw, 6rem);
     }
 
     /* La cuenta va junto a la fecha para que todo quepa en una laptop. */
