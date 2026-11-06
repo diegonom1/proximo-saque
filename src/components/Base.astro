@@ -3,6 +3,7 @@ import { Font } from 'astro:assets';
 import Encabezado from './Encabezado.astro';
 import Pie from './Pie.astro';
 import BotonProximo from './BotonProximo.astro';
+import Intro from './Intro.astro';
 import { ruta } from '../lib/presentacion';
 
 interface Props {
@@ -52,6 +53,7 @@ const {
     </script>
   </head>
   <body>
+    {intro && <Intro />}
     <a class="saltar" href="#contenido">Saltar al contenido</a>
     <Encabezado />
     <main id="contenido">

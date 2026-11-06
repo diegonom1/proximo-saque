@@ -1,0 +1,126 @@
+---
+// Solo la primera visita de la sesión, 1.2 s y se puede saltar. Es independiente del motor de
+// movimiento para no esperar a que cargue: 0.5 s de contador y 0.7 s de cortina (--duracion).
+---
+
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="intro__cortina intro__cortina--izquierda"></div>
+  <div class="intro__cortina intro__cortina--derecha"></div>
+  <div class="intro__texto">
+    <p class="intro__marca">Próximo Saque</p>
+    <p class="intro__marcador" id="intro-marcador">0</p>
+    <p class="dato">Toca para saltar</p>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    var raiz = document.documentElement;
+    var intro = document.getElementById('intro');
+    var marcador = document.getElementById('intro-marcador');
+    if (!intro || !raiz.classList.contains('con-intro')) return;
+    var inicio = performance.now();
+    var termino = false;
+
+    function quitar() {
+      if (termino) return;
+      termino = true;
+      raiz.classList.remove('con-intro');
+      intro.remove();
+    }
+
+    function contar(ahora) {
+      var avance = Math.max(0, Math.min(1, (ahora - inicio) / 500));
+      marcador.textContent = Math.round(avance * 100);
+      if (avance < 1 && !termino) requestAnimationFrame(contar);
+    }
+
+    requestAnimationFrame(contar);
+    setTimeout(quitar, 1200);
+    intro.addEventListener('click', quitar);
+    addEventListener('keydown', quitar, { once: true });
+  })();
+</script>
+
+<style>
+  .intro {
+    display: none;
+  }
+
+  :global(.con-intro) .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    color: var(--papel);
+    cursor: pointer;
+  }
+
+  .intro__cortina {
+    position: absolute;
+    inset-block: 0;
+    width: 50.5%;
+    background: var(--rojo);
+    animation: var(--duracion) var(--curva) 0.5s both;
+  }
+
+  .intro__cortina--izquierda {
+    left: 0;
+    animation-name: intro-izquierda;
+  }
+
+  .intro__cortina--derecha {
+    right: 0;
+    animation-name: intro-derecha;
+  }
+
+  .intro__texto {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    padding-inline: var(--gutter);
+    text-align: center;
+    animation: intro-salir var(--duracion) var(--curva) 0.5s both;
+  }
+
+  .intro__marca {
+    font-family: var(--fuente-display);
+    font-size: clamp(3rem, 15vw, 9rem);
+    font-weight: 900;
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+
+  .intro__marcador {
+    font-family: var(--fuente-display);
+    font-size: clamp(4rem, 20vw, 12rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .intro__marcador::after {
+    content: '%';
+  }
+
+  @keyframes intro-izquierda {
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes intro-derecha {
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes intro-salir {
+    to {
+      opacity: 0;
+    }
+  }
+</style>
