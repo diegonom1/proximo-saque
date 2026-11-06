@@ -338,13 +338,14 @@ const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-
     display: none;
   }
 
-  /* El apellido llena el ancho sin importar cuántas letras tenga. */
+  /* El apellido llena el ancho sin importar cuántas letras tenga. La letra más ancha mide 0.59 em
+     en promedio (MUÑOZ); con menos, los apellidos largos se salen de la pantalla. */
   .portada__apellido {
     position: absolute;
     top: 72px;
     left: 50%;
     font-family: var(--fuente-display);
-    font-size: min(calc(92vw / (var(--letras) * 0.46)), 26rem);
+    font-size: min(calc(92vw / (var(--letras) * 0.6)), 26rem);
     font-weight: 900;
     line-height: 0.9;
     text-transform: uppercase;
