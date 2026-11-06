@@ -311,7 +311,7 @@ En todo el sitio (hero, "Esta semana", perfil, agenda, botón flotante) un parti
 1. **Hero**: la foto según su tratamiento (ver "Tratamientos" en Fotos). Datos estilo Volleybox: nombre, fecha de nacimiento y edad, lugar de origen, estatura, club actual con liga y país, posición, número, capitana, redes (iconos solo si hay URL).
 2. **Próximo partido**: texto del partido, competencia, "allá serán las…" (si hay `zonaSede`), cuenta regresiva, botón de Google Calendar y enlace "Calendario oficial de la liga".
 3. **Siguientes**: los 3 partidos posteriores (sin cuenta regresiva) y "Ver todos en la agenda" (`/agenda?j=<slug>`).
-4. **Un plus**: destacados (premios, MVP, equipos ideales), línea de tiempo de clubes y última lista oficial en la que apareció.
+4. **Un plus**: destacados (premios, MVP, equipos ideales), del más reciente al más antiguo y los que no tienen año al final (`destacadosPorAnio`), sin importar cómo estén guardados; línea de tiempo de clubes y última lista oficial en la que apareció.
 5. **Fuentes**: enlaces de donde salió cada dato.
 
 Los partidos del perfil son los de su club y los de la Selección donde aparece en `convocadas`; el navegador decide cuál es el próximo, porque el sitio se construye una vez por semana. Si hay un próximo torneo y aún no tiene lista, se muestra una línea: "Próximo torneo de la Selección: <torneo>, <fechas> · Lista por confirmar".

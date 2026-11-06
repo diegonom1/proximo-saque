@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { apellido, avisoTorneo, edad, estaturaTexto, fechaLarga, fuentesDe, origenTexto } from './perfil';
+import { apellido, avisoTorneo, destacadosPorAnio, edad, estaturaTexto, fechaLarga, fuentesDe, origenTexto } from './perfil';
 
 describe('datos', () => {
   it('apellido toma la última palabra', () => {
@@ -20,6 +20,18 @@ describe('datos', () => {
   });
   it('estatura en metros', () => {
     expect(estaturaTexto(183)).toBe('1.83 m');
+  });
+});
+
+describe('destacadosPorAnio', () => {
+  const lista = [{ texto: 'a', anio: 2021 }, { texto: 'b', anio: null }, { texto: 'c', anio: 2026 }, { texto: 'd', anio: 2024 }, { texto: 'e', anio: 2026 }, { texto: 'f', anio: null }];
+  it('va del más reciente al más antiguo, con los que no tienen año al final', () => {
+    expect(destacadosPorAnio(lista).map((d) => d.texto)).toEqual(['c', 'e', 'd', 'a', 'b', 'f']);
+  });
+  it('no cambia la lista guardada', () => {
+    const copia = [...lista];
+    destacadosPorAnio(lista);
+    expect(lista).toEqual(copia);
   });
 });
 

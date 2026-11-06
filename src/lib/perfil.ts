@@ -24,6 +24,9 @@ export const origenTexto = (o: Origen | null) => (o ? [o.ciudad, o.estado, o.pai
 
 export const estaturaTexto = (cm: number) => `${(cm / 100).toFixed(2)} m`;
 
+// Del más reciente al más antiguo y los que no tienen año al final. Los del mismo año conservan su orden.
+export const destacadosPorAnio = <T extends { anio: number | null }>(lista: T[]) => [...lista].sort((a, b) => (b.anio ?? -Infinity) - (a.anio ?? -Infinity) || 0);
+
 /* ---------- Próximo torneo ---------- */
 
 interface TorneoProximo {

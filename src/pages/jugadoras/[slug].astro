@@ -8,7 +8,7 @@ import { activas, clubes, estados, ligas, partidos, partidosDe, seleccion } from
 import { anchosPara, fotosJugadora } from '../../lib/fotos';
 import { iconoRed } from '../../lib/iconos';
 import { modoDeFoto } from '../../lib/tratamiento';
-import { apellido, avisoTorneo, edad, estaturaTexto, fechaLarga, fuentesDe, origenTexto } from '../../lib/perfil';
+import { apellido, avisoTorneo, destacadosPorAnio, edad, estaturaTexto, fechaLarga, fuentesDe, origenTexto } from '../../lib/perfil';
 import { POR_CONFIRMAR, fechaLegible, ruta } from '../../lib/presentacion';
 import { vigentes, ymd } from '../../lib/tiempo';
 import { ZONA_SITIO } from '../../../scripts/lib/tiempo.mjs';
@@ -195,7 +195,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
           {
             j.destacados.length > 0 ? (
               <ul class="destacados">
-                {j.destacados.map((d) => (
+                {destacadosPorAnio(j.destacados).map((d) => (
                   <li>
                     {d.anio && <span class="dato">{d.anio}</span>}
                     <a href={d.fuente} target="_blank" rel="noopener">{d.texto}</a>
