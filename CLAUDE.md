@@ -308,7 +308,7 @@ En todo el sitio (hero, "Esta semana", perfil, agenda, botón flotante) un parti
 2. **Esta semana**: los 3 próximos partidos de cualquier tipo, con enlace "Ver agenda completa".
 3. **La Selección en números**: seleccionadas, países donde juegan, ligas, partidos en los próximos 45 días y medallas en los últimos torneos, calculado de `data/` (`src/lib/numeros.ts`).
 4. **Rankings**: FIVB y NORCECA en dos bloques grandes: lugar (número grande), puntos, fecha de actualización y flecha si subió o bajó contra el registro anterior. La FMVB solo muestra los puntos; nosotros mostramos más.
-5. **Plantilla**: cada tarjeta es el recorte sobre un bloque de color, con el apellido gigante detrás, número, nombre, posición y club. Sin recorte usa `tarjeta.jpg`. Toca una y abre su perfil.
+5. **Plantilla**: sobre fondo oscuro, cada tarjeta es un bloque de su color con espacio alrededor: el recorte, el apellido gigante detrás, número, nombre, posición y club. Sin recorte usa `tarjeta.jpg`. Toca una y abre su perfil.
 6. **Últimos 7 torneos**: tarjeta por torneo con medalla o lugar, sede, fechas, récord y premios individuales.
 7. **Pie**: fecha de última actualización, fuentes generales, créditos de fotos y aviso para autores con enlace a los issues del repo.
 

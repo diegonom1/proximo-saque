@@ -120,12 +120,22 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
 </script>
 
 <style>
+  /* Fondo oscuro pero distinto de los cuatro bloques, para que cada tarjeta se despegue. */
+  .plantilla {
+    background: #1a1b1f;
+    color: var(--papel);
+  }
+
+  .plantilla :global(.relleno) {
+    --trazo: var(--papel);
+  }
+
   /* Celular: carrusel deslizable con snap. */
   .carrusel {
     display: grid;
     grid-auto-columns: min(72vw, 300px);
     grid-auto-flow: column;
-    gap: 16px;
+    gap: 20px;
     padding-inline: var(--gutter);
     padding-bottom: 8px;
     overflow-x: auto;
@@ -149,7 +159,7 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
       grid-auto-columns: auto;
       grid-auto-flow: row;
       grid-template-columns: repeat(3, 1fr);
-      gap: 40px 24px;
+      gap: 32px;
       max-width: 1280px;
       margin-inline: auto;
       overflow: visible;
@@ -177,7 +187,7 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
 
     .carrusel--riel {
       display: flex;
-      gap: 24px;
+      gap: 40px;
       width: max-content;
       max-width: none;
       margin: 0;
