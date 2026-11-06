@@ -31,6 +31,12 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
     });
   }
 
+  // Con el teclado, la tarjeta enfocada entra entera al carrusel. Con el riel fijado lo hace alEnfocar.
+  carrusel?.addEventListener('focusin', (evento) => {
+    const tarjeta = (evento.target as HTMLElement).closest('li');
+    if (tarjeta && !carrusel.classList.contains('carrusel--riel')) tarjeta.scrollIntoView({ inline: 'start', block: 'nearest' });
+  });
+
   import('../lib/movimiento').then(({ conMovimiento, contar, gsap, ponerEnCero, rellenar, ScrollTrigger }) => {
     // Al pasar, el apellido se rellena y el número cuenta; al irse, regresa.
     function momentoDe(tarjeta: HTMLElement, moverApellido: boolean) {
@@ -63,6 +69,7 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
       }
 
       carrusel.classList.add('carrusel--riel');
+      carrusel.removeAttribute('tabindex'); // solo sirve para mover el carrusel de celular con las flechas
       const distancia = () => carrusel.scrollWidth - document.documentElement.clientWidth;
       const riel = gsap.to(carrusel, {
         x: () => -distancia(),
@@ -112,6 +119,7 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
 
       return () => {
         carrusel.classList.remove('carrusel--riel');
+        carrusel.setAttribute('tabindex', '0');
         carrusel.removeEventListener('focusin', alEnfocar);
       };
     });

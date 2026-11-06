@@ -308,6 +308,12 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
   for (const chip of chips) {
     chip.addEventListener('click', () => elegir(chip.dataset.filtro === 'seleccion' ? { tipo: 'seleccion' } : TODAS));
   }
+  // Con el teclado, el chip enfocado se centra en su fila. Se mueve solo la fila: no la página.
+  const centrarChip = (chip: HTMLElement) => {
+    if (contenedorChips) contenedorChips.scrollLeft = chip.offsetLeft - contenedorChips.clientWidth / 2 + chip.offsetWidth / 2;
+  };
+  contenedorChips?.addEventListener('focusin', (evento) => centrarChip(evento.target as HTMLElement));
+
   // Tocar otra vez la jugadora activa quita el filtro.
   for (const chip of chipsJugadora) {
     chip.addEventListener('click', () => {
@@ -321,9 +327,9 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
   pintar();
   setInterval(pintar, 1000);
 
-  // Si llega filtrada (?j=), su chip tiene que verse. Se mueve solo la fila: no la página.
+  // Si llega filtrada (?j=), su chip tiene que verse.
   const activo = chipsJugadora.find((c) => c.getAttribute('aria-pressed') === 'true');
-  if (activo && contenedorChips) contenedorChips.scrollLeft = activo.offsetLeft - contenedorChips.clientWidth / 2 + activo.offsetWidth / 2;
+  if (activo) centrarChip(activo);
 
   // Cada fila sale de atrás de su propio borde. La máscara dura lo que el revelado, para no cortar
   // el foco del teclado. Los partidos de la Selección llevan además un barrido rojo.
@@ -469,9 +475,10 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     flex: 1 1 100%;
     gap: 8px;
     min-width: 0;
+    margin-block: -6px;
     margin-inline: calc(var(--gutter) * -1);
+    padding-block: 6px; /* para que no se recorte el anillo de foco */
     padding-inline: var(--gutter);
-    padding-block: 2px;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
@@ -661,7 +668,17 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     .filtros__chips {
       flex: 1;
       margin-inline: 0;
-      padding-inline: 0;
+      padding-inline: 6px;
+    }
+
+    /* Aquí también va fija la barra de filtros. */
+    :global(main) a:focus,
+    :global(main) button:focus {
+      scroll-margin-top: calc(var(--alto-encabezado) + 96px);
+    }
+
+    .filtros :global(button):focus {
+      scroll-margin-top: 0;
     }
 
     .destacada__rejilla {

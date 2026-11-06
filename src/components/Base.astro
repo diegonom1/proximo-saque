@@ -191,6 +191,25 @@ const {
     outline-offset: 2px;
   }
 
+  /* Sobre fondos oscuros o rojos, el anillo rojo no se vería. */
+  .encabezado :focus-visible,
+  .hero :focus-visible,
+  .pie :focus-visible,
+  .seccion--oscura :focus-visible {
+    outline-color: var(--papel);
+  }
+
+  .sobre-papel :focus-visible {
+    outline-color: var(--rojo);
+  }
+
+  /* Al tabular, lo enfocado no queda debajo del encabezado fijo ni del botón flotante. */
+  a:focus,
+  button:focus,
+  select:focus {
+    scroll-margin-block: calc(var(--alto-encabezado) + 16px) 96px;
+  }
+
   .marco {
     width: 100%;
     max-width: 1280px;
