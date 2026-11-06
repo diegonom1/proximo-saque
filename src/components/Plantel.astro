@@ -3,7 +3,7 @@ import { activas } from '../lib/datos';
 import TarjetaJugadora from './TarjetaJugadora.astro';
 ---
 
-<section id="plantel" class="seccion plantilla" aria-labelledby="plantel-titulo" data-plantilla>
+<section id="plantel" class="seccion seccion--oscura plantilla" aria-labelledby="plantel-titulo" data-plantilla>
   <div class="marco">
     <div class="seccion__cabeza">
       <h2 id="plantel-titulo" class="titulo-seccion">Plantilla</h2>
@@ -120,11 +120,6 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
   /* Fondo oscuro pero distinto de los cuatro bloques, para que cada tarjeta se despegue. */
   .plantilla {
     background: #1a1b1f;
-    color: var(--papel);
-  }
-
-  .plantilla :global(.relleno) {
-    --trazo: var(--papel);
   }
 
   /* Celular: carrusel deslizable con snap. */

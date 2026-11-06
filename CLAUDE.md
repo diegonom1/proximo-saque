@@ -343,6 +343,7 @@ Los 6 torneos con más detalle: resultado, récord y premios.
 ## Diseño
 
 - Tema claro fijo, base blanca. Las fotos y las animaciones ponen el color.
+- Nunca dos secciones seguidas con el mismo fondo. Inicio: negro, hueso, rojo, carbón, hueso, verde oscuro y el pie negro. Perfil: la portada de su color, hueso, negro, hueso, carbón y el pie negro. Los fondos oscuros van con `.seccion--oscura` y uno de `.seccion--negro`, `--rojo`, `--verde` o `--carbon`: redefinen `--gris`, `--linea` y `--fuerte`, así el texto se adapta solo. Una tarjeta blanca dentro de ellos lleva `.sobre-papel`.
 - Tokens sugeridos: `--papel #FFFFFF`, `--hueso #F4F3EF` (secciones alternas), `--tinta #0E0E10`, `--gris #6B6B70`, `--linea #E4E2DC`, `--rojo #D1202F` (acento: Selección, "en juego", botones primarios). El verde queda solo como detalle mínimo.
 - Tipografía: display condensada para nombres y números (Big Shoulders 800–900, la del v1; Google ya la publica sin "Display" en el nombre), texto en Instrument Sans y etiquetas de datos en IBM Plex Mono.
 - Números de camiseta en contorno gigante como recurso gráfico detrás de las jugadoras.

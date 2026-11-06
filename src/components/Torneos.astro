@@ -13,7 +13,7 @@ const premiosDe = (t: (typeof lista)[number]) => {
 };
 ---
 
-<section id="torneos" class="seccion seccion--hueso" aria-labelledby="torneos-titulo">
+<section id="torneos" class="seccion seccion--oscura seccion--verde" aria-labelledby="torneos-titulo">
   <div class="marco">
     <div class="seccion__cabeza">
       <h2 id="torneos-titulo" class="titulo-seccion">Últimos torneos</h2>
@@ -21,7 +21,7 @@ const premiosDe = (t: (typeof lista)[number]) => {
     <ol class="torneos">
       {
         lista.map((t) => (
-          <li class="torneo">
+          <li class="torneo sobre-papel">
             <p class="torneo__resultado">
               {t.medalla && <span class:list={['medalla', `medalla--${t.medalla}`]} aria-hidden="true" />}
               <span class="torneo__medalla">{t.medalla ?? lugarTexto(t.posicion, t.fase)}</span>
@@ -76,7 +76,6 @@ const premiosDe = (t: (typeof lista)[number]) => {
 
   .torneo {
     padding: clamp(20px, 4vw, 32px);
-    background: var(--papel);
   }
 
   .torneo__resultado {

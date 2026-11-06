@@ -121,7 +121,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
     </div>
   </section>
 
-  <section class="seccion datos" aria-label="Datos de la jugadora">
+  <section class="seccion seccion--hueso datos" aria-label="Datos de la jugadora">
     <div class="marco">
       <dl class="ficha-datos">
         <div class="ficha-datos__club">
@@ -164,14 +164,14 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
     </div>
   </section>
 
-  <section class="seccion seccion--hueso" aria-labelledby="proximo-titulo">
+  <section class="seccion seccion--oscura seccion--negro" aria-labelledby="proximo-titulo">
     <div class="marco">
       <h2 id="proximo-titulo" class="titulo-seccion">Próximo partido</h2>
       {aviso && <p class="aviso-torneo" data-aviso-torneo data-ultimo-dia={aviso.ultimoDia}>{aviso.texto}</p>}
-      <div class="caja" data-proximo hidden={!proximo}>
+      <div class="caja sobre-papel" data-proximo hidden={!proximo}>
         {proximo && <PartidoPerfil partido={proximo} />}
       </div>
-      <div class="caja" data-sin-partidos hidden={Boolean(proximo)}>
+      <div class="caja sobre-papel" data-sin-partidos hidden={Boolean(proximo)}>
         <p>{!club ? 'Club por confirmar' : estado?.texto ?? 'Sin partidos programados por ahora.'}</p>
         {estado?.fuente && <a class="enlace" href={estado.fuente} target="_blank" rel="noopener">Fuente</a>}
       </div>
@@ -186,7 +186,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
     </div>
   </section>
 
-  <section class="seccion" aria-labelledby="plus-titulo">
+  <section class="seccion seccion--hueso" aria-labelledby="plus-titulo">
     <div class="marco">
       <h2 id="plus-titulo" class="titulo-seccion">Trayectoria</h2>
       <div class="columnas">
@@ -255,7 +255,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
 
   {
     fuentes.length > 0 && (
-      <section class="seccion seccion--hueso" aria-labelledby="fuentes-titulo">
+      <section class="seccion seccion--oscura seccion--carbon" aria-labelledby="fuentes-titulo">
         <div class="marco">
           <h2 id="fuentes-titulo" class="titulo-seccion">Fuentes</h2>
           <ul class="fuentes">

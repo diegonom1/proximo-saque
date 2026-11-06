@@ -5,7 +5,7 @@ import { numerosSeleccion } from '../lib/numeros';
 const numeros = numerosSeleccion({ activas, clubes, partidos, torneos: torneos.torneos, maximo: torneos.maximo, ahora: Date.now() });
 ---
 
-<section class="seccion numeros" aria-labelledby="numeros-titulo">
+<section class="seccion seccion--oscura seccion--rojo numeros" aria-labelledby="numeros-titulo">
   <div class="marco">
     <h2 id="numeros-titulo" class="titulo-seccion">La Selección en números</h2>
     <dl>
@@ -22,15 +22,6 @@ const numeros = numerosSeleccion({ activas, clubes, partidos, torneos: torneos.t
 </section>
 
 <style>
-  .numeros {
-    background: var(--tinta);
-    color: var(--papel);
-  }
-
-  .numeros :global(.relleno) {
-    --trazo: var(--papel);
-  }
-
   dl {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -42,7 +33,7 @@ const numeros = numerosSeleccion({ activas, clubes, partidos, torneos: torneos.t
     display: flex;
     flex-direction: column;
     padding-top: 12px;
-    border-top: 2px solid var(--rojo);
+    border-top: 2px solid var(--papel);
   }
 
   dd {
@@ -56,7 +47,7 @@ const numeros = numerosSeleccion({ activas, clubes, partidos, torneos: torneos.t
 
   dt {
     margin-top: 8px;
-    color: rgb(255 255 255 / 75%);
+    color: var(--gris);
   }
 
   @media (min-width: 900px) {

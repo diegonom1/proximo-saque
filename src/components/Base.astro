@@ -91,6 +91,10 @@ const {
     --linea: #e4e2dc;
     --rojo: #d1202f;
     --verde: #1f7a4d;
+    --negro: #08080a;
+    --verde-oscuro: #0f4a37;
+    --carbon: #303237;
+    --fuerte: var(--tinta); /* lo que resalta dentro de un texto gris */
     --gutter: clamp(16px, 4vw, 48px);
     --curva: cubic-bezier(0.16, 1, 0.3, 1); /* la misma en src/lib/movimiento.ts y marcador.ts */
     --duracion: 0.7s;
@@ -103,15 +107,15 @@ const {
   }
 
   [data-color='negro'] {
-    --bloque: #08080a;
+    --bloque: var(--negro);
   }
 
   [data-color='verde'] {
-    --bloque: #0f4a37;
+    --bloque: var(--verde-oscuro);
   }
 
   [data-color='carbon'] {
-    --bloque: #303237;
+    --bloque: var(--carbon);
   }
 
   @view-transition {
@@ -198,6 +202,47 @@ const {
 
   .seccion--hueso {
     background: var(--hueso);
+  }
+
+  /* Fondos oscuros: los tonos de texto cambian aquí y cada componente se adapta solo. */
+  .seccion--oscura {
+    --gris: rgb(255 255 255 / 82%);
+    --linea: rgb(255 255 255 / 24%);
+    --fuerte: var(--papel);
+
+    color: var(--papel);
+  }
+
+  .seccion--oscura .relleno {
+    --trazo: var(--papel);
+  }
+
+  .seccion--negro {
+    background: var(--tinta);
+  }
+
+  .seccion--rojo {
+    --gris: var(--papel); /* sobre rojo, un blanco atenuado no llega al contraste mínimo */
+
+    background: var(--rojo);
+  }
+
+  .seccion--verde {
+    background: var(--verde-oscuro);
+  }
+
+  .seccion--carbon {
+    background: var(--carbon);
+  }
+
+  /* Tarjeta blanca dentro de un fondo oscuro. */
+  .sobre-papel {
+    --gris: #6b6b70;
+    --linea: #e4e2dc;
+    --fuerte: var(--tinta);
+
+    background: var(--papel);
+    color: var(--tinta);
   }
 
   .seccion__cabeza {
