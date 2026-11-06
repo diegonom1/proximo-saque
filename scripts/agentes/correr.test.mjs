@@ -1596,6 +1596,72 @@ describe('un null no borra lo que ya existe', () => {
   });
 });
 
+describe('destacados con la lista llena', () => {
+  const SLUG = 'uxue-guereca';
+  const FUENTE = 'https://volleybox.net/x';
+  const seis = [2024, 2021, 2025, 2023, 2022, 2026].map((anio) => ({ texto: `Premio ${anio}`, anio, fuente: OFICIAL }));
+  const llenar = async (lista2 = seis) => {
+    await cambiar('jugadoras.json', (js) => { Object.assign(js.find((j) => j.slug === SLUG), { destacados: lista2, revisado: '2026-10-01' }); });
+    // La más vieja de la rotación: si no, el agente ni la revisa y la prueba pasaría sin probar nada.
+    const slugs = (await leer('jugadoras.json')).map((j) => j.slug);
+    await cambiar('estado-agentes.json', (e) => { for (const s of slugs) e.revisado[`perfil:${s}`] = s === SLUG ? '2020-01-01' : '2026-11-01'; });
+  };
+  const trae = (...destacados) => ({ '02-perfil': (c) => (c === SLUG ? { slug: c, destacados } : undefined) });
+  const nuevo = (anio, texto = `Nuevo ${anio}`) => ({ texto, anio, fuente: FUENTE });
+  const sinCambios = async (r) => {
+    expect((await leer('estado-agentes.json')).revisado[`perfil:${SLUG}`]).not.toBe('2020-01-01');
+    const j = await jugadora(SLUG);
+    expect(j.destacados).toEqual(seis);
+    expect(j.revisado).toBe('2026-10-01');
+    expect(r.hayPr).toBe(false);
+    expect(r.cambiados).not.toContain('jugadoras.json');
+  };
+
+  it('uno más reciente reemplaza al más antiguo y el PR dice cuál sale y cuál entra', async () => {
+    await llenar();
+    const r = await ejecutar(trae(nuevo(2024)));
+    const j = await jugadora(SLUG);
+    expect(j.destacados).toHaveLength(6);
+    expect(j.destacados.map((d) => d.texto)).toEqual(['Premio 2024', 'Nuevo 2024', 'Premio 2025', 'Premio 2023', 'Premio 2022', 'Premio 2026']);
+    expect(j.revisado).not.toBe('2026-10-01');
+    expect(r.cuerpoPr).toContain('sale "Premio 2021" (2021) y entra "Nuevo 2024" (2024)');
+  });
+  it.each([['más viejo', 2020], ['del mismo año', 2021], ['sin año', null]])('uno %s no se propone ni cambia revisado', async (_, anio) => {
+    await llenar();
+    await sinCambios(await ejecutar(trae(nuevo(anio))));
+  });
+  it('uno repetido no se propone', async () => {
+    await llenar();
+    await sinCambios(await ejecutar(trae(nuevo(2026, 'Premio 2026'))));
+  });
+  it('sin fuente válida no reemplaza', async () => {
+    await llenar();
+    await sinCambios(await ejecutar(trae({ ...nuevo(2026), fuente: 'https://no-esta-en-los-resultados.com/x' })));
+  });
+  it('uno sin año nunca es el que sale', async () => {
+    const conSinAnio = seis.map((d) => (d.anio === 2021 ? { ...d, anio: null } : d));
+    await llenar(conSinAnio);
+    await ejecutar(trae(nuevo(2026)));
+    const textos = (await jugadora(SLUG)).destacados.map((d) => d.texto);
+    expect(textos).toContain('Premio 2021');
+    expect(textos).not.toContain('Premio 2022');
+  });
+  it('si traen varios, entran los más recientes', async () => {
+    await llenar();
+    await ejecutar(trae(nuevo(2022), nuevo(2026), nuevo(2025)));
+    const textos = (await jugadora(SLUG)).destacados.map((d) => d.texto);
+    // Salen 2021 y 2022. Después el más antiguo ya es 2023, así que Nuevo 2022 no entra.
+    expect(textos).toEqual(['Premio 2024', 'Nuevo 2026', 'Premio 2025', 'Premio 2023', 'Nuevo 2025', 'Premio 2026']);
+  });
+  it('con espacio entra sin sacar a nadie', async () => {
+    await llenar(seis.slice(0, 5));
+    await ejecutar(trae(nuevo(2020)));
+    const j = await jugadora(SLUG);
+    expect(j.destacados).toHaveLength(6);
+    expect(j.destacados.at(-1).texto).toBe('Nuevo 2020');
+  });
+});
+
 describe('Pull Request que acumula', () => {
   const nueva = { nombre: 'Rosa Hernández', numero: 9, posicion: 'Central', capitana: false, club: null, slug: null };
   const conAlta = (fuente = OFICIAL) => plantel({ listas: [lista([nueva], { fuente })] });

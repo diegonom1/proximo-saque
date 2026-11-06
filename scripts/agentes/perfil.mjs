@@ -153,6 +153,40 @@ async function agregar(ctx, j, { actual, nuevos, tipo, claveDe, etiqueta, formar
   return { lista, agregados };
 }
 
+const MAX_DESTACADOS = 6;
+
+// Uno sin año no se puede comparar, así que nunca es el que sale.
+const masAntiguo = (lista) => lista.reduce((viejo, d) => (d.anio !== null && (!viejo || d.anio < viejo.anio) ? d : viejo), null);
+
+// Con la lista llena, uno nuevo solo entra si es más reciente que el más antiguo, y toma su lugar.
+// Si no lo es, no se propone nada: de lo contrario saldría un PR sin cambios.
+async function agregarDestacados(ctx, j, nuevos, verificar) {
+  const lista = [...j.destacados];
+  let agregados = 0;
+  for (const d of [...nuevos].sort((a, b) => (b.anio ?? 0) - (a.anio ?? 0))) {
+    const clave = normal(d.texto);
+    if (lista.some((x) => normal(x.texto) === clave)) continue;
+    const llena = lista.length >= MAX_DESTACADOS;
+    const sale = llena ? masAntiguo(lista) : null;
+    if (llena && !(sale && d.anio > sale.anio)) {
+      ctx.reporte.descarto(AGENTE, `destacado de ${j.nombre}`, `la lista está llena y "${d.texto}" no es más reciente que el más antiguo`);
+      continue;
+    }
+    const fuente = await verificar(d.fuente);
+    if (!fuente) {
+      ctx.reporte.descarto(AGENTE, `destacado de ${j.nombre}`, `la fuente no pasó (${d.fuente})`);
+      continue;
+    }
+    const texto = sale ? `${j.nombre}: sale "${sale.texto}" (${sale.anio}) y entra "${d.texto}" (${d.anio})` : `${j.nombre}: ${d.texto}`;
+    if (!proponer(ctx, AGENTE, { clave: `perfil:${j.slug}:destacado:${clave}`, seccion: 'Perfiles', texto, fuente })) continue;
+    const nuevo = { texto: d.texto, anio: d.anio ?? null, fuente };
+    if (sale) lista[lista.indexOf(sale)] = nuevo;
+    else lista.push(nuevo);
+    agregados += 1;
+  }
+  return { lista, agregados };
+}
+
 export async function correr(ctx, slug) {
   const j = ctx.datos.jugadoras.find((x) => x.slug === slug);
   if (!j) throw new Error(`no existe ${slug}`);
@@ -216,16 +250,8 @@ export async function correr(ctx, slug) {
     verificar,
   });
   j.redes = redes.lista;
-  const destacados = await agregar(ctx, j, {
-    actual: j.destacados,
-    nuevos: validos(respuesta.destacados, esquemaDestacado, descartar('destacado')),
-    tipo: 'destacado',
-    claveDe: (d) => normal(d.texto),
-    etiqueta: (d) => d.texto,
-    formar: (d) => ({ texto: d.texto, anio: d.anio ?? null, fuente: d.fuente }),
-    verificar,
-  });
-  j.destacados = destacados.lista.slice(0, 6);
+  const destacados = await agregarDestacados(ctx, j, validos(respuesta.destacados, esquemaDestacado, descartar('destacado')), verificar);
+  j.destacados = destacados.lista;
   datosNuevos += historial.agregados + redes.agregados + destacados.agregados;
 
   for (const d of respuesta.dudas ?? []) ctx.reporte.duda(`${j.nombre}: ${typeof d === 'string' ? d : JSON.stringify(d)}`);
