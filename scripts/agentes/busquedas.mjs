@@ -6,15 +6,6 @@ import { mencionaA } from '../lib/nombres.mjs';
 export const FEDERACIONES = ['fmvb.org', 'norceca.net', 'norceca.info', 'fivb.com', 'volleyballworld.com'];
 const anio = (ctx) => Number(ctx.hoy.slice(0, 4));
 
-export const planRankings = () => ({
-  consultas: [
-    { texto: 'FIVB women volleyball world ranking Mexico points', dominios: ['volleyballworld.com', 'fivb.com'] },
-    { texto: 'NORCECA women senior ranking Mexico', dominios: ['norceca.net', 'norceca.info'] },
-  ],
-  paginas: ['https://en.volleyballworld.com/volleyball/world-ranking/women', 'https://www.fivb.com/volleyball/rankings/senior-world-ranking-women/', 'https://www.fmvb.org/femenil-mayor'],
-  avanzado: true, // el ranking es una tabla; una vez al mes se puede pagar la lectura completa
-});
-
 const consultasDeGuardados = (guardados) => [...new Set(guardados.map((p) => p.competencia).filter(Boolean))]
   .map((c) => ({ texto: `${c} México voleibol femenil calendario partidos horarios` }));
 

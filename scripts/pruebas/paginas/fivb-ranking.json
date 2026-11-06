@@ -1,0 +1,81 @@
+{
+  "date": "15 Oct 2026 - 10:40 am UTC",
+  "gender": 0,
+  "teams": [
+    {
+      "isDuplicateRanking": false,
+      "confederationName": "European Volleyball Confederation",
+      "confederationCode": "CEV",
+      "decimalPoints": 468.93,
+      "federationName": "Italy",
+      "federationCode": "ITA",
+      "trend": 0,
+      "flagUrl": "https://images.volleyballworld.com/image/upload/f_png/t_flag/assets/flags/flag_ita",
+      "altText": "Volleyball team Italy flag",
+      "name": "Italy",
+      "rankToDisplay": 1,
+      "rank": 1,
+      "points": 469
+    },
+    {
+      "isDuplicateRanking": false,
+      "confederationName": "South American Volleyball Confederation",
+      "confederationCode": "CSV",
+      "decimalPoints": 420.13,
+      "federationName": "Brazil",
+      "federationCode": "BRA",
+      "trend": 0,
+      "flagUrl": "https://images.volleyballworld.com/image/upload/f_png/t_flag/assets/flags/flag_bra",
+      "altText": "Volleyball team Brazil flag",
+      "name": "Brazil",
+      "rankToDisplay": 2,
+      "rank": 2,
+      "points": 420
+    },
+    {
+      "isDuplicateRanking": false,
+      "confederationName": "South American Volleyball Confederation",
+      "confederationCode": "CSV",
+      "decimalPoints": 207.22,
+      "federationName": "Argentina",
+      "federationCode": "ARG",
+      "trend": 0,
+      "flagUrl": "https://images.volleyballworld.com/image/upload/f_png/t_flag/assets/flags/flag_arg",
+      "altText": "Volleyball team Argentina flag",
+      "name": "Argentina",
+      "rankToDisplay": 20,
+      "rank": 20,
+      "points": 207
+    },
+    {
+      "isDuplicateRanking": false,
+      "confederationName": "North, Central America and Caribbean Volleyball Confederation",
+      "confederationCode": "NORCECA",
+      "decimalPoints": 201.88,
+      "federationName": "Mexico",
+      "federationCode": "MEX",
+      "trend": 0,
+      "flagUrl": "https://images.volleyballworld.com/image/upload/f_png/t_flag/assets/flags/flag_mex",
+      "altText": "Volleyball team Mexico flag",
+      "name": "Mexico",
+      "rankToDisplay": 21,
+      "rank": 21,
+      "points": 202
+    },
+    {
+      "isDuplicateRanking": false,
+      "confederationName": "European Volleyball Confederation",
+      "confederationCode": "CEV",
+      "decimalPoints": 178.55,
+      "federationName": "Ukraine",
+      "federationCode": "UKR",
+      "trend": 0,
+      "flagUrl": "https://images.volleyballworld.com/image/upload/f_png/t_flag/assets/flags/flag_ukr",
+      "altText": "Volleyball team Ukraine flag",
+      "name": "Ukraine",
+      "rankToDisplay": 22,
+      "rank": 22,
+      "points": 179
+    }
+  ]
+}

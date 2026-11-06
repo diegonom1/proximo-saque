@@ -1,21 +1,33 @@
 {
   "fivb": {
     "posicion": 21,
-    "puntos": null,
-    "fecha": "2026-10-01",
-    "fuente": "https://www.clarosports.com/otros-deportes/mexico-clasifica-mundial-voleibol-2027/"
+    "puntos": 201.88,
+    "fecha": "2026-10-15",
+    "fuente": "https://en.volleyballworld.com/volleyball/world-ranking/women"
   },
   "norceca": {
-    "posicion": null,
+    "posicion": 5,
     "puntos": 183,
-    "fecha": null,
-    "fuente": "https://www.fmvb.org/femenil-mayor"
+    "fecha": "2025-12-31",
+    "fuente": "https://norceca.net/Ranking/Volleyball/Ranking%202025/Doc/Women%20Rankings%202025.htm"
   },
   "historial": [
     {
       "ranking": "fivb",
       "posicion": null,
       "puntos": 166.82,
+      "fecha": null
+    },
+    {
+      "ranking": "fivb",
+      "posicion": 21,
+      "puntos": null,
+      "fecha": "2026-10-01"
+    },
+    {
+      "ranking": "norceca",
+      "posicion": null,
+      "puntos": 183,
       "fecha": null
     }
   ]

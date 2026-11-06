@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dominiosConfiables, planPartidos, planPerfil, planLista, planProximo, planRankings, planTorneo } from './busquedas.mjs';
+import { dominiosConfiables, planPartidos, planPerfil, planLista, planProximo, planTorneo } from './busquedas.mjs';
 
 const ctx = { hoy: '2026-11-05', datos: { torneos: { torneos: [{ nombre: 'Campeonato Mundial', edicion: 2025, fechaInicio: '2025-08-22', fechaFin: '2025-09-07' }] } } };
 const club = (pais, nombre, alias = []) => ({ pais, nombre, alias, calendarioUrl: null, sitio: null });
@@ -40,11 +40,6 @@ describe('otros planes', () => {
     const { exige } = planPerfil(ctx, { nombre: 'Uxue Guereca' }, null);
     expect(exige({ titulo: 'Uxue Guereca', url: 'https://a.mx/x', contenido: '' })).toBe(true);
     expect(exige({ titulo: 'Jugadoras', url: 'https://a.mx/players', contenido: 'lista' })).toBe(false);
-  });
-  it('el ranking lee páginas oficiales con extracción completa', () => {
-    const plan = planRankings();
-    expect(plan.avanzado).toBe(true);
-    expect(plan.paginas.join()).toContain('volleyballworld.com');
   });
   it('el agente 04 busca Lima 2027 y el calendario NORCECA, sin lo histórico', () => {
     const t = textos(planProximo(ctx));

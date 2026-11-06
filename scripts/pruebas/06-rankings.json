@@ -1,9 +1,0 @@
-{
-  "fuentes": ["https://en.volleyballworld.com/volleyball/world-ranking/women", "https://norceca.net/rankings"],
-  "respuestas": {
-    "*": {
-      "fivb": { "posicion": 24, "puntos": 171.3, "fecha": "{{HOY-4}}", "fuente": "https://en.volleyballworld.com/volleyball/world-ranking/women", "confianza": "alta", "motivo": null },
-      "norceca": { "posicion": 5, "puntos": 190, "fecha": "{{HOY-30}}", "fuente": "https://norceca.net/rankings", "confianza": "alta", "motivo": null }
-    }
-  }
-}

@@ -2,7 +2,7 @@
 // Orquestador semanal. Los agentes buscan; este programa decide qué se guarda.
 //
 // Variables de entorno:
-//   GEMINI_API_KEY   clave de Google AI Studio. Sin ella solo limpia partidos pasados y aplica manual.json.
+//   GEMINI_API_KEY   clave de Google AI Studio. Sin ella solo lee los rankings, limpia partidos pasados y aplica manual.json.
 //   GEMINI_MODELOS   modelos separados por comas (ver MODELOS_DEFECTO).
 //   BUSQUEDA         tavily (por defecto): busca el código y Gemini solo extrae.
 //                    google: Gemini busca con google_search; necesita facturación activa.
@@ -29,6 +29,7 @@ import { crearReporte } from './reporte.mjs';
 import * as seleccion from './seleccion.mjs';
 import { crearBuscadorTavily } from '../lib/busqueda.mjs';
 import { crearVerificador, textoDePagina } from '../lib/fuentes.mjs';
+import { crearDescargaSimulada, descargarOficial } from '../lib/rankings-oficiales.mjs';
 import { conMs, fusionar } from '../lib/fusion.mjs';
 import { crearClienteGemini, crearClienteSimulado } from '../lib/gemini.mjs';
 import { idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
@@ -52,7 +53,6 @@ const ARCHIVOS = {
 export const ARCHIVOS_PR = ['jugadoras.json', 'clubes.json', 'ligas.json', 'torneos.json'];
 
 const MODULOS = {
-  [rankings.AGENTE]: rankings,
   [seleccion.AGENTE]: seleccion,
   [plantel.AGENTE]: plantel,
   [perfil.AGENTE]: perfil,
@@ -220,7 +220,7 @@ function validarContraAprobados(datos, aprobados) {
 }
 
 export async function correr({
-  dirDatos, dirFotos, llamar, verificar, buscador = null, leerPagina = null, ahora = Date.now(), maxLlamadas = 20, diasAdelante = 45, seco = false, modo = 'real',
+  dirDatos, dirFotos, llamar, verificar, buscador = null, leerPagina = null, descargar = null, ahora = Date.now(), maxLlamadas = 20, diasAdelante = 45, seco = false, modo = 'real',
   prEstado = null, dirAprobados = dirDatos, soloVerificar = false, diasVerificar = soloVerificar ? 4 : 7,
 }) {
   const { datos, manual, crudos } = await cargar(dirDatos);
@@ -230,7 +230,7 @@ export async function correr({
   const aprobados = { clubes: new Set(Object.keys(archivosAprobados.clubes)), jugadoras: new Set(archivosAprobados.jugadoras.map((j) => j.slug)) };
   const diagnostico = [];
   const comparacion = [];
-  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, ahora, hoy, diasAdelante: soloVerificar ? diasVerificar : diasAdelante, diasVerificar, soloVerificar, reporte, aprobados, altas: [], nuevos: {}, torneosDetectados: [] };
+  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, descargar, ahora, hoy, diasAdelante: soloVerificar ? diasVerificar : diasAdelante, diasVerificar, soloVerificar, reporte, aprobados, altas: [], nuevos: {}, torneosDetectados: [] };
   if (!soloVerificar) {
     atenderPr(ctx.datos.estado, prEstado, hoy);
     // Con el PR abierto, una `propuesta` todavía no está aprobada.
@@ -242,6 +242,9 @@ export async function correr({
   const previos = ctx.datos.estado.pendientes;
   const { ejecutar, pendientes, estado } = ejecutorDe(ctx, maxLlamadas, reporte);
 
+  // No usa IA: no gasta presupuesto y corre aunque no haya clave de Gemini.
+  if (descargar && !soloVerificar) await rankings.correr(ctx);
+
   if (llamar) {
     // Lo que está por jugarse va antes que todo: que no lo deje fuera el presupuesto.
     const hastaVerificar = sumarDias(hoy, diasVerificar);
@@ -251,7 +254,6 @@ export async function correr({
   if (llamar && !soloVerificar) {
     // Lo que no cupo la semana pasada va primero.
     for (const { agente, clave } of previos) if (MODULOS[agente]) await ejecutar(agente, clave);
-    if (rankings.toca(ctx.datos.estado, hoy)) await ejecutar(rankings.AGENTE);
     await ejecutar(seleccion.AGENTE);
     for (const clave of seleccion.torneosPorRevisar(ctx)) await ejecutar(seleccion.AGENTE, clave);
     await ejecutar(plantel.AGENTE);
@@ -336,7 +338,7 @@ async function main() {
     if (proveedor === 'tavily') buscador = crearBuscadorTavily({ clave: process.env.TAVILY_API_KEY, creditosPrevios: await creditosLocales(hoy) });
     modo = `Gemini (${modelos.join(', ')}) · búsqueda: ${proveedor}`;
   } else {
-    console.log('Sin GEMINI_API_KEY: solo limpio partidos pasados y aplico data/manual.json.');
+    console.log('Sin GEMINI_API_KEY: solo leo los rankings, limpio partidos pasados y aplico data/manual.json.');
   }
 
   const r = await correr({
@@ -347,6 +349,7 @@ async function main() {
     buscador,
     // Con Tavily las páginas se leen con extract.
     leerPagina: simulada || buscador ? null : textoDePagina,
+    descargar: simulada ? crearDescargaSimulada((nombre) => readFile(join(RAIZ, 'scripts/pruebas/paginas', nombre), 'utf8')) : descargarOficial,
     ahora,
     maxLlamadas: Number(process.env.MAX_LLAMADAS || 20),
     diasAdelante: Number(process.env.DIAS_ADELANTE || 45),

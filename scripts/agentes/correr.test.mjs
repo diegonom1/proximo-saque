@@ -6,6 +6,7 @@ import { correr } from './correr.mjs';
 import { temporadaActual } from './perfil.mjs';
 import { crearVerificador } from '../lib/fuentes.mjs';
 import { crearClienteSimulado } from '../lib/gemini.mjs';
+import { crearDescargaSimulada } from '../lib/rankings-oficiales.mjs';
 import { validarDatos } from '../lib/validar.mjs';
 
 const AHORA = Date.parse('2026-11-05T12:00:00-06:00');
@@ -14,7 +15,6 @@ const PRENSA = 'https://prensa.mx/nota';
 const FUENTES = [OFICIAL, PRENSA, 'https://volleybox.net/x', 'https://cbv.com.br/tabela', 'https://www.fivb.com/x', 'https://www.youtube.com/@x'];
 
 const VACIAS = {
-  '06-rankings': { fivb: {}, norceca: {} },
   '04-seleccion-torneos': { proximoTorneo: null, partidos: [], convocadas: null, torneosTerminados: [] },
   '01-plantel': { listas: [], ultimasApariciones: [], bajas: [], entrenador: null, dudas: [] },
   '02-perfil': (clave) => ({ slug: clave }),
@@ -63,21 +63,45 @@ const lista = (jugadoras, extra = {}) => ({ torneo: 'NORCECA Final Six 2026', ti
 const plantel = (cambios) => ({ '01-plantel': { ...VACIAS['01-plantel'], ...cambios } });
 
 describe('rankings', () => {
-  const ranking = (cambios) => ({ '06-rankings': { fivb: { posicion: 24, puntos: 171.3, fecha: '2026-11-01', fuente: 'https://www.fivb.com/x', ...cambios }, norceca: {} } });
+  const copia = (nombre) => readFile(new URL(`../pruebas/paginas/${nombre}`, import.meta.url), 'utf8');
+  const descargar = crearDescargaSimulada(copia);
+  const fallaFivb = (url) => (url.includes('volleyballworld') ? Promise.reject(new Error('la FIVB respondió 503')) : descargar(url));
 
-  it('guarda el nuevo valor y deja el anterior en el historial', async () => {
-    await ejecutar(ranking({}));
+  it('guarda lo que lee y deja lo anterior en el historial', async () => {
+    await ejecutar({}, { descargar });
     const r = await leer('rankings.json');
-    expect(r.fivb).toMatchObject({ posicion: 24, puntos: 171.3, fecha: '2026-11-01' });
-    expect(r.historial).toEqual([{ ranking: 'fivb', posicion: null, puntos: 166.82, fecha: null }]);
+    expect(r.fivb).toMatchObject({ posicion: 21, puntos: 201.88, fecha: '2026-10-15' });
+    expect(r.norceca).toMatchObject({ posicion: 5, puntos: 183, fecha: '2025-12-31' });
+    expect(r.historial[0]).toEqual({ ranking: 'fivb', posicion: null, puntos: 166.82, fecha: null });
   });
-  it('sin fuente se descarta', async () => {
-    const r = await ejecutar(ranking({ fuente: null }));
-    expect((await leer('rankings.json')).fivb.puntos).toBe(166.82);
-    expect(r.resumen).toContain('Descartado: fivb: sin fuente');
+  it('no gasta llamadas de IA', async () => {
+    const r = await correr({ dirDatos: dir, dirFotos: fotos, llamar: null, descargar, verificar: crearVerificador({ red: false }), ahora: AHORA });
+    expect(r.llamadas).toBe(0);
+    expect((await leer('rankings.json')).fivb.posicion).toBe(21);
   });
-  it('con fuente que no se puede verificar se descarta', async () => {
-    await ejecutar(ranking({ fuente: 'https://inventada.com/x' }));
+  it('si una fuente falla conserva su dato, lee la otra y sigue', async () => {
+    const r = await ejecutar({}, { descargar: fallaFivb });
+    const guardado = await leer('rankings.json');
+    expect(guardado.fivb.puntos).toBe(166.82);
+    expect(guardado.norceca.posicion).toBe(5);
+    expect(r.resumen).toContain('la FIVB respondió 503');
+    expect(r.llamadas).toBeGreaterThan(0);
+  });
+  it('sin cambios no crece el historial', async () => {
+    await ejecutar({}, { descargar });
+    const antes = (await leer('rankings.json')).historial.length;
+    await ejecutar({}, { descargar });
+    expect((await leer('rankings.json')).historial).toHaveLength(antes);
+  });
+  it('manual.json gana y si difiere queda por revisar', async () => {
+    const fijo = { posicion: 20, puntos: 210, fecha: '2026-11-01', fuente: 'https://fmvb.org/x' };
+    await cambiar('manual.json', (m) => { m.rankings = { fivb: fijo, norceca: null }; });
+    const r = await ejecutar({}, { descargar });
+    expect((await leer('rankings.json')).fivb).toEqual(fijo);
+    expect(r.resumen).toContain('**Por revisar:** fivb: manual.json dice lugar 20');
+  });
+  it('el jueves no se leen', async () => {
+    await ejecutar({}, { descargar, soloVerificar: true });
     expect((await leer('rankings.json')).fivb.puntos).toBe(166.82);
   });
 });
@@ -439,7 +463,7 @@ describe('orquestador', () => {
     await cambiar('partidos.json', (d) => { d.partidos = []; });
     await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA, maxLlamadas: 99 });
     const orden = [...new Set(llamar.llamadas.map((l) => l.agente))];
-    expect(orden).toEqual(['06-rankings', '04-seleccion-torneos', '01-plantel', '02-perfil', '03-partidos-club']);
+    expect(orden).toEqual(['04-seleccion-torneos', '01-plantel', '02-perfil', '03-partidos-club']);
   });
   it('lo que no cabe queda pendiente y va primero la semana siguiente', async () => {
     const r = await ejecutar({}, { maxLlamadas: 5 });
@@ -455,8 +479,9 @@ describe('orquestador', () => {
     expect((await leer('estado-agentes.json')).pendientes).toEqual([]);
   });
   it('si un agente falla se conservan los datos y sigue con los demás', async () => {
-    const r = await ejecutar({ '06-rankings': new Error('Gemini caído'), '04-seleccion-torneos': 'esto no es JSON' });
-    expect((await leer('rankings.json')).fivb.puntos).toBe(166.82);
+    const antes = await readFile(join(dir, 'torneos.json'), 'utf8');
+    const r = await ejecutar({ '01-plantel': new Error('Gemini caído'), '04-seleccion-torneos': 'esto no es JSON' });
+    expect(await readFile(join(dir, 'torneos.json'), 'utf8')).toBe(antes);
     expect(r.resumen).toContain('Falló');
     expect(r.resumen).toContain('Gemini caído');
     expect(r.llamadas).toBeGreaterThan(2);
@@ -464,13 +489,13 @@ describe('orquestador', () => {
   it('sin cuota deja de llamar y todo queda pendiente', async () => {
     const error = Object.assign(new Error('ningún modelo respondió'), { sinCuota: true });
     await cambiar('partidos.json', (d) => { d.partidos = []; });
-    const r = await ejecutar({ '06-rankings': error });
+    const r = await ejecutar({ '04-seleccion-torneos': error });
     expect(r.llamadas).toBe(1);
-    expect(r.pendientes[0]).toEqual({ agente: '06-rankings', clave: null });
+    expect(r.pendientes[0]).toEqual({ agente: '04-seleccion-torneos', clave: null });
     expect(r.pendientes.length).toBeGreaterThan(10);
   });
   it('una respuesta con forma equivocada no se usa', async () => {
-    const r = await ejecutar({ '06-rankings': { fivb: { posicion: 'primero' }, norceca: {} } });
+    const r = await ejecutar({ '04-seleccion-torneos': { partidos: 'muchos' } });
     expect(r.resumen).toContain('Falló');
   });
   it('si una tarea falla a medias, deshace lo que ya había hecho', async () => {
@@ -501,7 +526,7 @@ describe('orquestador', () => {
   });
   it('--seco no escribe nada', async () => {
     const antes = await readFile(join(dir, 'rankings.json'), 'utf8');
-    const r = await ejecutar({ '06-rankings': { fivb: { puntos: 200, fuente: 'https://www.fivb.com/x' }, norceca: {} } }, { seco: true });
+    const r = await ejecutar({}, { seco: true, descargar: crearDescargaSimulada((n) => readFile(new URL(`../pruebas/paginas/${n}`, import.meta.url), 'utf8')) });
     expect(r.cambiados).toContain('rankings.json');
     expect(await readFile(join(dir, 'rankings.json'), 'utf8')).toBe(antes);
   });
@@ -565,9 +590,8 @@ describe('búsqueda hecha por el código', () => {
   });
   it('Gemini recibe los resultados en el mensaje y no busca', async () => {
     const { llamar } = await correrCon(buscadorFalso(), {});
-    const m = JSON.parse(llamar.llamadas.find((l) => l.agente === '06-rankings').mensaje);
+    const m = JSON.parse(llamar.llamadas[0].mensaje);
     expect(m.resultadosBusqueda).toEqual([{ url: URL_BUENA, titulo: 'Tabela', contenido: '01/12 21:00 Sesi Vôlei Bauru x Praia Clube' }]);
-    expect(m.guardado).toBeTruthy();
     expect(llamar.llamadas.every((l) => l.conBusqueda === false)).toBe(true);
   });
   it('sin resultados no gasta una llamada a Gemini', async () => {
@@ -1097,7 +1121,7 @@ describe('manual.json: rankings', () => {
   const CLARO = 'https://www.clarosports.com/nota';
   const fijo = { posicion: 21, puntos: null, fecha: '2026-10-01', fuente: CLARO };
   const mano = (fivb, norceca = null) => cambiar('manual.json', (m) => { m.rankings = { fivb, norceca }; });
-  const agente = (cambios) => ({ '06-rankings': { fivb: { posicion: 21, fecha: '2026-11-01', fuente: 'https://www.fivb.com/x', ...cambios }, norceca: {} } });
+  const descargar = crearDescargaSimulada((n) => readFile(new URL(`../pruebas/paginas/${n}`, import.meta.url), 'utf8'));
 
   it('gana sobre lo guardado y manda lo anterior al historial', async () => {
     await mano(fijo);
@@ -1122,24 +1146,23 @@ describe('manual.json: rankings', () => {
     await ejecutar({});
     expect((await leer('rankings.json')).historial).toHaveLength(1);
   });
-  it('si el agente halla otro dato, manual gana, avisa y no ensucia el historial', async () => {
+  it('si la fuente dice otra cosa, manual gana, avisa y no ensucia el historial', async () => {
     await mano(fijo);
-    const r = await ejecutar(agente({ posicion: 19, puntos: 180.5 }));
+    const r = await ejecutar({}, { descargar });
     const guardado = await leer('rankings.json');
     expect(guardado.fivb).toEqual(fijo);
-    expect(guardado.historial).toHaveLength(1);
-    expect(r.resumen).toContain('**Por revisar:** fivb: manual.json dice lugar 21 y sin puntos (2026-10-01); https://www.fivb.com/x dice lugar 19 y 180.5 puntos (2026-11-01)');
+    expect(guardado.historial).toHaveLength(2); // el de NORCECA, que no se fijó, sí cambió
+    expect(r.resumen).toContain('**Por revisar:** fivb: manual.json dice lugar 21 y sin puntos (2026-10-01); https://en.volleyballworld.com/volleyball/world-ranking/women dice lugar 21 y 201.88 puntos (2026-10-15)');
   });
-  it('si el agente confirma lo mismo no avisa', async () => {
-    await mano(fijo);
-    await cambiar('rankings.json', (d) => { d.fivb = fijo; });
-    const r = await ejecutar(agente({}));
-    expect(r.resumen).not.toContain('manual.json dice lugar');
+  it('si la fuente confirma lo mismo no avisa', async () => {
+    await mano({ ...fijo, puntos: 201.88 });
+    const r = await ejecutar({}, { descargar });
+    expect(r.resumen).not.toContain('Por revisar:** fivb');
   });
-  it('en null decide el agente', async () => {
+  it('en null decide la fuente', async () => {
     await mano(null);
-    await ejecutar(agente({ posicion: 19 }));
-    expect((await leer('rankings.json')).fivb.posicion).toBe(19);
+    await ejecutar({}, { descargar });
+    expect((await leer('rankings.json')).fivb).toMatchObject({ posicion: 21, puntos: 201.88 });
   });
   it('sin fuente no pasa la validación', async () => {
     await mano({ ...fijo, fuente: null });
@@ -1351,20 +1374,6 @@ describe('perfiles: un listado no es fuente', () => {
     const llamar = llamarCon({ '02-perfil': (clave) => (clave === 'uxue-guereca' ? { slug: clave, estaturaCm: { valor: 178, fuente: LISTADO, confianza: 'alta' } } : undefined) });
     await correr({ dirDatos: dir, dirFotos: fotos, llamar, buscador, verificar: async () => null, ahora: AHORA });
     expect((await jugadora('uxue-guereca')).estaturaCm).toBeNull();
-  });
-});
-
-describe('rankings una vez al mes', () => {
-  const corre = async (ahora) => {
-    const llamar = llamarCon();
-    await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora });
-    return llamar.llamadas.some((l) => l.agente === '06-rankings');
-  };
-  it('corre, descansa y vuelve a los 28 días', async () => {
-    expect(await corre(AHORA)).toBe(true);
-    expect(await corre(AHORA + 7 * 864e5)).toBe(false);
-    expect(await corre(AHORA + 27 * 864e5)).toBe(false);
-    expect(await corre(AHORA + 28 * 864e5)).toBe(true);
   });
 });
 

@@ -43,7 +43,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  └─ manual.json           correcciones humanas; siempre ganan
 ├─ scripts/
 │  ├─ agentes/              correr.mjs (orquestador) + un módulo por agente
-│  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, busqueda.mjs, evidencia.mjs, nombres.mjs, torneos.mjs, fotos-sin-credito.mjs
+│  ├─ lib/                  tiempo.mjs, fusion.mjs, validar.mjs, gemini.mjs, fuentes.mjs, busqueda.mjs, evidencia.mjs, nombres.mjs, torneos.mjs, rankings-oficiales.mjs, fotos-sin-credito.mjs
 │  ├─ pruebas/              respuestas simuladas por agente (IA_SIMULADA), páginas reales y datos-base/ (data/ fijo para las pruebas)
 │  └─ fotos/                procesar.py (npm run fotos): prepara las fotos, solo en local
 ├─ src/
@@ -246,7 +246,7 @@ Regla en código, no en la IA: se ordenan por `fechaFin` descendente y se guarda
 }
 ```
 
-Los puntos iniciales son los que publica la FMVB (de 2025). El agente 06 los reemplaza. `historial` guarda cada cambio, del más viejo al más nuevo, para mostrar si subió o bajó: `{ "ranking": "fivb", "posicion": 25, "puntos": 150.5, "fecha": "2026-09-28" }`.
+Los escribe el agente 06, que los lee de las fuentes oficiales sin IA. `historial` guarda cada cambio, del más viejo al más nuevo, para mostrar si subió o bajó: `{ "ranking": "fivb", "posicion": 25, "puntos": 150.5, "fecha": "2026-09-28" }`.
 
 ### `data/estado-agentes.json`
 
@@ -428,7 +428,7 @@ Los contextos están en `agentes/` (ver `agentes/README.md`). Para cada llamada,
 
 Orden de cada corrida semanal. Antes de todo, y antes de los `pendientes`, van las tareas de lo que está por jugarse: 04 si la Selección juega en los próximos 7 días y 03 de cada club que juega en ese rango.
 
-1. **06 Rankings** (1 llamada, una vez al mes: cada 28 días).
+1. **06 Rankings**: sin IA, cada lunes y sin gastar presupuesto. Lee el API de la FIVB y la página de NORCECA (`scripts/lib/rankings-oficiales.mjs`). Si una fuente falla o cambia de forma, conserva el dato anterior y lo avisa en el resumen.
 2. **04 Selección y torneos**: 1 llamada para el próximo compromiso, que también nombra los torneos terminados que ve; luego 1 llamada por torneo del catálogo que no esté en `torneos.json` (máximo 2 por corrida, cada uno cada 30 días).
 3. **01 Plantel**: 1 llamada para anuncios de retiro; luego 1 llamada por torneo guardado más reciente que la última lista conocida (máximo 2 por corrida, cada uno cada 30 días). Lo histórico no lo buscan los agentes: se cargó una vez por PR.
 4. **02 Perfiles**: altas nuevas primero; luego las 4 jugadoras con `revisado` más viejo (así cada perfil se revisa cerca de una vez al mes sin gastar todo en un lunes).
@@ -449,6 +449,7 @@ Detalles técnicos:
 - Llamada: `system_instruction` + `contents`, y `tools: [{ google_search: {} }]` solo con `BUSQUEDA=google`. `temperature: 0` en modelos 2.5; en Gemini 3 se deja la temperatura por defecto (Google lo recomienda). Pedir el JSON en el texto y extraerlo (`extraerJSON` del v1); no combinar `responseSchema` con `google_search` si el modelo no lo soporta.
 - Reintentos ante 429/5xx con espera creciente; pausa de 8 s entre llamadas. Si se agota el tiempo pasa al siguiente modelo.
 - `DIAGNOSTICO=<archivo>` guarda las respuestas crudas, las URLs de cada tarea con sus caracteres y la comparación de partidos. `actualizar.yml` lo sube como artefacto `diagnostico` (14 días).
+- Rankings: la FIVB carga su tabla desde `/api/v1/worldranking/volleyball/0/<página>/50` (0 es femenil; 50 equipos por página). NORCECA publica una página fija por año, y su menú dice cuál es la más reciente; solo se actualiza una vez al año.
 - Partidos omitidos: si `calendarioUrl` o `calendarioOficialUrl` muestran al club en una fecha que Gemini no reportó, se le vuelve a preguntar una vez con `fechasOmitidas` (sin gastar créditos ni presupuesto); lo que siga faltando sale en "Por revisar". Una portada no se le da a Gemini: no se puede citar.
 - `IA_SIMULADA=scripts/pruebas` usa respuestas guardadas (un JSON por agente, basados en los ejemplos de `agentes/`) para probar sin gastar llamadas ni usar la red. Aceptan `{{HOY+3}}` y `{{CLAVE}}` para no caducar. `npm run agentes:simulado` lo corre con `--seco`, que muestra el resumen sin escribir nada.
 - `DIAS_ADELANTE` (por defecto 45): rango de búsqueda de partidos.
