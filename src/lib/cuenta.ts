@@ -1,5 +1,6 @@
 // Dibuja la cuenta regresiva de <Cuenta />. Corre en el navegador.
 
+import { rodar } from './marcador';
 import { cuentaRegresiva, diasHasta } from './tiempo';
 
 const dos = (n: number) => String(n).padStart(2, '0');
@@ -8,8 +9,8 @@ function unidad(raiz: HTMLElement, nombre: string, valor: string | null) {
   const el = raiz.querySelector<HTMLElement>(`[data-unidad="${nombre}"]`);
   if (!el) return;
   el.hidden = valor === null;
-  const numero = el.querySelector('span');
-  if (numero && valor !== null && numero.textContent !== valor) numero.textContent = valor;
+  const numero = el.querySelector<HTMLElement>(':scope > span');
+  if (numero && valor !== null) rodar(numero, valor);
 }
 
 export function escribirDias(raiz: HTMLElement, dias: number) {
