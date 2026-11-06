@@ -8,6 +8,7 @@ const fecha = actualizado
   ? new Intl.DateTimeFormat('es-MX', { timeZone: ZONA_SITIO, dateStyle: 'long' }).format(Date.parse(actualizado))
   : POR_CONFIRMAR;
 const creditos = todosLosCreditos();
+const ISSUES = 'https://github.com/diegonom1/proximo-saque/issues';
 const fuentes = [
   { nombre: 'FMVB', url: 'https://www.fmvb.org/femenil-mayor' },
   { nombre: 'NORCECA', url: 'https://norceca.net/' },
@@ -37,6 +38,7 @@ const fuentes = [
           <ul>
             {creditos.map((c) => <li>{c.url ? <a href={c.url} target="_blank" rel="noopener">{c.texto}</a> : c.texto}</li>)}
           </ul>
+          <p class="pie__nota">¿Eres autor de alguna foto y quieres que la retiremos o corrijamos el crédito? <a href={ISSUES} target="_blank" rel="noopener">Abre un issue en GitHub</a></p>
         </div>
       )
     }
