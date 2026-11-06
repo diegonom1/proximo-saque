@@ -52,7 +52,21 @@ La primera vez prepara un entorno de Python y descarga el modelo de recorte, cer
 | `npm run fotos -- --forzar` | Vuelve a procesar aunque nada haya cambiado. |
 | `npm run fotos -- --carpetas` | Solo crea las carpetas que falten, sin procesar nada. |
 
+Si la tarjeta salió centrada en otra persona, crea `fotos-originales/<slug>/cara.txt` con la posición de su cara en porcentaje de la foto, por ejemplo `36% 40%`, y vuelve a correr el programa.
+
 El programa no quita marcas de agua. Respeta los permisos de cada foto.
+
+### Cómo se muestra cada foto
+
+Cada jugadora tiene un tratamiento en `fotos.tratamiento`, en `data/jugadoras.json`. Se aplica en la portada de su perfil:
+
+| Tratamiento | Cómo se ve | Cuándo usarlo |
+|---|---|---|
+| `completa` | Foto a pantalla completa. | Solo si llega a 2000 px en su lado largo. Si no, el sitio usa `duotono`. |
+| `duotono` | Foto en tinta y rojo con grano, a media pantalla. | Es el tratamiento normal para fotos chicas. |
+| `recorte` | Jugadora recortada sobre un bloque rojo, con su apellido y número detrás. | Solo si el recorte quedó bien en la hoja. |
+
+Ninguna foto se muestra más grande que su tamaño real. El hero de inicio sigue la misma regla: con fotos chicas va en un panel, y a pantalla completa solo si `hero.jpg` y `hero-movil.jpg` llegan a su mínimo.
 
 ## Cómo corregir datos
 

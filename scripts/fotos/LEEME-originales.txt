@@ -29,4 +29,6 @@ Tamaños mínimos recomendados
 
 Otras opciones
   modelo.txt en la carpeta de una jugadora elige el recorte: general o portrait.
+  cara.txt dice dónde está su cara si el programa eligió a otra persona, en porcentaje
+  de la foto (izquierda y arriba): 36% 39%
   Revisa fotos-originales/vista-previa.jpg al terminar. El programa no quita marcas de agua.

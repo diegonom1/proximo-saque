@@ -9,6 +9,9 @@ horizontal para fondo.jpg. Para decidirlo tú, pon en el nombre del archivo "tar
 Modelo del recorte: birefnet-general, o el que diga fotos-originales/<slug>/modelo.txt
 ("general" o "portrait"). Si cambias modelo.txt, la siguiente corrida recorta esa foto sola.
 
+Cara: si el detector elige a otra persona, fotos-originales/<slug>/cara.txt dice dónde está la cara
+de la jugadora, en porcentaje de la foto: "36% 39%".
+
 Crédito: fotos-originales/<slug>/credito.txt se copia a src/assets/fotos/ al procesar. La plantilla
 sin llenar cuenta como vacía. Si faltan carpetas de jugadoras, el script las crea con esa plantilla.
 
@@ -182,6 +185,22 @@ def interpretar_modelo(texto):
         if limpio in (modelo, modelo.removeprefix("birefnet-")):
             return modelo
     return None
+
+
+def interpretar_cara(texto):
+    """Lee cara.txt: "36% 39%" es el centro de la cara. Devuelve (0.36, 0.39), o None si no se entiende."""
+    partes = texto.replace("%", " ").split()
+    try:
+        x, y = (float(p) / 100 for p in partes)
+    except ValueError:
+        return None
+    return (x, y) if 0 <= x <= 1 and 0 <= y <= 1 else None
+
+
+def cara_fijada(foto, posicion):
+    """Una cara en esa posición, con un tamaño nominal: cara.txt solo dice dónde está."""
+    lado = min(foto.imagen.size) / 10
+    return Cara(posicion[0] * foto.imagen.width - lado / 2, posicion[1] * foto.imagen.height - lado / 2, lado, lado)
 
 
 def elegir(fotos, palabra, clave):
@@ -612,6 +631,19 @@ def modelo_de(origen, avisos):
     return modelo
 
 
+def fijar_cara(fotos, origen, avisos):
+    """cara.txt manda sobre el detector: esa cara pasa a ser la principal."""
+    ruta = origen / "cara.txt"
+    if not ruta.exists():
+        return
+    posicion = interpretar_cara(ruta.read_text(encoding="utf-8"))
+    if posicion is None:
+        avisos.append('cara.txt no dice dónde está la cara; escribe algo como "36% 39%".')
+        return
+    for foto in fotos:
+        foto.caras.insert(0, cara_fijada(foto, posicion))
+
+
 def abrir_fotos(archivos, avisos):
     fotos = []
     for ruta in archivos:
@@ -641,7 +673,8 @@ def procesar_carpeta(nombre, archivos, cache, recortador, forzar=False, comparar
     """Hace solo lo que falta. Devuelve (avisos, ¿no hubo nada que hacer?)."""
     carpeta = destino_de(nombre)
     carpeta.mkdir(parents=True, exist_ok=True)
-    firma = huella(archivos)
+    cara = ORIGINALES / nombre / "cara.txt"
+    firma = huella([*archivos, cara] if cara.exists() else archivos)
     previo = cache.get(nombre, {})
     if nombre == "seleccion":
         return procesar_seleccion(archivos, firma, previo, cache, forzar)
@@ -666,6 +699,7 @@ def procesar_carpeta(nombre, archivos, cache, recortador, forzar=False, comparar
     fotos = abrir_fotos(archivos, avisos)
     if not fotos:
         return avisos + avisos_modelo, False
+    fijar_cara(fotos, ORIGINALES / nombre, avisos)
     if cambio_foto:
         hacer_jugadora(fotos, nombre, avisos)
     hacer_recortes(foto_de_recorte(fotos), nombre, faltan, recortador, avisos)

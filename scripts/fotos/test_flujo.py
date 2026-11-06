@@ -110,6 +110,37 @@ class Flujo(unittest.TestCase):
         self.assertEqual(r.llamadas, ["birefnet-general"])
 
 
+class CaraFijada(unittest.TestCase):
+    def foto(self, caras=()):
+        return procesar.Foto(Path("a.jpg"), Image.new("RGB", (1000, 2000)), list(caras))
+
+    def test_lee_el_porcentaje(self):
+        self.assertEqual(procesar.interpretar_cara("36% 39%\n"), (0.36, 0.39))
+
+    def test_rechaza_lo_que_no_entiende(self):
+        for texto in ("", "36%", "a b", "150% 20%", "1 2 3"):
+            self.assertIsNone(procesar.interpretar_cara(texto), texto)
+
+    def test_manda_sobre_el_detector(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            origen = Path(temporal)
+            (origen / "cara.txt").write_text("30% 40%", encoding="utf-8")
+            otra = procesar.Cara(800, 1800, 100, 100)
+            foto = self.foto([otra])
+            procesar.fijar_cara([foto], origen, [])
+        self.assertEqual(foto.cara.centro, (300, 800))
+        self.assertIn(otra, foto.caras)
+
+    def test_avisa_si_no_lo_entiende(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            origen = Path(temporal)
+            (origen / "cara.txt").write_text("arriba", encoding="utf-8")
+            foto, avisos = self.foto(), []
+            procesar.fijar_cara([foto], origen, avisos)
+        self.assertEqual(foto.caras, [])
+        self.assertEqual(len(avisos), 1)
+
+
 class Credito(unittest.TestCase):
     def setUp(self):
         temporal = tempfile.TemporaryDirectory()

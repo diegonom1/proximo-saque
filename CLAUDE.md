@@ -52,7 +52,7 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  │  └─ jugadoras/<slug>/  tarjeta.jpg, fondo.jpg, recorte.png (opcional), credito.txt
 │  ├─ pages/                index.astro, agenda.astro, jugadoras/[slug].astro, torneos.astro
 │  ├─ components/
-│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, compromiso.ts, presentacion.ts, partido.ts, perfil.ts, iconos.ts, agenda.ts, ics.ts, cuenta.ts
+│  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, tratamiento.ts, compromiso.ts, presentacion.ts, partido.ts, perfil.ts, iconos.ts, agenda.ts, ics.ts, cuenta.ts
 └─ .github/workflows/       actualizar.yml (semanal), deploy.yml (push a main)
 ```
 
@@ -95,6 +95,7 @@ Cualquier campo puede ser `null`. En pantalla, `null` se muestra como "Por confi
 - `redes`: `[{ "red": "instagram", "url": "https://...", "fuente": "https://..." }]`; solo cuentas verificadas (ver agente 02).
 - `fuentes`: URL por campo (`{ "clubId": "https://...", "fechaNacimiento": "https://..." }`).
 - `fotos.foco`: `object-position` para recortar bien en cualquier pantalla. Los créditos salen de `credito.txt`.
+- `fotos.tratamiento`: `completa` | `duotono` | `recorte` | `null` (ver "Tratamientos" en Fotos).
 - `revisado`: fecha del último cambio que trajo el agente de perfil. La rotación usa `estado-agentes.json`.
 
 ### `data/clubes.json` (objeto por id)
@@ -291,7 +292,7 @@ En todo el sitio (hero, "Esta semana", perfil, agenda) un partido se escribe igu
 
 ### Inicio `/`
 
-1. **Hero**: foto de la Selección a pantalla completa (`hero.jpg`; en celular `hero-movil.jpg`, vertical). Encima, la fecha grande del próximo compromiso (formato `21.09.26`) y la cuenta regresiva. Qué cuenta, en este orden:
+1. **Hero**: foto de la Selección a pantalla completa (`hero.jpg`; en celular `hero-movil.jpg`, vertical) si las dos llegan a su mínimo. Si no, `hero.jpg` va en un panel a su tamaño real, también en celular, y el texto sale aparte. Encima, la fecha grande del próximo compromiso (formato `21.09.26`) y la cuenta regresiva. Qué cuenta, en este orden:
    1. el próximo partido de la Selección;
    2. si no hay partido, el inicio del próximo torneo (cuenta en días);
    3. si no hay torneo confirmado: "Próximo torneo por confirmar" y abajo "Mientras, la próxima en jugar:", el texto del partido y su cuenta regresiva.
@@ -299,11 +300,11 @@ En todo el sitio (hero, "Esta semana", perfil, agenda) un partido se escribe igu
 3. **Rankings**: FIVB y NORCECA en dos bloques grandes: lugar (número grande), puntos, fecha de actualización y flecha si subió o bajó contra el registro anterior. La FMVB solo muestra los puntos; nosotros mostramos más.
 4. **Plantilla**: tarjetas con retrato (`tarjeta.jpg`), nombre, número, posición y club. Toca una y abre su perfil.
 5. **Últimos 7 torneos**: tarjeta por torneo con medalla o lugar, sede, fechas, récord y premios individuales.
-6. **Pie**: fecha de última actualización, fuentes generales y créditos de fotos.
+6. **Pie**: fecha de última actualización, fuentes generales, créditos de fotos y aviso para autores con enlace a los issues del repo.
 
 ### Perfil `/jugadoras/[slug]`
 
-1. **Hero**: `fondo.jpg` (o `recorte.png` encima de su apellido gigante si existe). Datos estilo Volleybox: nombre, fecha de nacimiento y edad, lugar de origen, estatura, club actual con liga y país, posición, número, capitana, redes (iconos solo si hay URL).
+1. **Hero**: la foto según su tratamiento (ver "Tratamientos" en Fotos). Datos estilo Volleybox: nombre, fecha de nacimiento y edad, lugar de origen, estatura, club actual con liga y país, posición, número, capitana, redes (iconos solo si hay URL).
 2. **Próximo partido**: texto del partido, competencia, "allá serán las…" (si hay `zonaSede`), cuenta regresiva, botón de Google Calendar, iconos de "Dónde verlo" (de la liga o del torneo; cada icono abre el canal o la plataforma) y enlace "Calendario oficial de la liga".
 3. **Siguientes**: los 3 partidos posteriores (sin cuenta regresiva) y "Ver todos en la agenda" (`/agenda?j=<slug>`).
 4. **Un plus**: destacados (premios, MVP, equipos ideales), línea de tiempo de clubes y última lista oficial en la que apareció.
@@ -368,10 +369,16 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 | `credito.txt` | Crédito visible; se llena en `fotos-originales/<slug>/` | `Foto: autor o cuenta — URL` |
 
 - En el build de producción una foto sin `credito.txt` lleno no se usa: sale con iniciales, el build lo avisa y el archivo tampoco llega a `dist/` (`scripts/lib/fotos-sin-credito.mjs`). En `npm run dev` sí se ve, para revisarla.
+- **Tratamientos** (`fotos.tratamiento`, `src/lib/tratamiento.ts`), para el hero del perfil; las tarjetas de la Plantilla siempre van a color. Ninguna foto se muestra más grande que su tamaño real, y no se usa IA para agrandarlas ni para inventar detalle.
+  - `completa`: `fondo.jpg` a pantalla completa. Solo si llega a 2000 px en su lado largo; si no, el sitio usa `duotono`.
+  - `duotono`: `fondo.jpg` en tinta y rojo con grano, en un panel en celular y a media pantalla en escritorio.
+  - `recorte`: `recorte.png` sobre un bloque rojo, con el apellido gigante y el número en contorno detrás. Solo si el recorte quedó bien; si no hay archivo, el sitio usa `duotono`.
+  - Con `null` va `duotono`. Una alta nueva entra así hasta que alguien le asigne otro.
 - Si falta una foto: tarjeta con iniciales y número en contorno; perfil con fondo de color y nombre gigante.
 - Si solo existe `fondo.jpg`, la tarjeta usa un recorte de esa misma foto con `fotos.foco`.
 - `npm run fotos` (`scripts/fotos/procesar.py`, solo en local, con `.venv`): toma `fotos-originales/<slug>/` y `fotos-originales/seleccion/` (cualquier nombre y formato) y genera en `src/assets/fotos/` `tarjeta.jpg` (cara en el tercio de arriba, con detección de rostro), `fondo.jpg`, `recorte.png`, `hero.jpg` y `hero-movil.jpg`. Copia a `src/assets/fotos/` el `credito.txt` de cada carpeta de `fotos-originales/` si está lleno (la plantilla `Foto: autor o cuenta — URL` cuenta como vacía en el script, en el build y en el pie del sitio), crea uno vacío si falta, avisa de lo que queda debajo del mínimo, no repite lo que no cambió y muestra el avance y el tiempo de cada foto, y deja una hoja en `fotos-originales/vista-previa.jpg`. No quita marcas de agua. Opciones en `npm run fotos -- --help`.
 - `npm run fotos` crea las carpetas que falten en `fotos-originales/` (una por jugadora, `seleccion/`, su `credito.txt` con la plantilla y `LEEME.txt`, que sale de `scripts/fotos/LEEME-originales.txt`) sin tocar lo que ya existe. `npm run fotos -- --carpetas` hace solo eso.
+- Si el detector elige a otra persona (una compañera más cerca de la cámara), `fotos-originales/<slug>/cara.txt` dice dónde está la cara en porcentaje de la foto (`36% 40%`) y manda sobre el detector.
 - Si una carpeta trae varias fotos, el script usa la más vertical para la tarjeta y la más horizontal para el fondo. Para decidirlo a mano, poner "tarjeta", "fondo" o "recorte" (en la Selección, "hero" o "movil") en el nombre del archivo.
 - `recorte.png` usa un solo modelo: `birefnet-general`, o el que diga `fotos-originales/<slug>/modelo.txt` (`general` o `portrait`). Si cambia ese archivo, la siguiente corrida recorta esa foto sin `--forzar`. `npm run fotos -- --comparar` recorta con los dos y los pone lado a lado en la hoja. `birefnet-portrait` puede morder lo que la jugadora trae en las manos.
 - Cada modelo corre en su propio proceso (que sigue vivo entre fotos mientras no cambie de modelo), sin arena de memoria de onnxruntime, con 4 hilos y sobre una copia reducida; la máscara se aplica a la foto original. Con menos de 10 GB disponibles no carga el modelo y avisa. Cada modelo llega a 9.1 GB en la inferencia sin importar hilos, arena ni tamaño de la foto, porque la red siempre trabaja a 1024 × 1024; tener los dos cargados a la vez agotó la memoria de una máquina de 14 GB.

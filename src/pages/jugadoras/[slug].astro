@@ -7,6 +7,7 @@ import type { Jugadora } from '../../lib/datos';
 import { activas, clubes, estados, ligas, partidos, partidosDe, seleccion } from '../../lib/datos';
 import { anchosPara, fotosJugadora } from '../../lib/fotos';
 import { iconoRed } from '../../lib/iconos';
+import { modoDeFoto } from '../../lib/tratamiento';
 import { apellido, avisoTorneo, edad, estaturaTexto, fechaLarga, fuentesDe, origenTexto } from '../../lib/perfil';
 import { POR_CONFIRMAR, fechaLegible, ruta } from '../../lib/presentacion';
 import { vigentes, ymd } from '../../lib/tiempo';
@@ -50,15 +51,18 @@ const redes = j.redes.flatMap((r) => {
 });
 const fuentes = fuentesDe(j);
 const apellidoGrande = apellido(j.nombre);
-const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
+const modo = modoDeFoto(j.fotos.tratamiento, { fondo, recorte });
+// La foto nunca se muestra más grande que su tamaño real.
+const medidas = modo === 'recorte' ? recorte : fondo;
+const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-ancho: ${medidas.width}px`, medidas && `--foto-alto: ${medidas.height}px`].filter(Boolean).join('; ');
 ---
 
 <Base titulo={`${j.nombre} | Próximo Saque`} descripcion={`Próximo partido, club y logros de ${j.nombre}, seleccionada mexicana de voleibol.`}>
-  <section class="portada" data-modo={modo} style={`--letras: ${apellidoGrande.length}`} aria-labelledby="nombre">
+  <section class="portada" data-modo={modo} style={estiloPortada} aria-labelledby="nombre">
     {j.numero !== null && <span class="portada__numero" aria-hidden="true">{j.numero}</span>}
-    {modo !== 'fondo' && <span class="portada__apellido" aria-hidden="true">{apellidoGrande}</span>}
+    {(modo === 'recorte' || modo === 'sin-foto') && <span class="portada__apellido" aria-hidden="true">{apellidoGrande}</span>}
     {
-      recorte ? (
+      modo === 'recorte' && recorte ? (
         <Picture
           class="portada__recorte"
           src={recorte}
@@ -71,17 +75,19 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
         />
       ) : (
         fondo && (
-          <Picture
-            class="portada__fondo"
-            src={fondo}
-            alt={`Foto de ${j.nombre}`}
-            formats={['avif', 'webp']}
-            widths={anchosPara(fondo, [640, 1024, 1600, 2400])}
-            sizes="100vw"
-            loading="eager"
-            fetchpriority="high"
-            style={j.fotos.foco ? `object-position: ${j.fotos.foco}` : undefined}
-          />
+          <div class="portada__panel">
+            <Picture
+              class="portada__fondo"
+              src={fondo}
+              alt={`Foto de ${j.nombre}`}
+              formats={['avif', 'webp']}
+              widths={anchosPara(fondo, [640, 1024, 1600, 2400])}
+              sizes={modo === 'duotono' ? '(min-width: 768px) 50vw, 100vw' : '100vw'}
+              loading="eager"
+              fetchpriority="high"
+              style={j.fotos.foco ? `object-position: ${j.fotos.foco}` : undefined}
+            />
+          </div>
         )
       )
     }
@@ -327,7 +333,8 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
     -webkit-text-stroke: 2px var(--rojo);
   }
 
-  .portada[data-modo='fondo'] .portada__numero {
+  .portada[data-modo='completa'] .portada__numero,
+  .portada[data-modo='duotono'] .portada__numero {
     display: none;
   }
 
@@ -345,6 +352,12 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
     white-space: nowrap;
   }
 
+  .portada__panel {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
   .portada :global(.portada__fondo) {
     position: absolute;
     inset: 0;
@@ -353,11 +366,68 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
     object-fit: cover;
   }
 
-  .portada[data-modo='fondo']::after {
+  /* Duotono: la foto en un panel que no pasa de su tamaño real. Tinta en las sombras, rojo en las
+     luces y grano encima, para unificar fotos de fuentes distintas y disimular la resolución. */
+  .portada[data-modo='duotono'] {
+    display: block;
+    height: auto;
+    min-height: 0;
+  }
+
+  .portada[data-modo='duotono'] .portada__panel {
+    position: relative;
+    inset: auto;
+    isolation: isolate;
+    width: 100%;
+    max-width: var(--foto-ancho);
+    height: min(64svh, var(--foto-alto));
+    margin-inline: auto;
+    background: var(--rojo);
+  }
+
+  .portada[data-modo='duotono'] :global(.portada__fondo) {
+    filter: grayscale(1) contrast(1.1) brightness(1.25);
+    mix-blend-mode: multiply;
+  }
+
+  .portada[data-modo='duotono'] .portada__panel::before,
+  .portada[data-modo='duotono'] .portada__panel::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    pointer-events: none;
+  }
+
+  .portada[data-modo='duotono'] .portada__panel::before {
+    background: var(--tinta);
+    mix-blend-mode: lighten;
+  }
+
+  .portada[data-modo='duotono'] .portada__panel::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+    opacity: 0.4;
+  }
+
+  .portada[data-modo='completa']::after {
     position: absolute;
     inset: 0;
     background: linear-gradient(to top, rgb(14 14 16 / 85%) 0%, rgb(14 14 16 / 20%) 45%, rgb(14 14 16 / 35%) 100%);
     content: '';
+  }
+
+  /* Recorte: la jugadora sobre un bloque de color, con apellido y número detrás. */
+  .portada[data-modo='recorte'] {
+    background: var(--rojo);
+  }
+
+  .portada[data-modo='recorte'] .portada__numero {
+    -webkit-text-stroke-color: var(--papel);
+  }
+
+  /* El botón rojo se perdería sobre el bloque rojo. */
+  :global(body:has(.portada[data-modo='recorte']) .encabezado .agenda) {
+    background: var(--tinta);
   }
 
   .portada :global(.portada__recorte) {
@@ -366,7 +436,7 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
     left: 50%;
     width: auto;
     max-width: 100%;
-    height: 80%;
+    height: min(80%, var(--foto-alto));
     object-fit: contain;
     object-position: bottom;
     transform: translateX(-50%);
@@ -560,7 +630,43 @@ const modo = recorte ? 'recorte' : fondo ? 'fondo' : 'sin-foto';
 
     .portada :global(.portada__recorte) {
       max-width: 60%;
-      height: 84%;
+      height: min(84%, var(--foto-alto));
+    }
+
+    /* Duotono a media pantalla: el nombre a la izquierda y la foto a la derecha. */
+    .portada[data-modo='duotono'] {
+      --orilla: calc(max(0px, (100vw - 1280px) / 2) + var(--gutter));
+
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) min(50vw, var(--foto-ancho));
+      align-items: end;
+      min-height: min(86svh, var(--foto-alto));
+    }
+
+    .portada[data-modo='duotono'] .portada__panel {
+      grid-column: 2;
+      grid-row: 1;
+      height: min(86svh, var(--foto-alto));
+      margin: 0;
+    }
+
+    .portada[data-modo='duotono'] .portada__texto {
+      grid-column: 1;
+      grid-row: 1;
+      width: auto;
+      max-width: none;
+      margin: 0;
+      padding-block: 96px 40px;
+      padding-inline: var(--orilla) var(--gutter);
+    }
+
+    .portada[data-modo='duotono'] .portada__numero {
+      top: 56px;
+      right: auto;
+      bottom: auto;
+      left: var(--orilla);
+      display: block;
+      font-size: clamp(12rem, 26vw, 26rem);
     }
   }
 </style>

@@ -5,6 +5,7 @@ import type { ImageMetadata } from 'astro';
 import { partidos, paraCliente, seleccion } from '../lib/datos';
 import { elegirCompromiso, vistaHero } from '../lib/compromiso';
 import { anchosPara, fotosHero } from '../lib/fotos';
+import { heroCompleto } from '../lib/tratamiento';
 import { SELECCION, separador } from '../lib/partido';
 import { ruta } from '../lib/presentacion';
 import { vigentes } from '../lib/tiempo';
@@ -18,26 +19,31 @@ const datosCliente = JSON.stringify({ lista, torneo }).replace(/</g, '\\u003c');
 
 // <Picture> no admite un archivo distinto por pantalla: aquí hay uno vertical para celular.
 const { escritorio, movil } = fotosHero();
-const fuentes = async (foto: ImageMetadata, anchos: number[], media: string) => Promise.all(
+const fuentes = async (foto: ImageMetadata, anchos: number[], media: string | undefined, sizes: string) => Promise.all(
   (['avif', 'webp'] as const).map(async (format) => {
     const imagen = await getImage({ src: foto, format, widths: anchosPara(foto, anchos) });
-    return { media, type: `image/${format}`, srcset: imagen.srcSet.attribute };
+    return { media, sizes, type: `image/${format}`, srcset: imagen.srcSet.attribute };
   }),
 );
-const sources = escritorio && movil
-  ? [
-    ...(await fuentes(movil, [640, 828, 1080], '(max-width: 767px)')),
-    ...(await fuentes(escritorio, [1280, 1920, 2400], '(min-width: 768px)')),
-  ]
-  : [];
+// Con fotos chicas no hay pantalla completa: la horizontal va en un panel a su tamaño real, también
+// en celular, porque ahí se ve nítida y sale todo el equipo.
+const completo = Boolean(escritorio && movil && heroCompleto(escritorio, movil));
+const sources = !escritorio || !movil
+  ? []
+  : completo
+    ? [
+      ...(await fuentes(movil, [640, 828, 1080], '(max-width: 767px)', '100vw')),
+      ...(await fuentes(escritorio, [1280, 1920, 2400], '(min-width: 768px)', '100vw')),
+    ]
+    : await fuentes(escritorio, [640, 828, 1280], undefined, `(min-width: ${escritorio.width}px) ${escritorio.width}px, 100vw`);
 const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', width: Math.min(1600, escritorio.width) }) : null;
 ---
 
-<section class="hero" data-modo={v.modo} data-base={ruta()} aria-labelledby="hero-titulo">
+<section class="hero" data-modo={v.modo} data-foto={completo ? 'completa' : 'panel'} data-base={ruta()} style={escritorio ? `--foto-ancho: ${escritorio.width}px` : undefined} aria-labelledby="hero-titulo">
   {
     respaldo ? (
       <picture class="hero__foto">
-        {sources.map((s) => <source media={s.media} type={s.type} srcset={s.srcset} sizes="100vw" />)}
+        {sources.map((s) => <source media={s.media} type={s.type} srcset={s.srcset} sizes={s.sizes} />)}
         <img src={respaldo.src} alt="Selección Mexicana femenil de voleibol" fetchpriority="high" decoding="async" />
       </picture>
     ) : (
@@ -162,11 +168,32 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     object-fit: cover;
   }
 
-  .hero:has(.hero__foto)::after {
+  .hero[data-foto='completa']:has(.hero__foto)::after {
     position: absolute;
     inset: 0;
     background: linear-gradient(to top, rgb(14 14 16 / 88%) 0%, rgb(14 14 16 / 45%) 50%, rgb(14 14 16 / 35%) 100%);
     content: '';
+  }
+
+  /* Foto chica: panel a su tamaño real que se funde con la tinta. */
+  .hero[data-foto='panel']:has(.hero__foto) {
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+  }
+
+  .hero[data-foto='panel'] .hero__foto {
+    position: relative;
+    inset: auto;
+    flex: none;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    mask-image: linear-gradient(to top, transparent, #000 18%);
+  }
+
+  .hero[data-foto='panel']:has(.hero__foto) .hero__contenido {
+    padding-block: 8px 72px;
   }
 
   .hero__sin-foto {
@@ -206,7 +233,7 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
 
   .hero__fecha {
     font-family: var(--fuente-display);
-    font-size: clamp(5.5rem, 27vw, 17rem);
+    font-size: clamp(4.5rem, 24vw, 17rem);
     font-variant-numeric: tabular-nums;
     font-weight: 900;
     line-height: 0.85;
@@ -280,5 +307,56 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     padding: 6px 12px;
     background: var(--rojo);
     border-radius: 999px;
+  }
+
+  @media (min-width: 768px) {
+    .hero[data-foto='panel']:has(.hero__foto) {
+      justify-content: flex-end;
+      min-height: 100svh;
+    }
+
+    .hero[data-foto='panel'] .hero__foto {
+      position: absolute;
+      inset: 0 0 auto auto;
+      width: min(var(--foto-ancho), 100%);
+      aspect-ratio: 2.09;
+      mask-image: linear-gradient(to top, transparent, #000 30%), linear-gradient(to right, transparent, #000 22%);
+      mask-composite: intersect;
+    }
+
+    /* El techo del gimnasio sobra: se recorta por arriba para que el texto no tape al equipo. */
+    .hero[data-foto='panel'] .hero__foto img {
+      object-position: 50% 100%;
+    }
+
+    .hero[data-foto='panel']:has(.hero__foto) .hero__contenido {
+      padding-block: calc(min(var(--foto-ancho), 100vw) / 2.09 * 0.84) 48px;
+    }
+
+    .hero[data-foto='panel'] .hero__fecha {
+      font-size: clamp(6rem, 13vw, 11rem);
+    }
+
+    .hero[data-foto='panel'] .hero__titulo {
+      max-width: none;
+    }
+
+    /* La cuenta va junto a la fecha para que todo quepa en una laptop. */
+    .hero[data-foto='panel']:has(.hero__foto) .hero__contenido {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 32px;
+    }
+
+    .hero[data-foto='panel'] .hero__contenido > * {
+      grid-column: 1;
+    }
+
+    .hero[data-foto='panel'] .hero__contenido > :global([data-cuenta]),
+    .hero[data-foto='panel'] .hero__contenido > .hero__envivo {
+      grid-column: 2;
+      grid-row: 1 / span 8;
+      align-self: end;
+    }
   }
 </style>
