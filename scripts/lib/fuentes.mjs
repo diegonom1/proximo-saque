@@ -71,8 +71,9 @@ export function fuenteAdmisible(url) {
   return pathname.replace(/\/+$/, '') !== '' || search !== '';
 }
 
-// Búsquedas, filtros y listas de jugadoras: nombrar a alguien no las vuelve una ficha suya.
-const SEGMENTOS_LISTADO = /^(players?|jugadoras?|atletas?|athletes?|roster|rosters|squad|team|teams|equipos?|plantilla|plantel|elenco|search|buscar|busqueda|tag|tags|category|categoria|clubs?|clubes)$/i;
+// Búsquedas, filtros, listas de jugadoras y subpáginas de Volleybox (compañeras, videos, fans):
+// nombrar a alguien no las vuelve una ficha suya.
+const SEGMENTOS_LISTADO = /^(players?|jugadoras?|atletas?|athletes?|roster|rosters|squad|team|teams|equipos?|plantilla|plantel|elenco|search|buscar|busqueda|tag|tags|category|categoria|clubs?|clubes|teammates|movies|videos|fans)$/i;
 const PARAMETROS_LISTADO = /^(country|pais|nationality|q|s|search|query|filter|sort|page|gender)$/i;
 
 export function esListado(url) {

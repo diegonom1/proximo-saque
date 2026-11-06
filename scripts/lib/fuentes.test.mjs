@@ -35,6 +35,9 @@ describe('esListado', () => {
     'https://women.volleybox.net/mackenzie-t5/players',
     'https://en.volleyballworld.com/teams/mexico/roster',
     'https://noticias.mx/tag/voleibol',
+    'https://volleybox.net/penny-tusa-p29605/teammates',
+    'https://women.volleybox.net/samantha-bricio-p5050/movies?orderValue=add_date&orderDirection=asc',
+    'https://women.volleybox.net/tr/marian-ovalle-p24597/fans',
   ])('%s es un listado', (url) => expect(esListado(url)).toBe(true));
   it.each([
     'https://women.volleybox.net/uxue-guereca-p13878',
