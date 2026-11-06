@@ -8,7 +8,7 @@ import { normalizarUrl } from '../lib/busqueda.mjs';
 import { evidenciaParticipacion } from '../lib/evidencia.mjs';
 import { resolverJugadora } from '../lib/nombres.mjs';
 import { delCatalogo, fechasDeCatalogo, idTorneo, mismoTorneo, nombreCanonico, nombresDe } from '../lib/torneos.mjs';
-import { convertirSeleccion, esquemaPartido, esquemaTorneo } from '../lib/validar.mjs';
+import { convertirSeleccion, esquemaPartido, esquemaTorneo, yaSeJugo } from '../lib/validar.mjs';
 
 export const AGENTE = '04-seleccion-torneos';
 
@@ -127,7 +127,8 @@ async function partidos(ctx, respuesta, verificar, resultados) {
     const torneoId = torneo && nombreCanonico(p.torneo ?? '', torneo.edicion) === torneo.nombre ? torneo.id : idTorneo(p.torneo ?? 'amistoso', p.fecha?.slice(0, 4));
     const partido = convertirSeleccion({ ...p, fuente, convocadas }, torneoId, 'ia', ctx.ahora);
     if (!partido || !esquemaPartido.safeParse({ ...partido }).success) {
-      ctx.reporte.descarto(AGENTE, etiqueta, 'fecha, zona horaria o equipos inválidos');
+      if (yaSeJugo(convertirSeleccion({ ...p, eliminar: true }, torneoId, 'ia', ctx.ahora), ctx.ahora)) ctx.reporte.yaJugado(AGENTE, etiqueta);
+      else ctx.reporte.descarto(AGENTE, etiqueta, 'fecha, zona horaria o equipos inválidos');
       continue;
     }
     if (ctx.soloVerificar && partido.inicio.slice(0, 10) > hastaVerificar(ctx)) continue;

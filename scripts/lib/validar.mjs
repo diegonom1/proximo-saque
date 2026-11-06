@@ -339,6 +339,10 @@ export function convertir(p, club, origen, ahora = Date.now()) {
 
 // Partido de la Selección: mismas reglas, sin club. México no tiene una zona propia:
 // sin zonaSede queda null aunque juegue de local. `mexico` es el lado de México.
+// `convertir` también devuelve null si el partido ya se jugó. Con `eliminar` se salta ese filtro,
+// y esto dice si ese fue el motivo: un partido jugado no es un dato inválido.
+export const yaSeJugo = (convertido, ahora) => Boolean(convertido) && convertido.ms + DURACION_MS < ahora;
+
 export function convertirSeleccion(p, torneoId, origen, ahora = Date.now()) {
   if (!p || typeof p !== 'object') return null;
   const zona = zonaValida(p.zonaHoraria) ? p.zonaHoraria : (zonaValida(p.zonaSede) ? p.zonaSede : 'America/Mexico_City');

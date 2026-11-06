@@ -6,7 +6,7 @@ export function crearReporte() {
   const agentes = new Map();
   const dudas = [];
   const de = (agente) => {
-    if (!agentes.has(agente)) agentes.set(agente, { encontro: [], descarto: [], fallos: [], noConfirmado: [], porRevisar: [], verificados: { verificado: [], horaSinVerificar: [], noVerificado: [] }, modelos: {} });
+    if (!agentes.has(agente)) agentes.set(agente, { encontro: [], yaJugados: [], descarto: [], fallos: [], noConfirmado: [], porRevisar: [], verificados: { verificado: [], horaSinVerificar: [], noVerificado: [] }, modelos: {} });
     return agentes.get(agente);
   };
 
@@ -14,6 +14,7 @@ export function crearReporte() {
     agentes,
     encontro: (agente, texto) => de(agente).encontro.push(texto),
     descarto: (agente, texto, motivo) => de(agente).descarto.push(`${texto}: ${motivo}`),
+    yaJugado: (agente, texto) => de(agente).yaJugados.push(texto),
     fallo: (agente, texto) => de(agente).fallos.push(texto),
     noConfirmado: (agente, texto) => de(agente).noConfirmado.push(texto),
     porRevisar: (agente, texto) => de(agente).porRevisar.push(texto),
@@ -46,6 +47,7 @@ export function crearReporte() {
         for (const t of r.verificados.noVerificado) lineas.push(`- **No verificado (se conserva):** ${t}`);
         for (const t of r.porRevisar) lineas.push(`- **Por revisar:** ${t}`);
         for (const t of r.noConfirmado) lineas.push(`- No confirmado (se conserva): ${t}`);
+        for (const t of r.yaJugados) lineas.push(`- Ya jugado: ${t}`);
         for (const t of r.descarto) lineas.push(`- Descartado: ${t}`);
         for (const t of r.fallos) lineas.push(`- **Falló, se conservan los datos anteriores:** ${t}`);
         lineas.push('');

@@ -8,7 +8,7 @@ import { normalizarUrl } from '../lib/busqueda.mjs';
 import { esDominio } from '../lib/fuentes.mjs';
 import { conMs, mismoCruce } from '../lib/fusion.mjs';
 import { DURACION_MS, fechaEnZona } from '../lib/tiempo.mjs';
-import { esquemaPartido, convertir } from '../lib/validar.mjs';
+import { esquemaPartido, convertir, yaSeJugo } from '../lib/validar.mjs';
 
 export const AGENTE = '03-partidos-club';
 
@@ -208,7 +208,8 @@ export async function correr(ctx, clubId) {
     }
     const partido = convertir({ ...p, fuente, transmision }, { id: clubId, ...club }, 'ia', ctx.ahora);
     if (!partido || !esquemaPartido.safeParse({ ...partido }).success) {
-      ctx.reporte.descarto(AGENTE, etiqueta, 'fecha, zona horaria o equipos inválidos');
+      if (yaSeJugo(convertir({ ...p, eliminar: true }, { id: clubId, ...club }, 'ia', ctx.ahora), ctx.ahora)) ctx.reporte.yaJugado(AGENTE, etiqueta);
+      else ctx.reporte.descarto(AGENTE, etiqueta, 'fecha, zona horaria o equipos inválidos');
       continue;
     }
     if (ctx.soloVerificar && partido.inicio.slice(0, 10) > hasta) continue; // fuera de la ventana no se toca nada

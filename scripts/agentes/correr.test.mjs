@@ -1153,6 +1153,37 @@ describe('próximo torneo: la fuente debe decir que México participa', () => {
   });
 });
 
+describe('partidos que ya se jugaron', () => {
+  const sesi = (cambios) => ({ '03-partidos-club': (c) => (c === 'sesi-bauru' ? { clubId: c, partidos: [{ fecha: '2026-11-04', hora: '18:30', zonaHoraria: 'America/Sao_Paulo', zonaSede: 'America/Sao_Paulo', local: 'Sesi Vôlei Bauru', visitante: 'Gerdau Minas', nuestro: 'local', fuente: OFICIAL, ...cambios }] } : undefined) });
+
+  it('salen como "Ya jugado", no como descartados', async () => {
+    const r = await ejecutar(sesi({}));
+    expect(r.resumen).toContain('- Ya jugado: Sesi Vôlei Bauru: Sesi Vôlei Bauru vs Gerdau Minas (2026-11-04)');
+    expect(r.resumen).not.toContain('Descartado: Sesi');
+  });
+  it('un dato inválido sigue siendo descartado', async () => {
+    const r = await ejecutar(sesi({ fecha: 'mañana', hora: 'pronto' }));
+    expect(r.resumen).toContain('fecha, zona horaria o equipos inválidos');
+    expect(r.resumen).not.toContain('Ya jugado');
+  });
+  it('uno demasiado lejos también', async () => {
+    const r = await ejecutar(sesi({ fecha: '2027-08-01' }));
+    expect(r.resumen).toContain('fecha, zona horaria o equipos inválidos');
+    expect(r.resumen).not.toContain('Ya jugado');
+  });
+  it('uno en juego no cuenta como jugado', async () => {
+    const r = await ejecutar(sesi({ fecha: '2026-11-05', hora: '12:30', zonaHoraria: 'America/Mexico_City', zonaSede: 'America/Mexico_City' }));
+    expect(r.resumen).not.toContain('Ya jugado');
+    expect(r.resumen).not.toContain('Descartado: Sesi');
+  });
+  it('también en la Selección', async () => {
+    const p = { fecha: '2026-11-04', hora: '19:00', zonaHoraria: 'America/Lima', zonaSede: 'America/Lima', local: 'México', visitante: 'Perú', mexico: 'local', torneo: 'Copa', fuente: OFICIAL };
+    const r = await ejecutar({ '04-seleccion-torneos': { ...VACIAS['04-seleccion-torneos'], partidos: [p] } });
+    expect(r.resumen).toContain('- Ya jugado: México vs Perú');
+    expect(r.resumen).not.toContain('Descartado: México');
+  });
+});
+
 describe('calendario del club: lo que Gemini omite', () => {
   const CAL = 'https://www.legavolleyfemminile.it/club/uyba-busto-arsizio/710946/calendario';
   const partido = (fecha, rival) => ({ fecha, hora: '17:00', zonaHoraria: 'Europe/Rome', zonaSede: 'Europe/Rome', local: 'UYBA Volley Busto Arsizio', visitante: rival, nuestro: 'local', fuente: CAL });
