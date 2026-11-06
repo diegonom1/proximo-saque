@@ -76,7 +76,7 @@
   "lovb-pro-us": {
     "nombre": "LOVB Pro",
     "pais": "Estados Unidos",
-    "temporada": null,
+    "temporada": "2026-27",
     "calendarioOficialUrl": "https://www.lovb.com/schedule/2026-27",
     "plataformas": [],
     "revisado": null
@@ -84,8 +84,8 @@
   "lpv-pe": {
     "nombre": "Liga Peruana de Vóley",
     "pais": "Perú",
-    "temporada": null,
-    "calendarioOficialUrl": null,
+    "temporada": "2026-27",
+    "calendarioOficialUrl": "https://fpv.org.pe/temporada-26-27/",
     "plataformas": [],
     "revisado": null
   },
@@ -93,7 +93,7 @@
     "nombre": "Superliga ženske",
     "pais": "Eslovenia",
     "temporada": "2026-27",
-    "calendarioOficialUrl": null,
+    "calendarioOficialUrl": "https://ozs-web.dataproject.com/CompetitionMatches.aspx?ID=146&PID=219",
     "plataformas": [],
     "revisado": null
   },
