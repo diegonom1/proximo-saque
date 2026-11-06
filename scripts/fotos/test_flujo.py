@@ -110,5 +110,71 @@ class Flujo(unittest.TestCase):
         self.assertEqual(r.llamadas, ["birefnet-general"])
 
 
+class Credito(unittest.TestCase):
+    def setUp(self):
+        temporal = tempfile.TemporaryDirectory()
+        self.addCleanup(temporal.cleanup)
+        self.raiz = Path(temporal.name)
+        for nombre, valor in (("ORIGINALES", self.raiz / "originales"), ("SALIDA", self.raiz / "salida")):
+            parche = mock.patch.object(procesar, nombre, valor)
+            parche.start()
+            self.addCleanup(parche.stop)
+        self.origen = self.raiz / "originales/ana"
+        self.origen.mkdir(parents=True)
+        self.destino = self.raiz / "salida/jugadoras/ana/credito.txt"
+
+    def escribir(self, ruta, texto):
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+        ruta.write_text(texto, encoding="utf-8")
+
+    def test_la_plantilla_no_es_un_credito(self):
+        self.assertFalse(procesar.credito_lleno(procesar.PLANTILLA_CREDITO + "\n"))
+        self.assertFalse(procesar.credito_lleno("\ufeff  \n"))
+        self.assertTrue(procesar.credito_lleno("Foto: FMVB — https://fmvb.org"))
+
+    def test_copia_el_credito_lleno(self):
+        self.escribir(self.origen / "credito.txt", "\ufeffFoto: FMVB — https://fmvb.org\n\n")
+        procesar.pasar_credito("ana")
+        self.assertEqual(self.destino.read_text(encoding="utf-8"), "Foto: FMVB — https://fmvb.org\n")
+
+    def test_un_credito_nuevo_reemplaza_al_anterior(self):
+        self.escribir(self.destino, "Foto: vieja\n")
+        self.escribir(self.origen / "credito.txt", "Foto: nueva\n")
+        procesar.pasar_credito("ana")
+        self.assertEqual(self.destino.read_text(encoding="utf-8"), "Foto: nueva\n")
+
+    def test_la_plantilla_no_llega_al_sitio_ni_pisa_lo_que_hay(self):
+        self.escribir(self.origen / "credito.txt", procesar.PLANTILLA_CREDITO + "\n")
+        procesar.pasar_credito("ana")
+        self.assertFalse(self.destino.exists())
+        self.escribir(self.destino, "Foto: escrita a mano\n")
+        procesar.pasar_credito("ana")
+        self.assertEqual(self.destino.read_text(encoding="utf-8"), "Foto: escrita a mano\n")
+
+    def test_sin_archivo_no_pasa_nada(self):
+        procesar.pasar_credito("ana")
+        self.assertFalse(self.destino.exists())
+
+    def test_la_plantilla_en_el_sitio_cuenta_como_pendiente(self):
+        self.escribir(self.destino, procesar.PLANTILLA_CREDITO)
+        self.assertTrue(procesar.credito_pendiente(self.destino.parent))
+
+    def test_prepara_las_carpetas_y_la_guia(self):
+        creados = procesar.preparar_carpetas({"ana", "eva"})
+        self.assertEqual(creados, ["seleccion", "ana", "eva"])
+        for nombre in creados:
+            self.assertEqual((self.raiz / "originales" / nombre / "credito.txt").read_text(encoding="utf-8"), procesar.PLANTILLA_CREDITO + "\n")
+        self.assertIn("Tamaños mínimos", (self.raiz / "originales/LEEME.txt").read_text(encoding="utf-8"))
+
+    def test_preparar_no_toca_lo_que_ya_existe(self):
+        self.escribir(self.origen / "credito.txt", "Foto: mía\n")
+        self.escribir(self.origen / "foto.jpg", "no es una imagen")
+        self.escribir(self.raiz / "originales/LEEME.txt", "mis notas")
+        self.assertEqual(procesar.preparar_carpetas({"ana"}), ["seleccion"])
+        self.assertEqual((self.origen / "credito.txt").read_text(encoding="utf-8"), "Foto: mía\n")
+        self.assertEqual((self.origen / "foto.jpg").read_text(encoding="utf-8"), "no es una imagen")
+        self.assertEqual((self.raiz / "originales/LEEME.txt").read_text(encoding="utf-8"), "mis notas")
+
+
 if __name__ == "__main__":
     unittest.main()

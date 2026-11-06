@@ -9,6 +9,9 @@ horizontal para fondo.jpg. Para decidirlo tú, pon en el nombre del archivo "tar
 Modelo del recorte: birefnet-general, o el que diga fotos-originales/<slug>/modelo.txt
 ("general" o "portrait"). Si cambias modelo.txt, la siguiente corrida recorta esa foto sola.
 
+Crédito: fotos-originales/<slug>/credito.txt se copia a src/assets/fotos/ al procesar. La plantilla
+sin llenar cuenta como vacía. Si faltan carpetas de jugadoras, el script las crea con esa plantilla.
+
 Salida: src/assets/fotos/, una hoja fotos-originales/vista-previa.jpg y un resumen con avisos.
 
 Este script solo recorta y redimensiona. No retoca las fotos ni quita marcas de agua.
@@ -49,6 +52,8 @@ SALIDA = RAIZ / "src/assets/fotos"
 CACHE = ORIGINALES / ".procesado.json"
 VISTA_PREVIA = ORIGINALES / "vista-previa.jpg"
 COMPARAR = ORIGINALES / ".comparar"
+GUIA = Path(__file__).resolve().parent / "LEEME-originales.txt"
+PLANTILLA_CREDITO = "Foto: autor o cuenta — URL"
 MODELOS = RAIZ / ".venv/modelos"
 
 # Súbelo si cambia el proceso, para que todo se vuelva a generar.
@@ -556,11 +561,44 @@ def salidas_de(nombre):
     return ("hero.jpg", "hero-movil.jpg") if nombre == "seleccion" else ("tarjeta.jpg", "fondo.jpg")
 
 
+def credito_lleno(texto):
+    """La plantilla sin llenar no es un crédito."""
+    limpio = texto.replace("\ufeff", "").strip()
+    return bool(limpio) and limpio != PLANTILLA_CREDITO
+
+
 def credito_pendiente(carpeta):
     ruta = carpeta / "credito.txt"
     if not ruta.exists():
         ruta.touch()
-    return not ruta.read_text(encoding="utf-8").strip()
+    return not credito_lleno(ruta.read_text(encoding="utf-8"))
+
+
+def pasar_credito(nombre):
+    """Copia el crédito de fotos-originales/. Sin llenar no pisa lo que ya hubiera en el sitio."""
+    origen = ORIGINALES / nombre / "credito.txt"
+    texto = origen.read_text(encoding="utf-8") if origen.exists() else ""
+    if not credito_lleno(texto):
+        return
+    destino = destino_de(nombre)
+    destino.mkdir(parents=True, exist_ok=True)
+    (destino / "credito.txt").write_text(texto.replace("\ufeff", "").strip() + "\n", encoding="utf-8")
+
+
+def preparar_carpetas(slugs):
+    """Una carpeta por jugadora y la de la Selección, con su credito.txt. Lo que ya existe no se toca."""
+    creados = []
+    for nombre in ["seleccion", *sorted(slugs)]:
+        carpeta = ORIGINALES / nombre
+        carpeta.mkdir(parents=True, exist_ok=True)
+        credito = carpeta / "credito.txt"
+        if not credito.exists():
+            credito.write_text(PLANTILLA_CREDITO + "\n", encoding="utf-8")
+            creados.append(nombre)
+    guia = ORIGINALES / "LEEME.txt"
+    if not guia.exists():
+        shutil.copyfile(GUIA, guia)
+    return creados
 
 
 def modelo_de(origen, avisos):
@@ -652,10 +690,17 @@ def main():
     argumentos.add_argument("--comparar", action="store_true", help="recorta con los dos modelos y los pone lado a lado en la hoja de vista previa")
     argumentos.add_argument("--forzar", action="store_true", help="vuelve a procesar aunque nada haya cambiado")
     argumentos.add_argument("--solo", metavar="SLUG", help="procesa solo esa carpeta")
+    argumentos.add_argument("--carpetas", action="store_true", help="solo crea las carpetas que falten en fotos-originales/, sin procesar nada")
     opciones = argumentos.parse_args()
 
     ORIGINALES.mkdir(exist_ok=True)
-    slugs = {j["slug"] for j in json.loads((RAIZ / "data/jugadoras.json").read_text(encoding="utf-8"))}
+    jugadoras = json.loads((RAIZ / "data/jugadoras.json").read_text(encoding="utf-8"))
+    slugs = {j["slug"] for j in jugadoras}
+    creados = preparar_carpetas({j["slug"] for j in jugadoras if j["estado"] != "exseleccionada"})
+    if creados:
+        print(f"credito.txt creado en: {', '.join(creados)}")
+    if opciones.carpetas:
+        return
     cache = json.loads(CACHE.read_text(encoding="utf-8")) if CACHE.exists() else {}
 
     carpetas = sorted(p for p in ORIGINALES.iterdir() if p.is_dir() and not p.name.startswith("."))
@@ -667,7 +712,7 @@ def main():
 
     inicio_total = time.monotonic()
     recortador = Recortador()
-    avisos, procesadas, saltadas = {}, [], []
+    avisos, procesadas, saltadas, sin_fotos = {}, [], [], []
     try:
         for numero, origen in enumerate(carpetas, 1):
             nombre = origen.name
@@ -678,16 +723,17 @@ def main():
                 continue
             archivos = sorted(p for p in origen.iterdir() if p.suffix.lower() in EXTENSIONES)
             if not archivos:
-                avisos[nombre] = ["La carpeta no tiene fotos."]
-                print("  saltada: sin fotos", flush=True)
+                sin_fotos.append(nombre)  # lo normal: las carpetas ya están listas antes que las fotos
+                print("  sin fotos", flush=True)
                 continue
             inicio = time.monotonic()
             lista, salto = procesar_carpeta(nombre, archivos, cache, recortador, opciones.forzar, opciones.comparar)
             (saltadas if salto else procesadas).append(nombre)
             avisos[nombre] = list(lista)
             CACHE.write_text(json.dumps(cache, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            pasar_credito(nombre)
             if credito_pendiente(destino_de(nombre)):
-                avisos[nombre].append("credito.txt está vacío: sin crédito la foto no se publica. Escribe \"Foto: autor o cuenta — URL\".")
+                avisos[nombre].append(f"Falta el crédito: llena fotos-originales/{nombre}/credito.txt. Sin crédito la foto no se publica.")
             print(f"  {'sin cambios' if salto else 'lista'} en {segundos(inicio)}", flush=True)
     finally:
         recortador.cerrar()
@@ -696,7 +742,7 @@ def main():
     todas += [(s, destino_de(s)) for s in sorted(slugs)]
     hoja = hoja_vista_previa(todas, avisos, opciones.comparar)
 
-    print(f"\nProcesadas: {len(procesadas)} · sin cambios: {len(saltadas)} · total: {segundos(inicio_total)}")
+    print(f"\nProcesadas: {len(procesadas)} · sin cambios: {len(saltadas)} · sin fotos: {len(sin_fotos)} · total: {segundos(inicio_total)}")
     if procesadas:
         print("Revisa en la vista previa el cabello, el balón y a las personas de atrás.")
     for nombre, textos in avisos.items():

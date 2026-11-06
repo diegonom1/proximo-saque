@@ -35,7 +35,7 @@ export interface Credito {
 // "Foto: autor o cuenta — URL"
 export function parsearCredito(contenido: string): Credito | null {
   const linea = contenido.replace(/^﻿/, '').split(/\r?\n/).map((l) => l.trim()).find(Boolean);
-  if (!linea) return null;
+  if (!linea || linea === 'Foto: autor o cuenta — URL') return null; // la plantilla sin llenar
   const m = linea.match(/^(.*?)\s+[—–-]\s+(https?:\/\/\S+)$/);
   return m ? { texto: m[1], url: m[2] } : { texto: linea, url: null };
 }

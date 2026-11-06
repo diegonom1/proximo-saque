@@ -7,7 +7,13 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 const VIRTUAL = '\0foto-sin-credito';
 const FOTO = /\/src\/assets\/fotos\/.+\.(jpg|png)$/;
 
-export const creditoLleno = (contenido) => contenido.replace(/^﻿/, '').trim().length > 0;
+// La plantilla de fotos-originales/ sin llenar no es un crédito: de lo contrario la foto se publicaría.
+export const PLANTILLA_CREDITO = 'Foto: autor o cuenta — URL';
+
+export function creditoLleno(contenido) {
+  const limpio = contenido.replace(/^﻿/, '').trim();
+  return limpio.length > 0 && limpio !== PLANTILLA_CREDITO;
+}
 
 export function fotoSinCredito(ruta, leer = (r) => (existsSync(r) ? readFileSync(r, 'utf8') : '')) {
   return FOTO.test(ruta) && !creditoLleno(leer(join(dirname(ruta), 'credito.txt')));

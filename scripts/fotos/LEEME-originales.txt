@@ -1,0 +1,32 @@
+FOTOS ORIGINALES DE PRÓXIMO SAQUE
+
+Cómo se usa
+  1. Pega la foto en la carpeta de la jugadora, o en seleccion/.
+  2. Llena el credito.txt de esa carpeta: Foto: autor o cuenta — URL
+  3. Corre: npm run fotos
+
+Esta carpeta no se sube al repo. Sin crédito la foto no se publica: en el sitio sale con iniciales.
+Una carpeta lleva un solo crédito. Si no llenas el archivo y dejas la plantilla, cuenta como vacío.
+
+Cómo nombrar los archivos
+  Cualquier nombre y formato sirve, incluso HEIC del iPhone. Si hay varias fotos, el programa usa
+  la más vertical para la tarjeta y la más horizontal para el fondo.
+  Para decidirlo tú, pon una de estas palabras en el nombre del archivo:
+
+    Jugadora:   tarjeta, fondo, recorte
+    Selección:  hero, movil
+
+  Ejemplos: sofia-tarjeta.jpg, fondo-final-six.png, hero.jpg, movil.heic
+
+Tamaños mínimos recomendados
+  tarjeta   1000 × 1250, vertical 4:5, con la cara en el tercio de arriba
+  fondo     2000 px en su lado largo, con la jugadora hacia un lado
+  recorte   1600 px de alto
+  hero      2400 px de ancho, horizontal
+  movil     1080 × 1920, vertical
+
+  Si una foto queda por debajo, el programa avisa. No subas imágenes de más de 5 MB.
+
+Otras opciones
+  modelo.txt en la carpeta de una jugadora elige el recorte: general o portrait.
+  Revisa fotos-originales/vista-previa.jpg al terminar. El programa no quita marcas de agua.

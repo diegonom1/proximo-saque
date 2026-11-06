@@ -8,6 +8,7 @@ describe('creditoLleno', () => {
   it('distingue vacío de lleno', () => {
     expect(creditoLleno('Foto: FMVB — https://fmvb.org')).toBe(true);
     expect(creditoLleno('')).toBe(false);
+    expect(creditoLleno('Foto: autor o cuenta — URL\n')).toBe(false); // la plantilla sin llenar
     expect(creditoLleno('  \n')).toBe(false);
     expect(creditoLleno('﻿\n')).toBe(false);
   });
