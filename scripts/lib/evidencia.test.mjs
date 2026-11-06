@@ -91,6 +91,7 @@ describe('palabrasDe', () => {
   it('quita lo genérico y lo corto', () => expect(palabrasDe('Béziers Volley')).toEqual(['beziers']));
   it('"Le Cannet" es "cannet"', () => expect(palabrasDe('Le Cannet')).toEqual(['cannet']));
   it('sin palabras útiles usa el nombre', () => expect(palabrasDe('LA VC')).toEqual(['la vc']));
+  it('la marca de la liga no identifica a un equipo', () => expect(palabrasDe('LOVB Miami')).toEqual(['miami']));
   it('los nombres en chino se quedan', () => expect(palabrasDe('天津渤海银行')).toEqual(['天津渤海银行']));
 });
 
@@ -138,6 +139,16 @@ describe('fechasDeEquipo', () => {
   it('el estadio del club no es una fila suya (texto real de la CBV)', () => {
     const cbv = 'qua 18/11 · 21h00\nSANCOR SEGUROS VOLEI\nSSV\nDENTIL PRAIA CLUBE\nDPC\nJogo 35· Rodada 6\nGINÁSIO DO MACKENZIE· BELO HORIZONTE\nqui 19/11 · 18h30\nBATAVO MACKENZIE\nMEC\nBRUSQUE VÔLEI';
     expect(fechasDeEquipo(cbv, ['Batavo Mackenzie', 'Mackenzie'])).toEqual([['11-19']]);
+  });
+  it('ignora los torneos juveniles del menú de LOVB (página real)', () => {
+    const fechas = fechasDeEquipo(pagina('lovb-schedule.txt'), ['LOVB Miami', 'LOVB Miami Volleyball']).flat();
+    expect(fechas).not.toContain('12-05');
+  });
+  it('un encabezado juvenil no le da fecha a una fila', () => {
+    expect(fechasDeEquipo('Dec 5 HOLIDAY OPENER Girls Wisconsin\nLOVB Miami\nLOVB Austin', ['LOVB Miami'])).toEqual([]);
+  });
+  it('una categoría juvenil tampoco es fila del club', () => {
+    expect(fechasDeEquipo('Dec 5 Nancy U18 Béziers', ['Nancy'])).toEqual([]);
   });
   it('una mención sin fecha no cuenta', () => expect(fechasDeEquipo('Equipos\nNancy\nBéziers', ['Nancy'])).toEqual([]));
   it('la página real de spikelive trae todas las de Nancy', () => {

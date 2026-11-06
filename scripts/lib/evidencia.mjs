@@ -21,7 +21,9 @@ const NOMBRES = [...MES_DE.keys()].sort((a, b) => b.length - a.length).join('|')
 const DIA_MES = new RegExp(`(?<![\\d:.])(\\d{1,2})(?:er|o|º|°|st|nd|rd|th)?\\s+(?:de\\s+)?(${NOMBRES})\\b`, 'g');
 const MES_DIA = new RegExp(`\\b(${NOMBRES})\\.?\\s+(\\d{1,2})(?![\\d:])`, 'g');
 
-const GENERICAS = new Set(['volley', 'volei', 'volleyball', 'voleibol', 'pallavolo', 'club', 'clube', 'esporte', 'sport', 'deportivo', 'universidad', 'universidade', 'feminino', 'femenil', 'women', 'team', 'ball']);
+const GENERICAS = new Set(['lovb', 'volley', 'volei', 'volleyball', 'voleibol', 'pallavolo', 'club', 'clube', 'esporte', 'sport', 'deportivo', 'universidad', 'universidade', 'feminino', 'femenil', 'women', 'team', 'ball']);
+// Torneos juveniles: LOVB los lista en un menú de todas sus páginas. "Girls" a veces llega pegado a otra palabra.
+const JUVENIL = /youth|juvenil|girls|boys|\d ages\b|\bsub[- ]?\d{2}\b|\bu[- ]?\d{2}\b/;
 const LARGO_FILA = 300; // más largo ya no es una fila: es un párrafo o un texto sin saltos de línea
 const VENTANA = 120;
 const ARRIBA = 12; // cuánto se sube a buscar el encabezado de fecha del bloque
@@ -90,7 +92,7 @@ function fechasDeFila(lineas, fila) {
   const fechas = fechasEn(fila.texto);
   if (fechas.size || !fila.corta) return { fechas, encabezado: null };
   for (let i = fila.i - 1; i >= Math.max(0, fila.i - ARRIBA); i -= 1) {
-    if (lineas[i].length > LARGO_FILA) continue;
+    if (lineas[i].length > LARGO_FILA || JUVENIL.test(lineas[i])) continue;
     const delBloque = fechasEn(lineas[i]);
     if (delBloque.size) return { fechas: delBloque, encabezado: i };
   }
@@ -148,7 +150,7 @@ const SEDE = /\b(ginasio|gimnasio|arena|palasport|pala\s|estadio|stadium|coliseo
 export function fechasDeEquipo(texto, propio) {
   const lineas = normalizar(texto).split(/\n+/).map((l) => l.trim()).filter(Boolean);
   return filasDe(lineas, palabrasDe(propio))
-    .filter((f) => !(f.corta && SEDE.test(f.texto)))
+    .filter((f) => !(f.corta && SEDE.test(f.texto)) && !JUVENIL.test(f.texto))
     .map((f) => [...fechasDeFila(lineas, f).fechas])
     .filter((f) => f.length > 0);
 }

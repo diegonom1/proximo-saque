@@ -1226,6 +1226,12 @@ describe('calendario del club: lo que Gemini omite', () => {
     expect(await hay('2026-11-22')).toBe(true);
     expect(r.resumen).toContain('segunda lectura: sin respuesta');
   });
+  it('la fecha de hoy no cuenta: suele ser la de una noticia', async () => {
+    const noticia = 'Nov 05, 2026\nMikasa renueva con la liga\nUYBA Volley Busto Arsizio logo\nUYBA Volley Busto Arsizio';
+    const { llamadas, r } = await corre([{ clubId: 'uyba', partidos: [] }], noticia);
+    expect(llamadas).toHaveLength(1);
+    expect(r.resumen).not.toContain('Gemini no lo reportó');
+  });
   it('una fecha fuera del rango no cuenta como omitida', async () => {
     const { llamadas } = await corre([{ clubId: 'uyba', partidos: [] }], fila(4, 'Pasado'));
     expect(llamadas).toHaveLength(1);

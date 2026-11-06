@@ -180,7 +180,8 @@ export async function correr(ctx, clubId) {
 
   // Gemini a veces se queda en los partidos de `conocidos`: el calendario dice si le faltó alguno.
   const calendarios = [club.calendarioUrl, liga?.calendarioOficialUrl].map((u) => textos.get(normalizarUrl(u))).filter(Boolean);
-  const faltantes = () => fechasOmitidas(calendarios, propio, ctx.hoy, hasta, (respuesta.partidos ?? []).map((p) => p?.fecha));
+  // Desde mañana: la fecha de hoy en una página suele ser la de una noticia, y esas nunca son futuras.
+  const faltantes = () => fechasOmitidas(calendarios, propio, sumarDias(ctx.hoy, 1), hasta, (respuesta.partidos ?? []).map((p) => p?.fecha));
   if (faltantes().length > 0 && repetir) {
     try {
       const otra = await repetir({ fechasOmitidas: faltantes() });
