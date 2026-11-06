@@ -1,5 +1,6 @@
 ---
 import { getImage } from 'astro:assets';
+import Cintillo from './Cintillo.astro';
 import Cuenta from './Cuenta.astro';
 import type { ImageMetadata } from 'astro';
 import { partidos, paraCliente, seleccion } from '../lib/datos';
@@ -85,6 +86,7 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     <Cuenta />
     <p class="hero__envivo dato" data-envivo hidden>En juego</p>
   </div>
+  <Cintillo />
 </section>
 
 <script type="application/json" id="datos-hero" set:html={datosCliente} />
@@ -92,7 +94,9 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
 <script>
   import { elegirCompromiso, vistaHero, type LineaHero, type VistaHero } from '../lib/compromiso';
   import { SELECCION, separador } from '../lib/partido';
+  import { SplitText } from 'gsap/SplitText';
   import { escribirCompleta, escribirDias } from '../lib/cuenta';
+  import { conMovimiento, gsap } from '../lib/movimiento';
 
   const hero = document.querySelector<HTMLElement>('.hero');
   const { lista, torneo } = JSON.parse(document.getElementById('datos-hero')?.textContent ?? '{"lista":[],"torneo":null}');
@@ -144,8 +148,24 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     if (cuenta && c.modo === 'dias') escribirDias(cuenta, c.dias);
   }
 
-  pintar();
-  setInterval(pintar, 1000);
+  // Con la intro, la cuenta espera a que se abra la cortina para rodar a la vista.
+  const espera = document.documentElement.classList.contains('con-intro') ? 0.5 : 0;
+
+  setTimeout(() => {
+    pintar();
+    setInterval(pintar, 1000);
+  }, espera * 1000);
+
+  gsap.registerPlugin(SplitText);
+
+  // La fecha se arma dígito por dígito. Si el navegador la reescribe después, ya no se anima.
+  conMovimiento(() => {
+    const fecha = document.querySelector<HTMLElement>('.hero__fecha');
+    if (!fecha || fecha.hidden) return;
+    const { chars } = SplitText.create(fecha, { type: 'chars', mask: 'chars' });
+    gsap.set(fecha, { opacity: 1 });
+    gsap.fromTo(chars, { yPercent: 110 }, { yPercent: 0, stagger: 0.06, delay: espera });
+  });
 </script>
 
 <style>
@@ -193,7 +213,7 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
   }
 
   .hero[data-foto='panel']:has(.hero__foto) .hero__contenido {
-    padding-block: 8px 72px;
+    padding-block: 8px 76px;
   }
 
   .hero__sin-foto {
@@ -214,6 +234,11 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     position: relative;
     z-index: 1;
     padding-block: 96px 88px;
+  }
+
+  /* El motor la muestra cuando la parte en dígitos. */
+  :global(.con-movimiento) .hero__fecha {
+    opacity: 0;
   }
 
   .hero__etiqueta {
@@ -330,7 +355,7 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     }
 
     .hero[data-foto='panel']:has(.hero__foto) .hero__contenido {
-      padding-block: calc(min(var(--foto-ancho), 100vw) / 2.09 * 0.84) 48px;
+      padding-block: calc(min(var(--foto-ancho), 100vw) / 2.09 * 0.84) 72px;
     }
 
     .hero[data-foto='panel'] .hero__fecha {

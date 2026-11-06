@@ -1,0 +1,148 @@
+---
+// Franja de TV con los próximos partidos. Repite lo de "Esta semana", así que es decorativa para los
+// lectores de pantalla y con prefers-reduced-motion no se muestra. Corre con CSS, sin JavaScript.
+import { jugadorasDe, partidos } from '../lib/datos';
+import { tituloPartido } from '../lib/partido';
+import { diaCorto, hora, msDe, vigentes } from '../lib/tiempo';
+import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
+
+const lista = vigentes(partidos, Date.now()).slice(0, 8).map((p) => ({
+  inicio: p.inicio,
+  confirmada: p.horaConfirmada,
+  dia: diaCorto(msDe(p), ZONA_SITIO),
+  hora: p.horaConfirmada ? hora(msDe(p), ZONA_SITIO) : 'Por confirmar',
+  texto: tituloPartido(p, jugadorasDe(p).map((j) => j.nombre)),
+}));
+---
+
+{
+  lista.length > 0 && (
+    <div class="cintillo" data-cintillo>
+      <p class="dato cintillo__rotulo">Próximos</p>
+      <div class="cintillo__ventana" aria-hidden="true">
+        <div class="cintillo__riel">
+          {[0, 1].map(() => (
+            <ul>
+              {lista.map((p) => (
+                <li data-cintillo-partido data-inicio={p.inicio} data-confirmada={String(p.confirmada)}>
+                  <span class="dato" data-dia>{p.dia}</span>
+                  <span class="dato" data-hora>{p.hora}</span>
+                  <span>{p.texto}</span>
+                </li>
+              ))}
+            </ul>
+          ))}
+        </div>
+      </div>
+      <button type="button" class="cintillo__pausa" aria-pressed="false" aria-label="Pausar el cintillo" data-cintillo-pausa>
+        <span aria-hidden="true">❚❚</span>
+      </button>
+    </div>
+  )
+}
+
+<script>
+  import { diaCorto, hora } from '../lib/tiempo';
+  import { DURACION_MS } from '../../scripts/lib/tiempo.mjs';
+
+  const cintillo = document.querySelector<HTMLElement>('[data-cintillo]');
+  const pausa = cintillo?.querySelector<HTMLButtonElement>('[data-cintillo-pausa]');
+
+  // El sitio se construye dos veces por semana: el navegador quita lo jugado y pone su hora.
+  for (const el of document.querySelectorAll<HTMLElement>('[data-cintillo-partido]')) {
+    const ms = Date.parse(el.dataset.inicio ?? '');
+    el.hidden = ms + DURACION_MS <= Date.now();
+    const dia = el.querySelector('[data-dia]');
+    const horaEl = el.querySelector('[data-hora]');
+    if (dia) dia.textContent = diaCorto(ms);
+    if (horaEl && el.dataset.confirmada === 'true') horaEl.textContent = hora(ms);
+  }
+
+  pausa?.addEventListener('click', () => {
+    const pausado = pausa.getAttribute('aria-pressed') !== 'true';
+    pausa.setAttribute('aria-pressed', String(pausado));
+    cintillo?.classList.toggle('cintillo--pausado', pausado);
+  });
+</script>
+
+<style>
+  .cintillo {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 2;
+    display: flex;
+    align-items: stretch;
+    height: 44px;
+    background: var(--papel);
+    color: var(--tinta);
+  }
+
+  .cintillo__rotulo {
+    display: flex;
+    flex: none;
+    align-items: center;
+    padding-inline: 14px;
+    background: var(--rojo);
+    color: var(--papel);
+  }
+
+  .cintillo__ventana {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .cintillo__riel {
+    display: flex;
+    width: max-content;
+    height: 100%;
+    animation: cintillo 50s linear infinite;
+  }
+
+  .cintillo:hover .cintillo__riel,
+  .cintillo--pausado .cintillo__riel {
+    animation-play-state: paused;
+  }
+
+  ul {
+    display: flex;
+    align-items: center;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-inline: 20px;
+    border-right: 1px solid var(--linea);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  li .dato {
+    color: var(--gris);
+  }
+
+  .cintillo__pausa {
+    flex: none;
+    width: 44px;
+    background: var(--tinta);
+    border: 0;
+    color: var(--papel);
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+
+  @keyframes cintillo {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cintillo {
+      display: none;
+    }
+  }
+</style>
