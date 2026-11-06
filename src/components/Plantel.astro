@@ -11,7 +11,7 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
     </div>
   </div>
   <ul class="carrusel" tabindex="0" aria-label="Seleccionadas" data-carrusel>
-    {activas.map((jugadora, indice) => <li><TarjetaJugadora jugadora={jugadora} indice={indice} /></li>)}
+    {activas.map((jugadora) => <li><TarjetaJugadora jugadora={jugadora} /></li>)}
   </ul>
 </section>
 
@@ -29,14 +29,17 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
     });
   }
 
-  import('../lib/movimiento').then(({ conMovimiento, contar, gsap, ponerEnCero, rellenar, ScrollTrigger }) => {
+  import('../lib/movimiento').then(({ conMovimiento, contar, gsap, ponerEnCero, rellenar, ScrollTrigger, varianteDe }) => {
     // Al pasar, el apellido se rellena y el número cuenta; al irse, regresa.
     function momentoDe(tarjeta: HTMLElement, moverApellido: boolean) {
       const apellido = tarjeta.querySelector<HTMLElement>('[data-tarjeta-apellido]');
       const numero = tarjeta.querySelector<HTMLElement>('[data-contar]');
+      const recorte = tarjeta.querySelector('[data-tarjeta-recorte]');
       if (!apellido) return null;
       const momento = rellenar(apellido, { paused: true });
       if (moverApellido) momento.fromTo(apellido, { xPercent: 6 }, { xPercent: -14 }, 0);
+      // El recorte llega a su lugar con el movimiento de su variante.
+      if (recorte) momento.fromTo(recorte, varianteDe(tarjeta).tarjeta, { xPercent: 0, yPercent: 0, rotation: 0, scale: 1 }, 0);
       if (numero) {
         ponerEnCero(numero);
         momento.add(contar(numero), 0);

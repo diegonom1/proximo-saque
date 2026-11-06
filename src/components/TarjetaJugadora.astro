@@ -10,10 +10,9 @@ import { modoDeFoto } from '../lib/tratamiento';
 
 interface Props {
   jugadora: Jugadora;
-  indice: number;
 }
 
-const { jugadora: j, indice } = Astro.props;
+const { jugadora: j } = Astro.props;
 const { tarjeta, fondo, recorte } = fotosJugadora(j.slug);
 const foto = tarjeta ?? fondo; // sin retrato, un recorte de la foto de fondo
 const conRecorte = modoDeFoto(j.fotos.tratamiento, { fondo, recorte }) === 'recorte' && recorte;
@@ -21,8 +20,8 @@ const club = j.clubId ? clubes[j.clubId]?.nombre : null;
 const texto = apellido(j.nombre);
 ---
 
-<a class="tarjeta" href={ruta(`jugadoras/${j.slug}`)} data-tarjeta>
-  <div class="tarjeta__foto" data-bloque={indice % 2 === 0 ? 'tinta' : 'rojo'} data-orilla={j.fotos.orilla ?? undefined}>
+<a class="tarjeta" href={ruta(`jugadoras/${j.slug}`)} data-tarjeta data-color={j.fotos.color ?? 'rojo'} data-variante={j.fotos.variante ?? 'profundidad'}>
+  <div class="tarjeta__foto" data-orilla={j.fotos.orilla ?? undefined}>
     {
       conRecorte ? (
         <>
@@ -39,6 +38,7 @@ const texto = apellido(j.nombre);
             widths={anchosPara(conRecorte, [320, 480, 640])}
             sizes="(min-width: 1024px) 340px, 72vw"
             data-foto-vt={j.slug}
+            data-tarjeta-recorte
           />
           {j.numero !== null && <span class="tarjeta__marcador" data-contar={j.numero} data-contar-manual aria-hidden="true">{j.numero}</span>}
         </>
@@ -77,12 +77,8 @@ const texto = apellido(j.nombre);
     position: relative;
     aspect-ratio: 4 / 5;
     overflow: hidden;
-    background: var(--tinta);
+    background: var(--bloque);
     container-type: inline-size;
-  }
-
-  .tarjeta__foto[data-bloque='rojo'] {
-    background: var(--rojo);
   }
 
   .tarjeta__foto :global(.tarjeta__retrato) {
@@ -117,10 +113,12 @@ const texto = apellido(j.nombre);
     margin-inline: auto;
     object-fit: contain;
     object-position: bottom;
+    transform-origin: 50% 100%;
   }
 
   .tarjeta__foto[data-orilla='derecha'] :global(.tarjeta__recorte) {
     margin-right: 0;
+    transform-origin: 100% 100%;
   }
 
   .tarjeta__marcador {

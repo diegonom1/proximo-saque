@@ -70,7 +70,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
 ---
 
 <Base titulo={`${j.nombre} | Próximo Saque`} descripcion={`Próximo partido, club y logros de ${j.nombre}, seleccionada mexicana de voleibol.`}>
-  <section class="portada" data-modo={modo} data-orilla={j.fotos.orilla ?? undefined} style={estiloPortada} aria-labelledby="nombre" data-portada>
+  <section class="portada" data-modo={modo} data-orilla={j.fotos.orilla ?? undefined} data-color={j.fotos.color ?? 'rojo'} data-variante={j.fotos.variante ?? 'profundidad'} style={estiloPortada} aria-labelledby="nombre" data-portada>
     {j.numero !== null && <span class="portada__numero" aria-hidden="true" data-portada-numero>{j.numero}</span>}
     {
       (modo === 'recorte' || modo === 'sin-foto') && (
@@ -339,7 +339,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
   pintar();
   setInterval(pintar, 1000);
 
-  import('../../lib/movimiento').then(({ capa, conMovimiento, gsap, rellenar, revelar }) => conMovimiento(() => {
+  import('../../lib/movimiento').then(({ capa, conMovimiento, gsap, rellenar, revelar, varianteDe }) => conMovimiento(() => {
     const portada = document.querySelector<HTMLElement>('[data-portada]');
     const apellido = document.querySelector<HTMLElement>('[data-portada-apellido]');
     const recorte = document.querySelector('[data-portada-recorte]');
@@ -351,13 +351,13 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
 
     revelar(texto, { delay: 0.1 });
     const scroll = { trigger: portada, start: 'top top', end: 'bottom top' };
+    const variante = varianteDe(portada);
     if (apellido) {
       rellenar(apellido, { delay: 0.2 });
-      // Profundidad: el apellido se va de lado, el número sube y el recorte se queda atrás.
-      capa(apellido, { xPercent: 0 }, { xPercent: -24 }, scroll);
+      capa(apellido, ...variante.apellido, scroll);
     }
-    if (numero) capa(numero, { yPercent: 0 }, { yPercent: -18 }, scroll);
-    if (recorte) capa(recorte, { yPercent: 0 }, { yPercent: 14 }, scroll);
+    if (numero) capa(numero, ...variante.numero, scroll);
+    if (recorte) capa(recorte, ...variante.recorte, scroll);
     if (linea && trayectoria) {
       gsap.fromTo(linea, { scaleY: 0 }, { scaleY: 1, ease: 'none', scrollTrigger: { trigger: trayectoria, start: 'top 80%', end: 'bottom 55%', scrub: true } });
     }
@@ -384,6 +384,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
 
   .portada__numero {
     position: absolute;
+    transform-origin: 100% 100%;
     right: -0.04em;
     bottom: -0.1em;
     color: transparent;
@@ -407,6 +408,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
 
     top: 72px;
     left: var(--gutter);
+    transform-origin: 0 50%;
     font-family: var(--fuente-display);
     font-size: clamp(11rem, 46vw, 26rem);
     font-weight: 900;
@@ -481,7 +483,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
 
   /* Recorte: la jugadora sobre un bloque de color, con apellido y número detrás. */
   .portada[data-modo='recorte'] {
-    background: var(--rojo);
+    background: var(--bloque);
   }
 
   .portada[data-modo='recorte'] .portada__numero {
@@ -489,7 +491,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
   }
 
   /* El botón rojo se perdería sobre el bloque rojo. */
-  :global(body:has(.portada[data-modo='recorte']) .encabezado .agenda) {
+  :global(body:has(.portada[data-modo='recorte'][data-color='rojo']) .encabezado .agenda) {
     background: var(--tinta);
   }
 
@@ -502,11 +504,13 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
     align-items: flex-end;
     justify-content: center;
     height: min(80%, var(--foto-alto));
+    transform-origin: 50% 100%;
   }
 
   /* Su foto termina a media cadera: pegada a la orilla, el corte queda fuera de la pantalla. */
   .portada[data-orilla='derecha'] .portada__capa-recorte {
     justify-content: flex-end;
+    transform-origin: 100% 100%;
   }
 
   .portada__capa-recorte :global(picture) {

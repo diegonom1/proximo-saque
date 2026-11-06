@@ -97,6 +97,8 @@ Cualquier campo puede ser `null`. En pantalla, `null` se muestra como "Por confi
 - `fotos.foco`: `object-position` para recortar bien en cualquier pantalla. Los créditos salen de `credito.txt`.
 - `fotos.tratamiento`: `completa` | `duotono` | `recorte` | `null` (ver "Tratamientos" en Fotos).
 - `fotos.orilla`: `derecha` | `null`. Pega el recorte a esa orilla, en la tarjeta y en el perfil, para ocultar un corte de la foto.
+- `fotos.variante`: `profundidad` | `izquierda` | `derecha` | `acerca` | `null` (ver "Variantes" en Animaciones). Con `null`, `profundidad`.
+- `fotos.color`: `negro` | `rojo` | `verde` | `carbon` | `null`. El bloque de su tarjeta y su perfil. Con `null`, `rojo`. Se elige contra su jersey: nadie rojo sobre rojo ni verde sobre verde.
 - `revisado`: fecha del último cambio que trajo el agente de perfil. La rotación usa `estado-agentes.json`.
 
 ### `data/clubes.json` (objeto por id)
@@ -369,10 +371,19 @@ Todo sale de cuatro recursos (`src/lib/movimiento.ts`) con la misma curva y dura
 | Hero | La fecha se arma dígito por dígito, la cuenta rueda y corre el cintillo (CSS). |
 | La Selección en números, Rankings | Lugar, puntos y cifras cuentan desde 0 al aparecer. |
 | Plantilla | Escritorio: scroll horizontal fijado y el apellido va contra el riel. Celular: carrusel con snap. Al pasar, el apellido se rellena y el número cuenta. |
-| Perfil | El recorte crece desde la tarjeta (View Transitions, `foto-<slug>`), el apellido se desliza y el recorte va más lento. Edad, estatura y número cuentan. La trayectoria es una línea que se dibuja. |
+| Perfil | El recorte crece desde la tarjeta (View Transitions, `foto-<slug>`) y al hacer scroll se mueve según su variante. Edad, estatura y número cuentan. La trayectoria es una línea que se dibuja. |
 | Torneos | Un brillo cruza cada medalla. |
 | Agenda | Las filas salen de atrás de su borde, escalonadas. El filtro las repite y los partidos de la Selección llevan un barrido rojo. |
 | Títulos de sección | Gigantes, en contorno, se rellenan con el scroll. |
+
+Variantes: cada jugadora tiene una fija (`fotos.variante`, tabla `VARIANTES`), igual en su tarjeta y en su perfil. En el perfil se mueve con el scroll; en la tarjeta, el recorte llega a su lugar al pasar.
+
+| Variante | Movimiento del recorte |
+|---|---|
+| `profundidad` | Se queda atrás mientras el apellido se va de lado y el número sube: se siente en 3D. |
+| `izquierda` | Sale hacia la izquierda y el apellido se resiste. |
+| `derecha` | Va hacia la derecha con un giro leve. |
+| `acerca` | Se acerca mientras el apellido y el número se alejan. |
 
 Reglas:
 
@@ -400,7 +411,7 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 - **Tratamientos** (`fotos.tratamiento`, `src/lib/tratamiento.ts`), para el hero del perfil y la tarjeta de la Plantilla. Ninguna foto se muestra más grande que su tamaño real, y no se usa IA para agrandarlas ni para inventar detalle.
   - `completa`: `fondo.jpg` a pantalla completa. Solo si llega a 2000 px en su lado largo; si no, el sitio usa `duotono`.
   - `duotono`: `fondo.jpg` en tinta y rojo con grano, en un panel en celular y a media pantalla en escritorio.
-  - `recorte`: `recorte.png` sobre un bloque rojo, con el apellido gigante y el número en contorno detrás. Es el tratamiento de la plantilla, porque la fase 6 juega con su nombre y su foto recortada. Solo si el recorte quedó bien; si no hay archivo, el sitio usa `duotono`.
+  - `recorte`: `recorte.png` sobre el bloque de su color (`fotos.color`), con el apellido gigante y el número en contorno detrás. Es el tratamiento de la plantilla, porque la fase 6 juega con su nombre y su foto recortada. Solo si el recorte quedó bien; si no hay archivo, el sitio usa `duotono`.
   - Con `null` va `duotono`. Una alta nueva entra así hasta que alguien le asigne otro.
 - Si falta una foto: tarjeta con iniciales y número en contorno; perfil con fondo de color y nombre gigante.
 - Si solo existe `fondo.jpg`, la tarjeta usa un recorte de esa misma foto con `fotos.foco`.

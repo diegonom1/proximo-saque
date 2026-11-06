@@ -41,7 +41,7 @@ export const esquemaJugadora = z.strictObject({
   historialClubes: z.array(z.strictObject({ club: texto, pais: textoN, temporada: textoN, fuente: urlN })),
   redes: z.array(z.strictObject({ red: z.enum(['instagram', 'tiktok', 'x', 'facebook', 'youtube']), url, fuente: url })),
   destacados: z.array(z.strictObject({ texto, anio: z.number().int().nullable(), fuente: url })),
-  fotos: z.strictObject({ foco: textoN, tratamiento: z.enum(['completa', 'duotono', 'recorte']).nullish(), orilla: z.enum(['derecha']).nullish() }),
+  fotos: z.strictObject({ foco: textoN, tratamiento: z.enum(['completa', 'duotono', 'recorte']).nullish(), orilla: z.enum(['derecha']).nullish(), variante: z.enum(['profundidad', 'izquierda', 'derecha', 'acerca']).nullish(), color: z.enum(['negro', 'rojo', 'verde', 'carbon']).nullish() }),
   ultimaListaOficial: z.strictObject({ torneo: texto, fecha: fechaN, fuente: urlN }).nullable(),
   fuentes: z.record(z.string(), url),
   revisado: fechaN,

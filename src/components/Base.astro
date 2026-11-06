@@ -97,6 +97,23 @@ const {
     color-scheme: light;
   }
 
+  /* Bloques de las jugadoras: siempre oscuros, para que el apellido blanco se lea. */
+  [data-color] {
+    --bloque: var(--rojo);
+  }
+
+  [data-color='negro'] {
+    --bloque: #08080a;
+  }
+
+  [data-color='verde'] {
+    --bloque: #0f4a37;
+  }
+
+  [data-color='carbon'] {
+    --bloque: #303237;
+  }
+
   @view-transition {
     navigation: auto;
   }
