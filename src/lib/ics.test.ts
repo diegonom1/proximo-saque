@@ -4,7 +4,7 @@ import { doblar, escapar, generarIcs, type EventoIcs } from './ics';
 const evento: EventoIcs = {
   id: 'club-sesi-bauru-2026-11-07', tipo: 'club', inicio: '2026-11-07T21:00:00-03:00', horaConfirmada: true,
   local: 'Sesi Vôlei Bauru', visitante: 'E.C. Pinheiros', competencia: 'Superliga Feminina · Rodada 4', sede: 'Bauru',
-  fuente: 'https://cbv.com.br/tabela', jugadoras: ['Sofía Maldonado'], dondeVer: ['Canal Vôlei'],
+  fuente: 'https://cbv.com.br/tabela', jugadoras: ['Sofía Maldonado'],
 };
 const ACTUALIZADO = '2026-11-04T19:40:00-06:00';
 const lineas = (texto: string) => texto.replace(/\r\n /g, '').split('\r\n');
@@ -48,8 +48,8 @@ describe('generarIcs', () => {
   it('el título es el texto del partido sin la hora', () => {
     expect(lineas(salida)).toContain('SUMMARY:Sofía Maldonado · Sesi Vôlei Bauru vs E.C. Pinheiros');
   });
-  it('los detalles llevan competencia, dónde verlo y fuente', () => {
-    expect(lineas(salida)).toContain('DESCRIPTION:Superliga Feminina · Rodada 4\\nDónde verlo: Canal Vôlei\\nFuente: https://cbv.com.br/tabela');
+  it('los detalles llevan competencia y fuente', () => {
+    expect(lineas(salida)).toContain('DESCRIPTION:Superliga Feminina · Rodada 4\\nFuente: https://cbv.com.br/tabela');
   });
   it('en la Selección el título dice Selección Mexicana', () => {
     const l = lineas(generarIcs('x', [{ ...evento, tipo: 'seleccion', local: 'México', visitante: 'Perú', jugadoras: [] }], ACTUALIZADO));
@@ -62,7 +62,7 @@ describe('generarIcs', () => {
     expect(l.find((x) => x.startsWith('DESCRIPTION'))).toContain('Hora por confirmar');
   });
   it('omite lo que falta', () => {
-    const l = lineas(generarIcs('x', [{ ...evento, competencia: null, sede: null, fuente: null, dondeVer: [] }], ACTUALIZADO));
+    const l = lineas(generarIcs('x', [{ ...evento, competencia: null, sede: null, fuente: null }], ACTUALIZADO));
     expect(l.some((x) => x.startsWith('DESCRIPTION'))).toBe(false);
     expect(l.some((x) => x.startsWith('LOCATION'))).toBe(false);
   });

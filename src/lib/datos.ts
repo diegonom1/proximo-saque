@@ -40,13 +40,6 @@ export const activas = jugadoras.filter((j) => j.estado === 'activa');
 // Partidos de una jugadora: los de su club y los de la Selección a los que fue convocada.
 export const partidosDe = (slug: string) => partidos.filter((p) => jugadorasDe(p).some((j) => j.slug === slug));
 
-// Dónde verlo: lo que publica la fuente del partido y las plataformas de su liga o del torneo.
-export function dondeVer(p: Partido) {
-  const generales = p.tipo === 'seleccion' ? seleccion.plataformas : (p.ligaId ? ligas[p.ligaId]?.plataformas ?? [] : []);
-  const lista = [...p.transmision.map((t) => ({ ...t, tipo: 'streaming' as const })), ...generales];
-  return lista.filter((x, i) => lista.findIndex((y) => y.url === x.url) === i);
-}
-
 export const eventoIcs = (p: Partido): EventoIcs => ({
   id: p.id,
   tipo: p.tipo,
@@ -58,7 +51,6 @@ export const eventoIcs = (p: Partido): EventoIcs => ({
   sede: p.sede,
   fuente: p.fuente,
   jugadoras: jugadorasDe(p).map((j) => j.nombre),
-  dondeVer: dondeVer(p).map((x) => x.nombre),
 });
 
 // Solo lo que el navegador necesita para mantener al día el hero y el botón flotante.

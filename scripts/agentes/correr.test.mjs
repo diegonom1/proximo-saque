@@ -19,7 +19,6 @@ const VACIAS = {
   '01-plantel': { listas: [], ultimasApariciones: [], bajas: [], entrenador: null, dudas: [] },
   '02-perfil': (clave) => ({ slug: clave }),
   '03-partidos-club': (clave) => ({ clubId: clave, partidos: [] }),
-  '05-donde-ver': { plataformas: [] },
 };
 
 let dir;
@@ -433,36 +432,6 @@ describe('partidos de club', () => {
   });
 });
 
-describe('dónde ver', () => {
-  const plataforma = { nombre: 'Canal', tipo: 'youtube', url: 'https://www.youtube.com/@x', alcance: 'mundial', costo: 'gratis', notas: null, fuente: 'https://www.youtube.com/@x', confianza: 'alta' };
-  const dondeVer = (extra = {}) => ({ '05-donde-ver': { temporada: '2026-27', plataformas: [plataforma], ...extra } });
-
-  it('máximo 2 por corrida', async () => {
-    const llamar = llamarCon(dondeVer());
-    await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA });
-    expect(llamar.llamadas.filter((l) => l.agente === '05-donde-ver')).toHaveLength(2);
-  });
-  it('guarda la plataforma y la avisa en el PR', async () => {
-    const r = await ejecutar(dondeVer());
-    const conPlataforma = Object.values(await leer('ligas.json')).filter((l) => l.plataformas.length);
-    expect(conPlataforma).toHaveLength(2);
-    expect(conPlataforma[0].plataformas[0]).toMatchObject({ nombre: 'Canal', revisado: '2026-11-05' });
-    expect(conPlataforma[0].plataformas[0].confianza).toBeUndefined();
-    expect(r.cuerpoPr).toContain('## Plataformas nuevas');
-  });
-  it('a la semana siguiente sigue con las que faltan', async () => {
-    await ejecutar(dondeVer());
-    const llamar = llamarCon(dondeVer());
-    await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA + 7 * 864e5 });
-    const conPlataforma = Object.values(await leer('ligas.json')).filter((l) => l.plataformas.length);
-    expect(conPlataforma).toHaveLength(4);
-  });
-  it('sin fuente verificable no entra', async () => {
-    await ejecutar(dondeVer({ plataformas: [{ ...plataforma, fuente: 'https://inventada.com/x' }] }));
-    expect(Object.values(await leer('ligas.json')).every((l) => l.plataformas.length === 0)).toBe(true);
-  });
-});
-
 describe('orquestador', () => {
   it('corre en el orden acordado', async () => {
     const llamar = llamarCon();
@@ -470,7 +439,7 @@ describe('orquestador', () => {
     await cambiar('partidos.json', (d) => { d.partidos = []; });
     await correr({ dirDatos: dir, dirFotos: fotos, llamar, verificar: crearVerificador({ red: false }), ahora: AHORA, maxLlamadas: 99 });
     const orden = [...new Set(llamar.llamadas.map((l) => l.agente))];
-    expect(orden).toEqual(['06-rankings', '04-seleccion-torneos', '01-plantel', '02-perfil', '03-partidos-club', '05-donde-ver']);
+    expect(orden).toEqual(['06-rankings', '04-seleccion-torneos', '01-plantel', '02-perfil', '03-partidos-club']);
   });
   it('lo que no cabe queda pendiente y va primero la semana siguiente', async () => {
     const r = await ejecutar({}, { maxLlamadas: 5 });
@@ -545,9 +514,9 @@ describe('orquestador', () => {
     expect(r.cambiados).not.toContain('ligas.json');
   });
   it('separa lo que va a Pull Request', async () => {
-    const r = await ejecutar({ '05-donde-ver': { temporada: '2026-27', plataformas: [] } });
+    const r = await ejecutar(plantel({ listas: [lista([{ nombre: 'Rosa Hernández', slug: null }])] }));
     expect(r.hayPr).toBe(true);
-    expect(r.cambiados).toContain('ligas.json');
+    expect(r.cambiados).toContain('jugadoras.json');
   });
   it('lo que se guarda directo sigue siendo válido con los archivos del PR sin aprobar', async () => {
     const original = Object.fromEntries(await Promise.all(['jugadoras', 'clubes', 'ligas', 'torneos'].map(async (n) => [n, await leer(`${n}.json`)])));

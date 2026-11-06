@@ -1,10 +1,9 @@
 ---
 // Un partido en el perfil. El navegador decide cuál es el próximo y mueve cada uno a su lugar.
 import Cuenta from './Cuenta.astro';
-import DondeVer from './DondeVer.astro';
 import LineaPartido from './LineaPartido.astro';
 import type { Partido } from '../lib/datos';
-import { dondeVer, jugadorasDe, ligas } from '../lib/datos';
+import { jugadorasDe, ligas } from '../lib/datos';
 import { enlaceGoogleCalendar } from '../lib/calendario';
 import { diaCorto, horaDelLugar, msDe } from '../lib/tiempo';
 import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
@@ -15,8 +14,7 @@ interface Props {
 }
 
 const { partido: p, oculto = false } = Astro.props;
-const plataformas = dondeVer(p);
-const calendario = enlaceGoogleCalendar(p, { jugadoras: jugadorasDe(p).map((j) => j.nombre), dondeVer: plataformas.map((x) => x.nombre) });
+const calendario = enlaceGoogleCalendar(p, { jugadoras: jugadorasDe(p).map((j) => j.nombre) });
 const alla = p.horaConfirmada ? horaDelLugar(p) : null;
 const liga = p.ligaId ? ligas[p.ligaId] : null;
 ---
@@ -37,7 +35,6 @@ const liga = p.ligaId ? ligas[p.ligaId] : null;
       <a class="boton" href={calendario} target="_blank" rel="noopener">Agregar a Google Calendar</a>
       {liga?.calendarioOficialUrl && <a class="enlace" href={liga.calendarioOficialUrl} target="_blank" rel="noopener">Calendario oficial de la liga</a>}
     </div>
-    <DondeVer partido={p} />
   </div>
 </article>
 

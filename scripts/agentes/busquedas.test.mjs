@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dominiosConfiables, planDondeVer, planPartidos, planPerfil, planLista, planProximo, planRankings, planTorneo } from './busquedas.mjs';
+import { dominiosConfiables, planPartidos, planPerfil, planLista, planProximo, planRankings, planTorneo } from './busquedas.mjs';
 
 const ctx = { hoy: '2026-11-05', datos: { torneos: { torneos: [{ nombre: 'Campeonato Mundial', edicion: 2025, fechaInicio: '2025-08-22', fechaFin: '2025-09-07' }] } } };
 const club = (pais, nombre, alias = []) => ({ pais, nombre, alias, calendarioUrl: null, sitio: null });
@@ -65,8 +65,5 @@ describe('otros planes', () => {
     const club = { nombre: 'Club', alias: [], pais: 'Brasil', calendarioUrl: null };
     expect(planPartidos(ctx, club, { nombre: 'Liga', calendarioOficialUrl: 'https://cbv.com.br/' }).paginas).toEqual([]);
     expect(planPartidos(ctx, club, { nombre: 'Liga', calendarioOficialUrl: 'https://cbv.com.br/superliga' }).paginas).toEqual(['https://cbv.com.br/superliga']);
-  });
-  it('dónde ver lee el calendario oficial', () => {
-    expect(planDondeVer(ctx, { nombre: 'Liga' }, { calendarioOficialUrl: 'https://a.mx/c' }).paginas).toEqual(['https://a.mx/c']);
   });
 });

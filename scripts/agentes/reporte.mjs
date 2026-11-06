@@ -1,6 +1,6 @@
 // Lo que encontró y descartó cada agente, para el resumen de la corrida y el cuerpo del PR.
 
-export const SECCIONES = ['Altas', 'Bajas', 'Cambios de club', 'Plataformas nuevas', 'Torneos nuevos', 'Perfiles'];
+export const SECCIONES = ['Altas', 'Bajas', 'Cambios de club', 'Torneos nuevos', 'Perfiles'];
 
 export function crearReporte() {
   const agentes = new Map();

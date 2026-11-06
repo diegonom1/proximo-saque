@@ -14,11 +14,11 @@ describe('enlaceGoogleCalendar', () => {
     expect(q.get('dates')).toBe('20261108T000000Z/20261108T020000Z');
     expect(q.get('location')).toBe('Bauru');
   });
-  it('lleva título, competencia, dónde verlo y fuente', () => {
-    const q = leer(enlaceGoogleCalendar(partido, { jugadoras: ['Sofía Maldonado'], dondeVer: ['Canal Vôlei Brasil'] }));
+  it('lleva título, competencia y fuente, sin dónde verlo', () => {
+    const q = leer(enlaceGoogleCalendar(partido, { jugadoras: ['Sofía Maldonado'] }));
     expect(q.get('text')).toBe('Sofía Maldonado · Sesi Vôlei Bauru vs E.C. Pinheiros');
     expect(q.get('details')).toBe([
-      'Superliga Feminina · Rodada 4', 'Dónde verlo: Canal Vôlei Brasil', 'Fuente: https://cbv.com.br/tabela',
+      'Superliga Feminina · Rodada 4', 'Fuente: https://cbv.com.br/tabela',
     ].join('\n'));
   });
   it('en la Selección el título dice Selección Mexicana', () => {

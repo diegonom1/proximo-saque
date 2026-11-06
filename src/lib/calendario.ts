@@ -15,18 +15,16 @@ interface EventoPartido {
 
 interface Extras {
   jugadoras?: string[]; // nombres de las seleccionadas
-  dondeVer?: string[]; // nombres de las plataformas
 }
 
 const DOS_HORAS = 2 * 36e5;
 const formatoGoogle = (ms: number) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 
-export function enlaceGoogleCalendar(p: EventoPartido, { jugadoras = [], dondeVer = [] }: Extras = {}) {
+export function enlaceGoogleCalendar(p: EventoPartido, { jugadoras = [] }: Extras = {}) {
   const ms = Date.parse(p.inicio);
   const detalles = [
     p.competencia,
     !p.horaConfirmada && 'Hora por confirmar',
-    dondeVer.length > 0 && `Dónde verlo: ${dondeVer.join(', ')}`,
     p.fuente && `Fuente: ${p.fuente}`,
   ].filter(Boolean).join('\n');
   return 'https://calendar.google.com/calendar/render?action=TEMPLATE'

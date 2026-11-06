@@ -13,7 +13,6 @@ export interface EventoIcs {
   sede: string | null;
   fuente: string | null;
   jugadoras: string[];
-  dondeVer: string[];
 }
 
 const DOS_HORAS = 2 * 36e5;
@@ -59,7 +58,6 @@ function lineasEvento(e: EventoIcs, sello: string) {
   const detalles = [
     e.competencia,
     !e.horaConfirmada && 'Hora por confirmar',
-    e.dondeVer.length > 0 && `Dónde verlo: ${e.dondeVer.join(', ')}`,
     e.fuente && `Fuente: ${e.fuente}`,
   ].filter(Boolean).join('\n');
   return [

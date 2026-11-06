@@ -1,6 +1,6 @@
 # Próximo Saque v2
 
-Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (categoría mayor, sala) y a cada seleccionada con su club: próximo partido con cuenta regresiva, dónde verlo, agenda unificada, rankings y últimos torneos. Los datos se actualizan solos cada lunes con búsquedas en código (Tavily), agentes de IA (Gemini) y reglas en código.
+Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (categoría mayor, sala) y a cada seleccionada con su club: próximo partido con cuenta regresiva, agenda unificada, rankings y últimos torneos. Los datos se actualizan solos cada lunes con búsquedas en código (Tavily), agentes de IA (Gemini) y reglas en código.
 
 > Este archivo es para Claude Code. La lógica del proyecto se definió fuera de aquí; este documento es el contrato. Si algo no está aquí, pregunta antes de inventarlo.
 
@@ -136,13 +136,7 @@ Cualquier campo puede ser `null`. En pantalla, `null` se muestra como "Por confi
 }
 ```
 
-Cada plataforma (la llena el agente 05):
-
-```json
-{ "nombre": "Nombre de la plataforma", "tipo": "youtube", "url": "https://www.youtube.com/@canal", "alcance": "mundial", "costo": "gratis", "notas": null, "fuente": "https://...", "revisado": "2026-11-09" }
-```
-
-`tipo`: `youtube` | `streaming` | `tv` | `app` (el icono sale de Simple Icons según el nombre o el dominio, con uno genérico por tipo). `costo`: `gratis` | `pago` | `null`.
+`plataformas`: se conserva vacío o con lo que ya había. El sitio ya no muestra dónde ver y el agente 05 se apagó.
 
 ### `data/partidos.json`
 
@@ -193,7 +187,7 @@ Cada plataforma (la llena el agente 05):
 }
 ```
 
-`proximoTorneo`: `{ "id", "nombre", "edicion", "ciudad", "pais", "fechaInicio", "fechaFin", "fuente" }`. `plataformas`: dónde ver ese torneo (agente 05), mismo formato que en ligas.
+`proximoTorneo`: `{ "id", "nombre", "edicion", "ciudad", "pais", "fechaInicio", "fechaFin", "fuente" }`.
 
 ### `data/torneos.json`
 
@@ -315,7 +309,7 @@ En todo el sitio (hero, "Esta semana", perfil, agenda, botón flotante) un parti
 ### Perfil `/jugadoras/[slug]`
 
 1. **Hero**: la foto según su tratamiento (ver "Tratamientos" en Fotos). Datos estilo Volleybox: nombre, fecha de nacimiento y edad, lugar de origen, estatura, club actual con liga y país, posición, número, capitana, redes (iconos solo si hay URL).
-2. **Próximo partido**: texto del partido, competencia, "allá serán las…" (si hay `zonaSede`), cuenta regresiva, botón de Google Calendar, iconos de "Dónde verlo" (de la liga o del torneo; cada icono abre el canal o la plataforma) y enlace "Calendario oficial de la liga".
+2. **Próximo partido**: texto del partido, competencia, "allá serán las…" (si hay `zonaSede`), cuenta regresiva, botón de Google Calendar y enlace "Calendario oficial de la liga".
 3. **Siguientes**: los 3 partidos posteriores (sin cuenta regresiva) y "Ver todos en la agenda" (`/agenda?j=<slug>`).
 4. **Un plus**: destacados (premios, MVP, equipos ideales), línea de tiempo de clubes y última lista oficial en la que apareció.
 5. **Fuentes**: enlaces de donde salió cada dato.
@@ -328,7 +322,7 @@ Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin 
 
 - Todos los partidos futuros (clubes y Selección) en orden, agrupados por día en la hora del visitante. Los de la Selección salen siempre, haya lista o no, también al filtrar por jugadora y en su `.ics`.
 - Cuenta regresiva solo en el primero, en una tarjeta destacada arriba.
-- Cada partido: texto del partido (con el lado mexicano resaltado), "allá" (si hay `zonaSede`), competencia, etiqueta roja "Selección" cuando aplique, iconos de dónde verlo, botón de Google Calendar y enlace "Fuente". Si no hay fuente, enlace "Verificar en el calendario oficial".
+- Cada partido: texto del partido (con el lado mexicano resaltado), "allá" (si hay `zonaSede`), competencia, etiqueta roja "Selección" cuando aplique, botón de Google Calendar y enlace "Fuente". Si no hay fuente, enlace "Verificar en el calendario oficial".
 - Al final, "Sin partidos por ahora": jugadoras cuyo club no tiene partidos en el rango, con el estado de su temporada.
 - Filtros: Todas, Selección, por jugadora y por liga. `?j=<slug>` preselecciona una jugadora. El filtro se recuerda en `localStorage` (con try/catch).
 - El build genera `calendario.ics` (todos) y `calendario/<slug>.ics` (por jugadora) para suscribirse desde Google Calendar y recibir los cambios solos. Un partido sin hora confirmada va como evento de todo el día.
@@ -344,7 +338,7 @@ Los 6 torneos con más detalle: resultado, récord y premios.
 - Un partido se considera "en juego" durante 150 minutos desde su inicio; después desaparece de las listas.
 - `horaConfirmada: false` → "Hora por confirmar" y la cuenta regresiva solo en días.
 - La cuenta regresiva corre en el cliente; el resto de la página es estático. Lo que depende de la hora (qué cuenta el hero, los partidos de "Esta semana", el botón flotante y las horas del visitante) se recalcula en el navegador con las mismas funciones del build (`src/lib/compromiso.ts`), porque el sitio se construye una vez por semana.
-- Google Calendar: enlace de plantilla (`calendar.google.com/calendar/render?action=TEMPLATE…`) con título (texto del partido sin la hora), 2 horas de duración, competencia, dónde verlo y fuente en los detalles.
+- Google Calendar: enlace de plantilla (`calendar.google.com/calendar/render?action=TEMPLATE…`) con título (texto del partido sin la hora), 2 horas de duración, competencia y fuente en los detalles.
 
 ## Diseño
 
@@ -439,13 +433,12 @@ Orden de cada corrida semanal. Antes de todo, y antes de los `pendientes`, van l
 3. **01 Plantel**: 1 llamada para anuncios de retiro; luego 1 llamada por torneo guardado más reciente que la última lista conocida (máximo 2 por corrida, cada uno cada 30 días). Lo histórico no lo buscan los agentes: se cargó una vez por PR.
 4. **02 Perfiles**: altas nuevas primero; luego las 4 jugadoras con `revisado` más viejo (así cada perfil se revisa cerca de una vez al mes sin gastar todo en un lunes).
 5. **03 Partidos de club**: 1 llamada por club con seleccionadas activas, ya aprobado en `clubes.json`. Un club nuevo empieza a tener partidos en la corrida siguiente a aprobar el PR (o al correr el workflow a mano).
-6. **05 Dónde ver**: máximo 2 por corrida, para ligas o el próximo torneo con `plataformas` vacía, `temporada` distinta o `revisado` de más de 30 días.
-7. Fusionar con lo existente, aplicar `manual.json`, validar con Zod, verificar fuentes y escribir.
+6. Fusionar con lo existente, aplicar `manual.json`, validar con Zod, verificar fuentes y escribir.
 
 Verificación de partidos próximos: el código coteja cada partido guardado de la ventana contra el texto de las fuentes de esa tarea (`verificarGuardados`), aunque Gemini no lo reporte, y relee la página de su `fuente` además del calendario. Aquí vale cualquiera de los dos equipos, con sus alias, junto a la fecha y la hora, porque una fuente en otro idioma quizá solo permita reconocer a uno (北京北冰洋); si una fila nombra a los dos, manda esa. Un partido nuevo o un cambio sigue exigiendo al rival. Solo informa en el resumen: "Verificado", "Hora sin verificar" o "No verificado"; lo que no se confirma se conserva. Los cambios siguen las reglas de siempre.
 
 - Lunes: ventana de 7 días (`DIAS_VERIFICAR`), dentro de la corrida normal.
-- Jueves (`SOLO_VERIFICAR=true` o `--verificar`): ventana de 4 días. Solo corren 03 de los clubes que juegan en ese rango y 04 si juega la Selección, buscando hasta el último día de la ventana. No corren perfiles, rankings, plantel ni dónde ver; no toca `torneos.json`, el próximo torneo ni el PR; conserva `pendientes`. `npm run agentes:verificar` la prueba sin escribir.
+- Jueves (`SOLO_VERIFICAR=true` o `--verificar`): ventana de 4 días. Solo corren 03 de los clubes que juegan en ese rango y 04 si juega la Selección, buscando hasta el último día de la ventana. No corren perfiles, rankings ni plantel; no toca `torneos.json`, el próximo torneo ni el PR; conserva `pendientes`. `npm run agentes:verificar` la prueba sin escribir.
 
 Detalles técnicos:
 
@@ -486,8 +479,8 @@ Detalles técnicos:
 ### Qué se guarda solo y qué se aprueba
 
 - **Commit directo**: `partidos.json`, `rankings.json`, `seleccion.json`, `estado-agentes.json`.
-- **Pull Request de revisión semanal** (rama `revision-semanal`, uno abierto a la vez; acumula lo de semanas anteriores: la corrida parte de la rama, después de integrarle `main`; si se cerró sin aprobar, parte de `main`): cambios en `jugadoras.json`, `clubes.json`, `ligas.json` y `torneos.json`. El cuerpo del PR resume altas, bajas, cambios de club, plataformas nuevas, torneos nuevos, datos de perfil y dudas, cada uno con su fuente. Un alta crea también `src/assets/fotos/jugadoras/<slug>/.gitkeep`. Se aprueba desde la app de GitHub en el celular.
-- Lo que se guarda directo debe ser válido contra lo aprobado en `main` (`DIR_APROBADOS`): `partidos.json` no puede citar un club o una convocada que solo existen en el PR. Si no lo es, la corrida falla sin escribir. Por eso la rotación de los agentes 02 y 05 sale de `estado-agentes.json`, no de los `revisado` de `jugadoras.json` y `ligas.json`.
+- **Pull Request de revisión semanal** (rama `revision-semanal`, uno abierto a la vez; acumula lo de semanas anteriores: la corrida parte de la rama, después de integrarle `main`; si se cerró sin aprobar, parte de `main`): cambios en `jugadoras.json`, `clubes.json`, `ligas.json` y `torneos.json`. El cuerpo del PR resume altas, bajas, cambios de club, torneos nuevos, datos de perfil y dudas, cada uno con su fuente. Un alta crea también `src/assets/fotos/jugadoras/<slug>/.gitkeep`. Se aprueba desde la app de GitHub en el celular.
+- Lo que se guarda directo debe ser válido contra lo aprobado en `main` (`DIR_APROBADOS`): `partidos.json` no puede citar un club o una convocada que solo existen en el PR. Si no lo es, la corrida falla sin escribir. Por eso la rotación del agente 02 sale de `estado-agentes.json`, no de los `revisado` de `jugadoras.json`.
 - Un alta entra como `propuesta` por el PR. Si la siguiente corrida la encuentra en `main`, el PR se aprobó y pasa a `activa`.
 - Cuando se confirma el nombre de `ovalle` o `tanguma`, el agente actualiza `nombre` y avisa en dudas; renombrar `slug` y carpeta es a mano.
 - El cuerpo del PR se escribe en `revision-semanal.md` (fuera del repo).

@@ -21,7 +21,6 @@ import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { sumarDias } from './comun.mjs';
-import * as donde from './donde-ver.mjs';
 import * as partidos from './partidos.mjs';
 import * as perfil from './perfil.mjs';
 import * as plantel from './plantel.mjs';
@@ -58,7 +57,6 @@ const MODULOS = {
   [plantel.AGENTE]: plantel,
   [perfil.AGENTE]: perfil,
   [partidos.AGENTE]: partidos,
-  [donde.AGENTE]: donde,
 };
 
 const leerJSON = async (dir, archivo) => JSON.parse(await readFile(join(dir, archivo), 'utf8'));
@@ -260,7 +258,6 @@ export async function correr({
     for (const clave of plantel.listasPorRevisar(ctx.datos, hoy)) await ejecutar(plantel.AGENTE, clave);
     for (const slug of perfil.porRevisar(ctx.datos.jugadoras, ctx.altas, ctx.datos.estado.revisado)) await ejecutar(perfil.AGENTE, slug);
     for (const club of partidos.clubesPorRevisar(ctx.datos, aprobados.clubes)) await ejecutar(partidos.AGENTE, club);
-    for (const id of donde.porRevisar(ctx.datos, hoy)) await ejecutar(donde.AGENTE, id);
   }
 
   reconstruirPartidos(ctx, manual);

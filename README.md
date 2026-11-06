@@ -1,6 +1,6 @@
 # Próximo Saque
 
-Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (categoría mayor, sala) y a cada seleccionada con su club: próximo partido con cuenta regresiva, dónde verlo, agenda unificada, rankings y últimos torneos.
+Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (categoría mayor, sala) y a cada seleccionada con su club: próximo partido con cuenta regresiva, agenda unificada, rankings y últimos torneos.
 
 **En línea:** https://diegonom1.github.io/proximo-saque/
 

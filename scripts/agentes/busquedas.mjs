@@ -104,10 +104,3 @@ export const dominiosConfiables = (club, liga, ligaId) => [
   ...[liga?.calendarioOficialUrl, club.calendarioUrl, club.sitio].filter(Boolean).map(dominio),
 ];
 
-export const planDondeVer = (ctx, competencia, liga) => ({
-  consultas: [
-    { texto: `${competencia.nombre} voleibol femenil dónde ver transmisión ${anio(ctx)}` },
-    { texto: `${competencia.nombre} volleyball official broadcast streaming youtube channel ${anio(ctx)}` },
-  ],
-  paginas: [liga?.calendarioOficialUrl].filter(Boolean),
-});
