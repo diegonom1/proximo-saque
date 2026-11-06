@@ -289,7 +289,8 @@
     ],
     "fotos": {
       "foco": "57% 36%",
-      "tratamiento": "duotono"
+      "tratamiento": "recorte",
+      "orilla": "derecha"
     },
     "ultimaListaOficial": {
       "torneo": "NORCECA Final Six 2026",

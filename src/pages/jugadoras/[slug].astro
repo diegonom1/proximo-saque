@@ -39,11 +39,23 @@ const aviso = avisoTorneo(seleccion.proximoTorneo, partidos, ymd(ahora, ZONA_SIT
 const clubTexto = club ? [club.nombre, [liga?.nombre, club.pais].filter(Boolean).join(', ')].filter(Boolean).join(' · ') : 'Club por confirmar';
 const datos = [
   { rotulo: 'Nombre completo', valor: j.nombreCompleto },
-  { rotulo: 'Nacimiento', valor: j.fechaNacimiento ? `${fechaLarga(j.fechaNacimiento)} (${edad(j.fechaNacimiento, ahora)} años)` : null },
+  {
+    rotulo: 'Nacimiento',
+    valor: j.fechaNacimiento,
+    marcador: j.fechaNacimiento ? { antes: `${fechaLarga(j.fechaNacimiento)} (`, numero: edad(j.fechaNacimiento, ahora), texto: String(edad(j.fechaNacimiento, ahora)), despues: ' años)', decimales: 0 } : null,
+  },
   { rotulo: 'Lugar de origen', valor: origenTexto(j.origen) },
-  { rotulo: 'Estatura', valor: j.estaturaCm ? estaturaTexto(j.estaturaCm) : null },
+  {
+    rotulo: 'Estatura',
+    valor: j.estaturaCm,
+    marcador: j.estaturaCm ? { antes: '', numero: j.estaturaCm / 100, texto: estaturaTexto(j.estaturaCm).replace(' m', ''), despues: ' m', decimales: 2 } : null,
+  },
   { rotulo: 'Posición', valor: j.posicion },
-  { rotulo: 'Número', valor: j.numero === null ? null : String(j.numero) },
+  {
+    rotulo: 'Número',
+    valor: j.numero,
+    marcador: j.numero === null ? null : { antes: '', numero: j.numero, texto: String(j.numero), despues: '', decimales: 0 },
+  },
 ];
 const redes = j.redes.flatMap((r) => {
   const icono = iconoRed(r.red);
@@ -54,25 +66,36 @@ const apellidoGrande = apellido(j.nombre);
 const modo = modoDeFoto(j.fotos.tratamiento, { fondo, recorte });
 // La foto nunca se muestra más grande que su tamaño real.
 const medidas = modo === 'recorte' ? recorte : fondo;
-const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-ancho: ${medidas.width}px`, medidas && `--foto-alto: ${medidas.height}px`].filter(Boolean).join('; ');
+const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas && `--foto-alto: ${medidas.height}px`].filter(Boolean).join('; ');
 ---
 
 <Base titulo={`${j.nombre} | Próximo Saque`} descripcion={`Próximo partido, club y logros de ${j.nombre}, seleccionada mexicana de voleibol.`}>
-  <section class="portada" data-modo={modo} style={estiloPortada} aria-labelledby="nombre">
-    {j.numero !== null && <span class="portada__numero" aria-hidden="true">{j.numero}</span>}
-    {(modo === 'recorte' || modo === 'sin-foto') && <span class="portada__apellido" aria-hidden="true">{apellidoGrande}</span>}
+  <section class="portada" data-modo={modo} data-orilla={j.fotos.orilla ?? undefined} style={estiloPortada} aria-labelledby="nombre" data-portada>
+    {j.numero !== null && <span class="portada__numero" aria-hidden="true" data-portada-numero>{j.numero}</span>}
+    {
+      (modo === 'recorte' || modo === 'sin-foto') && (
+        <span class="relleno portada__apellido" aria-hidden="true" data-portada-apellido>
+          {apellidoGrande}
+          <span class="relleno__capa"><span class="relleno__interior">{apellidoGrande}</span></span>
+        </span>
+      )
+    }
     {
       modo === 'recorte' && recorte ? (
-        <Picture
-          class="portada__recorte"
-          src={recorte}
-          alt={`Foto de ${j.nombre}`}
-          formats={['avif', 'webp']}
-          widths={anchosPara(recorte, [480, 800, 1200])}
-          sizes="(min-width: 768px) 50vw, 100vw"
-          loading="eager"
-          fetchpriority="high"
-        />
+        <div class="portada__capa-recorte" data-portada-recorte>
+          <Picture
+            class="portada__recorte"
+            src={recorte}
+            alt={`Foto de ${j.nombre}`}
+            formats={['webp']}
+            fallbackFormat="webp"
+            widths={anchosPara(recorte, [480, 800, 1200])}
+            sizes="(min-width: 768px) 50vw, 100vw"
+            loading="eager"
+            fetchpriority="high"
+            style={`view-transition-name: foto-${j.slug}`}
+          />
+        </div>
       ) : (
         fondo && (
           <div class="portada__panel">
@@ -109,7 +132,17 @@ const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-
           datos.map((d) => (
             <div>
               <dt class="dato">{d.rotulo}</dt>
-              <dd>{d.valor ?? POR_CONFIRMAR}</dd>
+              <dd>
+                {d.marcador ? (
+                  <>
+                    {d.marcador.antes}
+                    <span data-contar={d.marcador.numero} data-decimales={d.marcador.decimales}>{d.marcador.texto}</span>
+                    {d.marcador.despues}
+                  </>
+                ) : (
+                  d.valor ?? POR_CONFIRMAR
+                )}
+              </dd>
             </div>
           ))
         }
@@ -177,7 +210,9 @@ const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-
           <h3 class="subtitulo">Clubes</h3>
           {
             club || j.historialClubes.length > 0 ? (
-              <ol class="clubes">
+              <div class="trayectoria" data-trayectoria>
+                <span class="trayectoria__linea" aria-hidden="true" data-trayectoria-linea />
+                <ol class="clubes">
                 {club && (
                   <li>
                     <span class="dato">Actual</span>
@@ -192,7 +227,8 @@ const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-
                     {h.pais && <span class="nota">{h.pais}</span>}
                   </li>
                 ))}
-              </ol>
+                </ol>
+              </div>
             ) : (
               <p class="nota">{POR_CONFIRMAR}</p>
             )
@@ -301,6 +337,30 @@ const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-
 
   pintar();
   setInterval(pintar, 1000);
+
+  import('../../lib/movimiento').then(({ capa, conMovimiento, gsap, rellenar, revelar }) => conMovimiento(() => {
+    const portada = document.querySelector<HTMLElement>('[data-portada]');
+    const apellido = document.querySelector<HTMLElement>('[data-portada-apellido]');
+    const recorte = document.querySelector('[data-portada-recorte]');
+    const numero = document.querySelector('[data-portada-numero]');
+    const texto = [...document.querySelectorAll<HTMLElement>('.portada__texto > *')];
+    const linea = document.querySelector('[data-trayectoria-linea]');
+    const trayectoria = document.querySelector('[data-trayectoria]');
+    if (!portada) return;
+
+    revelar(texto, { delay: 0.1 });
+    const scroll = { trigger: portada, start: 'top top', end: 'bottom top' };
+    if (apellido) {
+      rellenar(apellido, { delay: 0.2 });
+      // Profundidad: el apellido se va de lado, el número sube y el recorte se queda atrás.
+      capa(apellido, { xPercent: 0 }, { xPercent: -24 }, scroll);
+    }
+    if (numero) capa(numero, { yPercent: 0 }, { yPercent: -18 }, scroll);
+    if (recorte) capa(recorte, { yPercent: 0 }, { yPercent: 14 }, scroll);
+    if (linea && trayectoria) {
+      gsap.fromTo(linea, { scaleY: 0 }, { scaleY: 1, ease: 'none', scrollTrigger: { trigger: trayectoria, start: 'top 80%', end: 'bottom 55%', scrub: true } });
+    }
+  }));
 </script>
 
 <style>
@@ -338,18 +398,19 @@ const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-
     display: none;
   }
 
-  /* El apellido llena el ancho sin importar cuántas letras tenga. La letra más ancha mide 0.59 em
-     en promedio (MUÑOZ); con menos, los apellidos largos se salen de la pantalla. */
+  /* Recurso gráfico, como en un póster: puede salirse de la pantalla y se desliza con el scroll.
+     El nombre legible es el h1. */
   .portada__apellido {
     position: absolute;
+    --trazo: var(--papel);
+
     top: 72px;
-    left: 50%;
+    left: var(--gutter);
     font-family: var(--fuente-display);
-    font-size: min(calc(92vw / (var(--letras) * 0.6)), 26rem);
+    font-size: clamp(11rem, 46vw, 26rem);
     font-weight: 900;
     line-height: 0.9;
     text-transform: uppercase;
-    transform: translateX(-50%);
     white-space: nowrap;
   }
 
@@ -431,16 +492,32 @@ const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-
     background: var(--tinta);
   }
 
-  .portada :global(.portada__recorte) {
+  .portada__capa-recorte {
     position: absolute;
+    right: 0;
     bottom: 0;
-    left: 50%;
+    left: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: min(80%, var(--foto-alto));
+  }
+
+  /* Su foto termina a media cadera: pegada a la orilla, el corte queda fuera de la pantalla. */
+  .portada[data-orilla='derecha'] .portada__capa-recorte {
+    justify-content: flex-end;
+  }
+
+  .portada__capa-recorte :global(picture) {
+    display: contents;
+  }
+
+  .portada :global(.portada__recorte) {
     width: auto;
     max-width: 100%;
-    height: min(80%, var(--foto-alto));
+    height: 100%;
     object-fit: contain;
     object-position: bottom;
-    transform: translateX(-50%);
   }
 
   .portada[data-modo='recorte']::after {
@@ -580,8 +657,16 @@ const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-
     text-underline-offset: 3px;
   }
 
-  .clubes {
-    border-left: 2px solid var(--tinta);
+  .trayectoria {
+    position: relative;
+  }
+
+  .trayectoria__linea {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    background: var(--tinta);
+    transform-origin: top;
   }
 
   .clubes li {
@@ -629,9 +714,12 @@ const estiloPortada = [`--letras: ${apellidoGrande.length}`, medidas && `--foto-
       grid-template-columns: repeat(3, 1fr);
     }
 
+    .portada__capa-recorte {
+      height: min(84%, var(--foto-alto));
+    }
+
     .portada :global(.portada__recorte) {
       max-width: 60%;
-      height: min(84%, var(--foto-alto));
     }
 
     /* Duotono a media pantalla: el nombre a la izquierda y la foto a la derecha. */
