@@ -32,7 +32,7 @@ const texto = apellido(j.nombre);
           <Picture
             class="tarjeta__recorte"
             src={conRecorte}
-            alt={`Foto de ${j.nombre}`}
+            alt=""
             formats={['webp']}
             fallbackFormat="webp"
             widths={anchosPara(conRecorte, [320, 480, 640])}
@@ -45,7 +45,7 @@ const texto = apellido(j.nombre);
         <Picture
           class="tarjeta__retrato"
           src={foto}
-          alt={`Foto de ${j.nombre}`}
+          alt=""
           formats={['avif', 'webp']}
           widths={anchosPara(foto, [320, 480, 640, 800])}
           sizes="(min-width: 1024px) 340px, 72vw"

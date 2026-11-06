@@ -395,7 +395,7 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 
 ## Accesibilidad
 
-- Fotos de jugadoras: `alt` con su nombre (`Foto de Sofía Maldonado`), también en la tarjeta. El chip de la agenda lleva `alt=""` porque el botón ya dice el nombre en su `aria-label`. Las del encabezado de la agenda describen la foto (`TEXTOS_ENCABEZADO`).
+- Fotos de jugadoras: en el perfil, `alt` con su nombre (`Foto de Sofía Maldonado`). La tarjeta y el chip de la agenda llevan `alt=""`, porque el enlace y el botón ya dicen el nombre y el lector lo repetiría. Las del encabezado de la agenda describen la foto (`TEXTOS_ENCABEZADO`).
 - Lo decorativo no se lee: apellido gigante, número en contorno y cintillo van con `aria-hidden`.
 - SplitText parte el texto en letras. La fecha del hero lleva `role="img"` y su `aria-label` mientras está partida. axe no avisó de esto: al animar un texto, hay que leer el árbol de accesibilidad con y sin movimiento.
 - Foco visible: anillo blanco en el encabezado, el hero, el pie y `.seccion--oscura`; rojo otra vez en `.sobre-papel`. `scroll-margin-block` evita que el encabezado fijo o el botón flotante tapen lo enfocado.
