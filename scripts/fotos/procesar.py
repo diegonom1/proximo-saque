@@ -32,6 +32,7 @@ import io
 import json
 import multiprocessing
 import os
+import re
 import resource
 import shutil
 import sys
@@ -110,6 +111,12 @@ MAX_MB = 5
 ROSTRO_URL = "https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx"
 ROSTRO_SHA256 = "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
 
+# La cara del chip de la agenda: cuánto mide el recuadro respecto a la cara y su lado final.
+CARA_CHIP = 1.9
+CARA_CHIP_LADO = 192
+# El encabezado de la agenda va a media pantalla: más que esto no se aprovecha.
+AGENDA_LADO = 1600
+
 # Cuánto mide el recuadro de la tarjeta respecto a la cara, y dónde queda el centro de la cara.
 CARA_A_ALTO = 5.0
 CARA_POSICION = 0.30
@@ -173,6 +180,15 @@ def recuadro_tarjeta(ancho, alto, cara=None):
     w = h * 4 / 5
     izq = min(max(0.0, cx - w / 2), ancho - w)
     return tuple(round(v) for v in (izq, arriba, izq + w, arriba + h))
+
+
+def recuadro_cara(ancho, alto, cara):
+    """Cuadrado centrado en la cara, sin salirse de la foto. Devuelve (izq, arriba, der, abajo)."""
+    lado = min(cara.alto * CARA_CHIP, ancho, alto)
+    cx, cy = cara.centro
+    izq = min(max(0.0, cx - lado / 2), ancho - lado)
+    arriba = min(max(0.0, cy - lado / 2), alto - lado)
+    return tuple(round(v) for v in (izq, arriba, izq + lado, arriba + lado))
 
 
 def recuadro_proporcion(ancho, alto, proporcion, caras=()):
@@ -486,6 +502,14 @@ def hacer_tarjeta(foto, destino, avisos):
     guardar_jpg(reducir(recorte, 1200, 1500), destino, avisos)
 
 
+def hacer_cara(foto, destino, avisos):
+    if not foto.cara:
+        avisos.append(f"cara.jpg: no encontré una cara en {foto.ruta.name}; el chip de la agenda sale con iniciales.")
+        return
+    recorte = recortar(foto, recuadro_cara(*foto.imagen.size, foto.cara))
+    guardar_jpg(reducir(recorte, CARA_CHIP_LADO, CARA_CHIP_LADO), destino, avisos)
+
+
 def hacer_fondo(foto, destino, avisos):
     lado = max(foto.imagen.size)
     if lado < MIN_FONDO_LADO:
@@ -588,14 +612,27 @@ def hacer_jugadora(fotos, nombre, avisos):
     fondo = elegir(fotos, "fondo", lambda f: (f.proporcion, f.imagen.width))
     hacer_tarjeta(tarjeta, carpeta / "tarjeta.jpg", avisos)
     hacer_fondo(fondo, carpeta / "fondo.jpg", avisos)
+    hacer_cara(tarjeta, carpeta / "cara.jpg", avisos)
 
 
 def foto_de_recorte(fotos):
     return elegir(fotos, "recorte", lambda f: (len(f.personas()) == 1, f.cara.alto if f.cara else 0))
 
 
+def es_de_agenda(foto):
+    """seleccion1, seleccion2… son del encabezado de la agenda, no del hero."""
+    return re.fullmatch(r"seleccion\d+", foto.ruta.stem.lower()) is not None
+
+
+def hacer_agenda(fotos, carpeta, avisos):
+    for numero, foto in enumerate(sorted(filter(es_de_agenda, fotos), key=lambda f: f.ruta.name), 1):
+        guardar_jpg(reducir(foto.imagen, AGENDA_LADO, AGENDA_LADO), carpeta / f"agenda-{numero}.jpg", avisos)
+
+
 def hacer_seleccion(fotos, nombre, avisos):
     carpeta = destino_de(nombre)
+    hacer_agenda(fotos, carpeta, avisos)
+    fotos = [f for f in fotos if not es_de_agenda(f)] or fotos
     escritorio = elegir(fotos, "hero", lambda f: (f.proporcion, f.imagen.width))
     movil = elegir(fotos, "movil", lambda f: (-f.proporcion, f.imagen.height))
 
@@ -829,6 +866,11 @@ def procesar_carpeta(nombre, archivos, cache, recortador, forzar=False, comparar
 
     if not cambio_foto and not faltan:
         avisos = list(previo.get("avisos", [])) + avisos_modelo
+        if not (carpeta / "cara.jpg").exists():
+            fotos = abrir_fotos(archivos, avisos)
+            fijar_cara(fotos, ORIGINALES / nombre, avisos)
+            if fotos:
+                hacer_cara(elegir(fotos, "tarjeta", lambda f: (f.cara is not None, -f.proporcion)), carpeta / "cara.jpg", avisos)
         aplicar_recorte(nombre, modelo, avisos)
         sin_cambios = previo.get("modelo") == modelo
         cache[nombre] = {**previo, "modelo": modelo}

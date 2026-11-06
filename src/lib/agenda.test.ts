@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TODAS, archivoIcs, coincide, coincideSinPartidos, filtroInicial, type Filtro } from './agenda';
+import { TODAS, archivoIcs, coincide, coincideSinPartidos, filtroInicial, type Filtro, colorDeDia } from './agenda';
 
 const club = { tipo: 'club', liga: 'superliga-br', jugadoras: ['sofia-maldonado'] };
 const seleccionSinLista = { tipo: 'seleccion', liga: null, jugadoras: [] };
@@ -68,5 +68,13 @@ describe('archivoIcs', () => {
     expect(archivoIcs(sofia)).toBe('calendario/sofia-maldonado.ics');
     expect(archivoIcs(TODAS)).toBe('calendario.ics');
     expect(archivoIcs({ tipo: 'seleccion' })).toBe('calendario.ics');
+  });
+});
+
+describe('colorDeDia', () => {
+  it('rota por la paleta y dos días seguidos no se repiten', () => {
+    const colores = [0, 1, 2, 3, 4].map(colorDeDia);
+    expect(colores[4]).toBe(colores[0]);
+    expect(new Set(colores.slice(0, 4)).size).toBe(4);
   });
 });

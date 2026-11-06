@@ -15,6 +15,7 @@ Cómo nombrar los archivos
 
     Jugadora:   tarjeta, fondo, recorte
     Selección:  hero, movil
+    Agenda:     seleccion1, seleccion2 (van al encabezado de la agenda, no al hero)
 
   Ejemplos: sofia-tarjeta.jpg, fondo-final-six.png, hero.jpg, movil.heic
 

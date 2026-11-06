@@ -48,8 +48,8 @@ Sitio de aficionados para seguir a la Selección Mexicana femenil de voleibol (c
 │  └─ fotos/                procesar.py (npm run fotos): prepara las fotos, solo en local
 ├─ src/
 │  ├─ assets/fotos/
-│  │  ├─ seleccion/         hero.jpg, hero-movil.jpg, credito.txt
-│  │  └─ jugadoras/<slug>/  tarjeta.jpg, fondo.jpg, recorte.png (opcional), credito.txt
+│  │  ├─ seleccion/         hero.jpg, hero-movil.jpg, agenda-N.jpg, credito.txt
+│  │  └─ jugadoras/<slug>/  tarjeta.jpg, fondo.jpg, recorte.png (opcional), cara.jpg, credito.txt
 │  ├─ pages/                index.astro, agenda.astro, jugadoras/[slug].astro, torneos.astro
 │  ├─ components/
 │  └─ lib/                  tiempo.ts, calendario.ts, datos.ts, fotos.ts, tratamiento.ts, compromiso.ts, presentacion.ts, partido.ts, perfil.ts, iconos.ts, agenda.ts, ics.ts, cuenta.ts, numeros.ts, movimiento.ts, marcador.ts
@@ -320,11 +320,13 @@ Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin 
 
 ### Agenda `/agenda`
 
-- Todos los partidos futuros (clubes y Selección) en orden, agrupados por día en la hora del visitante. Los de la Selección salen siempre, haya lista o no, también al filtrar por jugadora y en su `.ics`.
-- Cuenta regresiva solo en el primero, en una tarjeta destacada arriba.
-- Cada partido: texto del partido (con el lado mexicano resaltado), "allá" (si hay `zonaSede`), competencia, etiqueta roja "Selección" cuando aplique, botón de Google Calendar y enlace "Fuente". Si no hay fuente, enlace "Verificar en el calendario oficial".
+- Encabezado: `agenda-1.jpg` y `agenda-2.jpg` en duotono, rojo y verde, con AGENDA gigante encima.
+- Filtros: chips de Todas, Selección y uno por jugadora con su cara (`cara.jpg`) y un anillo de su color, más un selector de liga. `?j=<slug>` preselecciona una jugadora y tocar la activa quita el filtro. El filtro se recuerda en `localStorage` (con try/catch).
+- El próximo partido va destacado en el color de su jugadora, con la cuenta regresiva grande, tipo marcador. Es la única cuenta de la página.
+- Todos los partidos futuros (clubes y Selección) en orden, agrupados por día en la hora del visitante. Cada día es un bloque grande de fecha (`SÁB 07 NOV`), con los colores en rotación (`colorDeDia`): banda en celular y columna fija en escritorio. Los de la Selección salen siempre, haya lista o no, también al filtrar por jugadora y en su `.ics`.
+- Cada partido: el recorte chico de la jugadora sobre su color, como una tarjeta de la Plantilla, texto del partido (con el lado mexicano resaltado), "allá" (si hay `zonaSede`), competencia, etiqueta roja "Selección" cuando aplique, botón de Google Calendar y enlace "Fuente". Si no hay fuente, enlace "Verificar en el calendario oficial".
 - Al final, "Sin partidos por ahora": jugadoras cuyo club no tiene partidos en el rango, con el estado de su temporada.
-- Filtros: Todas, Selección, por jugadora y por liga. `?j=<slug>` preselecciona una jugadora. El filtro se recuerda en `localStorage` (con try/catch).
+- Fondos: encabezado, filtros en blanco, el color de la jugadora, hueso, carbón, verde oscuro y el pie negro.
 - El build genera `calendario.ics` (todos) y `calendario/<slug>.ics` (por jugadora) para suscribirse desde Google Calendar y recibir los cambios solos. Un partido sin hora confirmada va como evento de todo el día.
 
 Acceso desde todo el sitio: enlace "Agenda" en la navegación y, en celular, un botón flotante con la cuenta y el texto del próximo partido que lleva a `/agenda`.
@@ -368,7 +370,7 @@ Todo sale de cuatro recursos (`src/lib/movimiento.ts`) con la misma curva y dura
 | Plantilla | Escritorio: scroll horizontal fijado y el apellido va contra el riel. Celular: carrusel con snap. Al pasar, el apellido se rellena y el número cuenta. |
 | Perfil | El recorte crece desde la tarjeta (View Transitions, `foto-<slug>`) y al hacer scroll se mueve según su variante. Edad, estatura y número cuentan. La trayectoria es una línea que se dibuja. |
 | Torneos | Un brillo cruza cada medalla. |
-| Agenda | Las filas salen de atrás de su borde, escalonadas. El filtro las repite y los partidos de la Selección llevan un barrido rojo. |
+| Agenda | El título se rellena. Las filas salen de atrás de su borde, escalonadas. El filtro las repite y los partidos de la Selección llevan un barrido rojo. |
 | Títulos de sección | Gigantes, en contorno, se rellenan con el scroll. |
 
 Variantes: cada jugadora tiene una fija (`fotos.variante`, tabla `VARIANTES`), solo en su perfil, al hacer scroll. En la Plantilla el recorte se queda quieto.
@@ -400,6 +402,8 @@ Video de fondo: solo si es material propio o con permiso; las transmisiones tien
 | `jugadoras/<slug>/tarjeta.jpg` | Plantilla | 1000 × 1250 (4:5), cara en el tercio superior |
 | `jugadoras/<slug>/fondo.jpg` | Fondo del perfil | 2000 px del lado largo, jugadora hacia un lado |
 | `jugadoras/<slug>/recorte.png` | Efecto de profundidad (opcional) | PNG transparente, 1600 px de alto |
+| `jugadoras/<slug>/cara.jpg` | Chip de la agenda | La genera `npm run fotos` desde la tarjeta |
+| `seleccion/agenda-N.jpg` | Encabezado de la agenda | `seleccion1`, `seleccion2`… en `fotos-originales/seleccion/`; no cuentan para el hero |
 | `credito.txt` | Crédito visible; se llena en `fotos-originales/<slug>/` | `Foto: autor o cuenta — URL` |
 
 - En el build de producción una foto sin `credito.txt` lleno no se usa: sale con iniciales, el build lo avisa y el archivo tampoco llega a `dist/` (`scripts/lib/fotos-sin-credito.mjs`). En `npm run dev` sí se ve, para revisarla.

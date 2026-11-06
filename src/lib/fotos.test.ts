@@ -18,6 +18,6 @@ describe('parsearCredito', () => {
 
 describe('fotosJugadora', () => {
   it('devuelve null si la foto no existe', () => {
-    expect(fotosJugadora('nadie')).toEqual({ tarjeta: null, fondo: null, recorte: null });
+    expect(fotosJugadora('nadie')).toEqual({ tarjeta: null, fondo: null, recorte: null, cara: null });
   });
 });

@@ -22,7 +22,11 @@ export const fotosJugadora = (slug: string) => ({
   tarjeta: foto(`jugadoras/${slug}/tarjeta.jpg`),
   fondo: foto(`jugadoras/${slug}/fondo.jpg`),
   recorte: foto(`jugadoras/${slug}/recorte.png`),
+  cara: foto(`jugadoras/${slug}/cara.jpg`),
 });
+
+// El encabezado de la agenda: seleccion1 y seleccion2 de fotos-originales.
+export const fotosAgenda = () => [foto('seleccion/agenda-1.jpg'), foto('seleccion/agenda-2.jpg')].filter((f) => f !== null);
 
 // Anchos que tiene sentido generar: nunca más que la foto original.
 export const anchosPara = (foto: ImageMetadata, anchos: number[]) => [...anchos.filter((a) => a < foto.width), foto.width];

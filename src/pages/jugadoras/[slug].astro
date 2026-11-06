@@ -98,7 +98,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
         </div>
       ) : (
         fondo && (
-          <div class="portada__panel">
+          <div class:list={['portada__panel', { duotono: modo === 'duotono' }]}>
             <Picture
               class="portada__fondo"
               src={fondo}
@@ -431,8 +431,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
     object-fit: cover;
   }
 
-  /* Duotono: la foto en un panel que no pasa de su tamaño real. Tinta en las sombras, rojo en las
-     luces y grano encima, para unificar fotos de fuentes distintas y disimular la resolución. */
+  /* Duotono: la foto en un panel que no pasa de su tamaño real. */
   .portada[data-modo='duotono'] {
     display: block;
     height: auto;
@@ -442,36 +441,10 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
   .portada[data-modo='duotono'] .portada__panel {
     position: relative;
     inset: auto;
-    isolation: isolate;
     width: 100%;
     max-width: var(--foto-ancho);
     height: min(64svh, var(--foto-alto));
     margin-inline: auto;
-    background: var(--rojo);
-  }
-
-  .portada[data-modo='duotono'] :global(.portada__fondo) {
-    filter: grayscale(1) contrast(1.1) brightness(1.25);
-    mix-blend-mode: multiply;
-  }
-
-  .portada[data-modo='duotono'] .portada__panel::before,
-  .portada[data-modo='duotono'] .portada__panel::after {
-    position: absolute;
-    inset: 0;
-    content: '';
-    pointer-events: none;
-  }
-
-  .portada[data-modo='duotono'] .portada__panel::before {
-    background: var(--tinta);
-    mix-blend-mode: lighten;
-  }
-
-  .portada[data-modo='duotono'] .portada__panel::after {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-    mix-blend-mode: overlay;
-    opacity: 0.4;
   }
 
   .portada[data-modo='completa']::after {

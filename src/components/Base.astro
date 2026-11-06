@@ -262,6 +262,41 @@ const {
     text-transform: uppercase;
   }
 
+  /* Duotono: tinta en las sombras, --duo en las luces y grano encima. Unifica fotos de fuentes
+     distintas y disimula la resolución. */
+  .duotono {
+    --duo: var(--rojo);
+
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--duo);
+  }
+
+  .duotono img {
+    filter: grayscale(1) contrast(1.1) brightness(1.25);
+    mix-blend-mode: multiply;
+  }
+
+  .duotono::before,
+  .duotono::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    pointer-events: none;
+  }
+
+  .duotono::before {
+    background: var(--tinta);
+    mix-blend-mode: lighten;
+  }
+
+  .duotono::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+    opacity: 0.4;
+  }
+
   /* Recurso 1: lo que se revela sale de atrás de su propio borde. */
   .mascara {
     display: block;

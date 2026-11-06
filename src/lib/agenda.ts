@@ -74,3 +74,7 @@ export function filtroInicial(j: string | null, guardado: string | null, validos
 
 // Archivo .ics que corresponde al filtro.
 export const archivoIcs = (filtro: Filtro) => (filtro.tipo === 'jugadora' ? `calendario/${filtro.valor}.ics` : 'calendario.ics');
+
+// Cada día con su color, en orden: conecta los bloques de fecha con la paleta de la Plantilla.
+const COLORES_DIA = ['rojo', 'verde', 'carbon', 'negro'];
+export const colorDeDia = (indice: number) => COLORES_DIA[indice % COLORES_DIA.length];

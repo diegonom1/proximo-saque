@@ -269,6 +269,53 @@ class Caja(unittest.TestCase):
             self.assertIs(procesar.zona_de_recorte(foto, Path(temporal), []), foto)
 
 
+class CaraDelChip(unittest.TestCase):
+    def test_recuadro_cuadrado_alrededor_de_la_cara(self):
+        izq, arriba, der, abajo = procesar.recuadro_cara(1000, 1000, procesar.Cara(450, 450, 100, 100))
+        self.assertEqual(der - izq, abajo - arriba)
+        self.assertEqual((der - izq), 190)
+        self.assertEqual(((izq + der) / 2, (arriba + abajo) / 2), (500, 500))
+
+    def test_no_se_sale_de_la_foto(self):
+        izq, arriba, der, abajo = procesar.recuadro_cara(300, 400, procesar.Cara(0, 0, 100, 100))
+        self.assertEqual((izq, arriba), (0, 0))
+        self.assertLessEqual(der, 300)
+        izq, arriba, der, abajo = procesar.recuadro_cara(300, 400, procesar.Cara(250, 350, 100, 100))
+        self.assertEqual((der, abajo), (300, 400))
+
+    def test_sin_cara_avisa_y_no_crea_archivo(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            destino, avisos = Path(temporal) / "cara.jpg", []
+            procesar.hacer_cara(procesar.Foto(Path("a.jpg"), Image.new("RGB", (100, 100))), destino, avisos)
+            self.assertFalse(destino.exists())
+        self.assertEqual(len(avisos), 1)
+
+
+class FotosDeLaAgenda(unittest.TestCase):
+    def foto(self, nombre):
+        return procesar.Foto(Path(nombre), Image.new("RGB", (800, 500)))
+
+    def test_solo_seleccion_con_numero(self):
+        self.assertTrue(procesar.es_de_agenda(self.foto("seleccion1.jpeg")))
+        self.assertTrue(procesar.es_de_agenda(self.foto("Seleccion2.JPG")))
+        for nombre in ("seleccion.jpeg", "hero.jpg", "seleccion-1b.jpg"):
+            self.assertFalse(procesar.es_de_agenda(self.foto(nombre)), nombre)
+
+    def test_salen_en_orden_y_no_cuentan_para_el_hero(self):
+        with tempfile.TemporaryDirectory() as temporal:
+            carpeta = Path(temporal)
+            with mock.patch.object(procesar, "destino_de", lambda nombre: carpeta):
+                fotos = [self.foto("seleccion2.jpg"), self.foto("seleccion.jpg"), self.foto("seleccion1.jpg")]
+                fotos[1].imagen = Image.new("RGB", (1000, 400), "#123456")
+                procesar.hacer_seleccion(fotos, "seleccion", [])
+            self.assertTrue((carpeta / "agenda-1.jpg").exists())
+            self.assertTrue((carpeta / "agenda-2.jpg").exists())
+            self.assertFalse((carpeta / "agenda-3.jpg").exists())
+            with Image.open(carpeta / "hero.jpg") as hero:
+                self.assertLess(abs(hero.width / hero.height - 16 / 9), 0.02)
+                self.assertEqual(hero.getpixel((5, 5))[2] > hero.getpixel((5, 5))[0], True)
+
+
 class CaraFijada(unittest.TestCase):
     def foto(self, caras=()):
         return procesar.Foto(Path("a.jpg"), Image.new("RGB", (1000, 2000)), list(caras))

@@ -1,10 +1,12 @@
 ---
 // Un partido de la agenda. El navegador lo acomoda según el filtro y la zona del visitante.
+import { Picture } from 'astro:assets';
 import LineaPartido from './LineaPartido.astro';
 import type { Partido } from '../lib/datos';
 import { jugadorasDe, ligas } from '../lib/datos';
 import { enlaceGoogleCalendar } from '../lib/calendario';
-import { diaCorto, horaDelLugar, msDe } from '../lib/tiempo';
+import { anchosPara, fotosJugadora } from '../lib/fotos';
+import { diaCorto, horaDelLugar, iniciales, msDe } from '../lib/tiempo';
 import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
 
 interface Props {
@@ -16,10 +18,18 @@ const quienes = jugadorasDe(p);
 const calendario = enlaceGoogleCalendar(p, { jugadoras: quienes.map((j) => j.nombre) });
 const alla = p.horaConfirmada ? horaDelLugar(p) : null;
 const oficial = p.ligaId ? ligas[p.ligaId]?.calendarioOficialUrl : null;
+// El recorte y el color de la jugadora conectan la agenda con la Plantilla.
+const esSeleccion = p.tipo === 'seleccion';
+const fotos = esSeleccion ? [] : quienes.slice(0, 2).flatMap((j) => {
+  const { recorte } = fotosJugadora(j.slug);
+  return recorte ? [recorte] : [];
+});
+const color = esSeleccion ? 'rojo' : quienes[0]?.fotos.color ?? 'carbon';
 ---
 
 <article
   class="partido"
+  data-color={color}
   data-partido
   data-id={p.id}
   data-inicio={p.inicio}
@@ -29,7 +39,19 @@ const oficial = p.ligaId ? ligas[p.ligaId]?.calendarioOficialUrl : null;
   data-club={p.clubId ?? ''}
   data-jugadoras={quienes.map((j) => j.slug).join(' ')}
 >
-  <div data-partido-interior>
+  <div class="partido__fila" data-partido-interior>
+  <div class="partido__foto" aria-hidden="true">
+    {
+      fotos.length > 0 ? fotos.map((recorte) => (
+        <span class="partido__recorte">
+          <Picture src={recorte} alt="" formats={['webp']} fallbackFormat="webp" widths={anchosPara(recorte, [160, 320])} sizes="160px" />
+        </span>
+      )) : (
+        <span class="partido__sigla">{esSeleccion ? 'MEX' : iniciales(quienes[0]?.nombre ?? p.local)}</span>
+      )
+    }
+  </div>
+  <div class="partido__info">
   <p class="partido__cabeza">
     <time class="dato" datetime={p.inicio} data-dia>{diaCorto(msDe(p), ZONA_SITIO)}</time>
     {p.tipo === 'seleccion' && <span class="etiqueta">Selección</span>}
@@ -44,9 +66,58 @@ const oficial = p.ligaId ? ligas[p.ligaId]?.calendarioOficialUrl : null;
     {!p.fuente && oficial && <a class="enlace" href={oficial} target="_blank" rel="noopener">Verificar en el calendario oficial</a>}
   </div>
   </div>
+  </div>
 </article>
 
 <style>
+  .partido__fila {
+    display: flex;
+    align-items: stretch;
+  }
+
+  /* Bloque de color con el recorte, como una tarjeta chica de la Plantilla. */
+  .partido__foto {
+    position: relative;
+    display: flex;
+    flex: none;
+    width: clamp(92px, 24vw, 148px);
+    min-height: 132px;
+    overflow: hidden;
+    background: var(--bloque);
+  }
+
+  .partido__recorte {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .partido__recorte :global(img) {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: auto;
+    max-width: none;
+    height: 240%; /* por alto: un recorte con los brazos abiertos no se vuelve diminuto */
+    translate: -50% 0;
+  }
+
+  .partido__sigla {
+    margin: auto;
+    color: var(--papel);
+    font-family: var(--fuente-display);
+    font-size: clamp(2rem, 8vw, 3rem);
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .partido__info {
+    flex: 1;
+    min-width: 0;
+    padding: clamp(12px, 2.5vw, 20px);
+  }
+
   .partido__cabeza {
     display: flex;
     flex-wrap: wrap;

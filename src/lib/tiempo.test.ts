@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  agruparPorDia, cuentaCorta, cuentaRegresiva, diaLargo, diasHasta, enJuego, fechaGrande, hora, horaDelLugar, iniciales, relativo, vigentes,
+  agruparPorDia, cuentaCorta, cuentaRegresiva, diaLargo, diasHasta, enJuego, fechaGrande, hora, horaDelLugar, iniciales, partesDelDia, relativo, vigentes,
 } from './tiempo';
 
 const CDMX = 'America/Mexico_City';
@@ -75,5 +75,15 @@ describe('agruparPorDia', () => {
     const dias = agruparPorDia(lista, CDMX);
     expect(dias.map((d) => [d.dia, d.partidos.length])).toEqual([['2026-11-07', 2], ['2026-11-08', 1]]);
     expect(dias[0].titulo).toBe('Sábado 7 de noviembre');
+  });
+});
+
+describe('partesDelDia', () => {
+  it('da el bloque de fecha en mayúsculas y sin puntos', () => {
+    expect(partesDelDia(Date.parse('2026-11-07T18:00:00-06:00'), 'America/Mexico_City')).toEqual({ semana: 'SÁB', dia: '07', mes: 'NOV' });
+  });
+  it('respeta la zona', () => {
+    expect(partesDelDia(Date.parse('2026-11-08T02:00:00Z'), 'America/Mexico_City').dia).toBe('07');
+    expect(partesDelDia(Date.parse('2026-11-08T02:00:00Z'), 'Asia/Shanghai').dia).toBe('08');
   });
 });

@@ -1,17 +1,22 @@
 ---
+import { Picture } from 'astro:assets';
 import Base from '../components/Base.astro';
 import Cuenta from '../components/Cuenta.astro';
 import PartidoAgenda from '../components/PartidoAgenda.astro';
 import { activas, clubes, estados, ligas, partidosAgenda } from '../lib/datos';
+import { colorDeDia } from '../lib/agenda';
+import { anchosPara, fotosAgenda, fotosJugadora } from '../lib/fotos';
 import { porNombre } from '../lib/partido';
+import { apellido } from '../lib/perfil';
 import { ruta } from '../lib/presentacion';
-import { agruparPorDia, vigentes } from '../lib/tiempo';
+import { agruparPorDia, iniciales, vigentes } from '../lib/tiempo';
 import { ZONA_SITIO } from '../../scripts/lib/tiempo.mjs';
 
 const lista = vigentes(partidosAgenda, Date.now());
 const [primero, ...resto] = lista;
 const dias = agruparPorDia(resto, ZONA_SITIO);
 
+const encabezado = fotosAgenda();
 const jugadorasFiltro = porNombre(activas);
 const idsLiga = [...new Set(activas.flatMap((j) => (j.clubId && clubes[j.clubId]?.ligaId ? [clubes[j.clubId].ligaId as string] : [])))];
 const ligasFiltro = idsLiga.map((id) => ({ id, nombre: ligas[id].nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
@@ -33,23 +38,40 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
 
 <Base titulo="Agenda | Próximo Saque" descripcion="Todos los partidos de la Selección Mexicana femenil de voleibol y de cada seleccionada con su club, en tu hora.">
   <header class="cabeza">
-    <div class="marco">
-      <h1>Agenda</h1>
+    <div class="cabeza__fotos" aria-hidden="true">
+      {
+        encabezado.map((foto) => (
+          <div class="duotono cabeza__foto">
+            <Picture src={foto} alt="" formats={['avif', 'webp']} widths={anchosPara(foto, [480, 800])} sizes="(min-width: 768px) 50vw, 100vw" loading="eager" />
+          </div>
+        ))
+      }
+    </div>
+    <div class="marco cabeza__texto">
+      <h1 data-agenda-titulo>Agenda</h1>
       <p>Todos los partidos, en la hora de tu dispositivo.</p>
     </div>
   </header>
 
   <div class="filtros" data-filtros>
     <div class="marco filtros__fila">
-      <button type="button" class="chip" data-filtro="todas">Todas</button>
-      <button type="button" class="chip" data-filtro="seleccion">Selección</button>
-      <label class="selector">
-        <span class="oculto">Filtrar por jugadora</span>
-        <select data-filtro-jugadora>
-          <option value="">Jugadora</option>
-          {jugadorasFiltro.map((j) => <option value={j.slug}>{j.nombre}</option>)}
-        </select>
-      </label>
+      <div class="filtros__chips" data-chips>
+        <button type="button" class="chip" data-filtro="todas">Todas</button>
+        <button type="button" class="chip" data-filtro="seleccion">Selección</button>
+        {
+          jugadorasFiltro.map((j) => {
+            const { cara } = fotosJugadora(j.slug);
+            return (
+              <button type="button" class="chip chip--cara" data-chip-jugadora={j.slug} data-color={j.fotos.color ?? 'rojo'} aria-label={j.nombre}>
+                <span class="chip__cara">
+                  {cara ? <Picture src={cara} alt="" formats={['webp']} fallbackFormat="webp" widths={anchosPara(cara, [96])} sizes="48px" /> : iniciales(j.nombre)}
+                </span>
+                {apellido(j.nombre)}
+              </button>
+            );
+          })
+        }
+      </div>
       <label class="selector">
         <span class="oculto">Filtrar por liga</span>
         <select data-filtro-liga>
@@ -60,55 +82,76 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     </div>
   </div>
 
-  <div class="marco cuerpo" data-agenda data-validos={validos}>
-    <section class="destacada" aria-label="Próximo partido" data-destacada hidden={!primero}>
-      <Cuenta />
-      <div data-destacada-partido>{primero && <PartidoAgenda partido={primero} />}</div>
+  <div data-agenda data-validos={validos}>
+    <section class="seccion--oscura destacada" aria-label="Próximo partido" data-destacada data-color={primero ? 'rojo' : undefined} hidden={!primero}>
+      <div class="marco destacada__rejilla">
+        <div>
+          <p class="dato destacada__rotulo">Próximo partido</p>
+          <Cuenta />
+        </div>
+        <div data-destacada-partido>{primero && <PartidoAgenda partido={primero} />}</div>
+      </div>
     </section>
 
-    <div data-dias>
-      {
-        dias.map((d) => (
-          <section class="agenda-dia">
-            <h2 class="agenda-dia__titulo">{d.titulo}</h2>
-            {d.partidos.map((p) => <PartidoAgenda partido={p} />)}
-          </section>
-        ))
-      }
-    </div>
-
-    <p class="vacio" data-vacio hidden={lista.length > 0}>No hay partidos con este filtro.</p>
-
-    <section class="sin-partidos" data-sin-seccion hidden={sinPartidos.every((s) => s.oculto)} aria-labelledby="sin-titulo">
-      <h2 id="sin-titulo" class="titulo-seccion">Sin partidos por ahora</h2>
-      <ul>
-        {
-          sinPartidos.map((s) => (
-            <li data-sin data-jugadora={s.j.slug} data-club={s.j.clubId ?? ''} data-liga={s.club?.ligaId ?? ''} hidden={s.oculto}>
-              <a href={ruta(`jugadoras/${s.j.slug}`)}>{s.j.nombre}</a>
-              <span class="sin-partidos__texto">
-                {s.club ? `${s.club.nombre}: ` : ''}{s.texto}
-                {s.fuente && <> <a class="enlace" href={s.fuente} target="_blank" rel="noopener">Fuente</a></>}
-              </span>
-            </li>
-          ))
-        }
-      </ul>
+    <section class="seccion--hueso dias" aria-label="Calendario">
+      <div class="marco">
+        <div data-dias>
+          {
+            dias.map((d, i) => (
+              <section class="agenda-dia">
+                <h2 class="agenda-dia__titulo" data-color={colorDeDia(i)}>
+                  <span class="oculto">{d.titulo}</span>
+                  <span class="agenda-dia__fecha" aria-hidden="true">
+                    <span>{d.partes.semana}</span>
+                    <b>{d.partes.dia}</b>
+                    <span>{d.partes.mes}</span>
+                  </span>
+                </h2>
+                <div class="agenda-dia__partidos">
+                  {d.partidos.map((p) => <PartidoAgenda partido={p} />)}
+                </div>
+              </section>
+            ))
+          }
+        </div>
+        <p class="vacio" data-vacio hidden={lista.length > 0}>No hay partidos con este filtro.</p>
+      </div>
     </section>
 
-    <section class="suscribir" aria-labelledby="suscribir-titulo" data-suscribir data-base={ruta()}>
-      <h2 id="suscribir-titulo">Tu calendario, siempre al día</h2>
-      <p data-suscribir-texto>Suscríbete y los cambios de horario llegan solos.</p>
-      <div class="suscribir__botones">
-        <a class="boton" data-ics-google href={ruta('calendario.ics')} target="_blank" rel="noopener">Suscribirme en Google Calendar</a>
-        <a class="enlace" data-ics-archivo href={ruta('calendario.ics')}>Descargar .ics</a>
+    <section class="seccion seccion--oscura seccion--carbon sin-partidos" data-sin-seccion hidden={sinPartidos.every((s) => s.oculto)} aria-labelledby="sin-titulo">
+      <div class="marco">
+        <h2 id="sin-titulo" class="titulo-seccion">Sin partidos por ahora</h2>
+        <ul>
+          {
+            sinPartidos.map((s) => (
+              <li data-sin data-jugadora={s.j.slug} data-club={s.j.clubId ?? ''} data-liga={s.club?.ligaId ?? ''} hidden={s.oculto}>
+                <a href={ruta(`jugadoras/${s.j.slug}`)}>{s.j.nombre}</a>
+                <span class="sin-partidos__texto">
+                  {s.club ? `${s.club.nombre}: ` : ''}{s.texto}
+                  {s.fuente && <> <a class="enlace" href={s.fuente} target="_blank" rel="noopener">Fuente</a></>}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <section class="seccion seccion--oscura seccion--verde suscribir" aria-labelledby="suscribir-titulo" data-suscribir data-base={ruta()}>
+      <div class="marco">
+        <h2 id="suscribir-titulo">Tu calendario, siempre al día</h2>
+        <p data-suscribir-texto>Suscríbete y los cambios de horario llegan solos.</p>
+        <div class="suscribir__botones">
+          <a class="boton" data-ics-google href={ruta('calendario.ics')} target="_blank" rel="noopener">Suscribirme en Google Calendar</a>
+          <a class="enlace" data-ics-archivo href={ruta('calendario.ics')}>Descargar .ics</a>
+        </div>
       </div>
     </section>
   </div>
 </Base>
 
 <script>
-  import { TODAS, archivoIcs, coincide, coincideSinPartidos, filtroInicial, type Filtro } from '../lib/agenda';
+  import { TODAS, archivoIcs, coincide, coincideSinPartidos, colorDeDia, filtroInicial, type Filtro } from '../lib/agenda';
   import { escribirCuenta } from '../lib/cuenta';
   import { agruparPorDia, diaCorto, enJuego, hora } from '../lib/tiempo';
   import { DURACION_MS } from '../../scripts/lib/tiempo.mjs';
@@ -122,7 +165,8 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
   const contenedorDias = document.querySelector<HTMLElement>('[data-dias]');
   const vacio = document.querySelector<HTMLElement>('[data-vacio]');
   const seccionSin = document.querySelector<HTMLElement>('[data-sin-seccion]');
-  const selectorJugadora = document.querySelector<HTMLSelectElement>('[data-filtro-jugadora]');
+  const contenedorChips = document.querySelector<HTMLElement>('[data-chips]');
+  const chipsJugadora = [...document.querySelectorAll<HTMLButtonElement>('[data-chip-jugadora]')];
   const selectorLiga = document.querySelector<HTMLSelectElement>('[data-filtro-liga]');
   const chips = [...document.querySelectorAll<HTMLButtonElement>('[data-filtro]')];
   const suscribir = document.querySelector<HTMLElement>('[data-suscribir]');
@@ -181,9 +225,8 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
 
   function pintarControles() {
     for (const chip of chips) chip.setAttribute('aria-pressed', String(chip.dataset.filtro === filtro.tipo));
-    if (selectorJugadora) selectorJugadora.value = filtro.tipo === 'jugadora' ? filtro.valor : '';
+    for (const chip of chipsJugadora) chip.setAttribute('aria-pressed', String(filtro.tipo === 'jugadora' && chip.dataset.chipJugadora === filtro.valor));
     if (selectorLiga) selectorLiga.value = filtro.tipo === 'liga' ? filtro.valor : '';
-    selectorJugadora?.classList.toggle('activo', filtro.tipo === 'jugadora');
     selectorLiga?.classList.toggle('activo', filtro.tipo === 'liga');
 
     if (!suscribir) return;
@@ -192,7 +235,8 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     suscribir.querySelector<HTMLAnchorElement>('[data-ics-archivo]')?.setAttribute('href', ruta);
     suscribir.querySelector<HTMLAnchorElement>('[data-ics-google]')?.setAttribute('href', `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcal)}`);
     const texto = suscribir.querySelector('[data-suscribir-texto]');
-    const nombre = filtro.tipo === 'jugadora' ? selectorJugadora?.selectedOptions[0]?.textContent : null;
+    const elegida = filtro.tipo === 'jugadora' ? filtro.valor : null;
+    const nombre = chipsJugadora.find((c) => c.dataset.chipJugadora === elegida)?.getAttribute('aria-label');
     if (texto) texto.textContent = nombre
       ? `Suscríbete a los partidos de ${nombre} y de la Selección. Los cambios de horario llegan solos.`
       : 'Suscríbete a todos los partidos y los cambios de horario llegan solos.';
@@ -208,17 +252,22 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     const [primero, ...resto] = visibles;
     actual = primero ?? null;
     if (destacada) destacada.hidden = !primero;
+    if (destacada && primero) destacada.dataset.color = primero.el.dataset.color ?? 'rojo';
     lugarDestacado?.replaceChildren(...(primero ? [primero.el] : []));
 
     // Se agrupa aquí porque el día depende de la zona del visitante.
-    contenedorDias?.replaceChildren(...agruparPorDia(resto).map((d) => {
-      const seccion = document.createElement('section');
-      seccion.className = 'agenda-dia';
-      const titulo = document.createElement('h2');
-      titulo.className = 'agenda-dia__titulo';
-      titulo.textContent = d.titulo;
-      seccion.append(titulo, ...d.partidos.map((p) => p.el));
-      return seccion;
+    contenedorDias?.replaceChildren(...agruparPorDia(resto).map((d, i) => {
+      const crear = (etiqueta: string, clase: string, ...hijos: (Node | string)[]) => {
+        const el = document.createElement(etiqueta);
+        el.className = clase;
+        el.append(...hijos);
+        return el;
+      };
+      const fecha = crear('span', 'agenda-dia__fecha', crear('span', '', d.partes.semana), crear('b', '', d.partes.dia), crear('span', '', d.partes.mes));
+      fecha.setAttribute('aria-hidden', 'true');
+      const titulo = crear('h2', 'agenda-dia__titulo', crear('span', 'oculto', d.titulo), fecha);
+      titulo.dataset.color = colorDeDia(i);
+      return crear('section', 'agenda-dia', titulo, crear('div', 'agenda-dia__partidos', ...d.partidos.map((p) => p.el)));
     }));
 
     const conPartidos = new Set(pendientes.flatMap((p) => (p.club ? [p.club] : [])));
@@ -257,18 +306,28 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
   for (const chip of chips) {
     chip.addEventListener('click', () => elegir(chip.dataset.filtro === 'seleccion' ? { tipo: 'seleccion' } : TODAS));
   }
-  selectorJugadora?.addEventListener('change', () => elegir(selectorJugadora.value ? { tipo: 'jugadora', valor: selectorJugadora.value } : TODAS));
+  // Tocar otra vez la jugadora activa quita el filtro.
+  for (const chip of chipsJugadora) {
+    chip.addEventListener('click', () => {
+      const valor = chip.dataset.chipJugadora ?? '';
+      elegir(filtro.tipo === 'jugadora' && filtro.valor === valor ? TODAS : { tipo: 'jugadora', valor });
+    });
+  }
   selectorLiga?.addEventListener('change', () => elegir(selectorLiga.value ? { tipo: 'liga', valor: selectorLiga.value } : TODAS));
 
   pintarControles();
   pintar();
   setInterval(pintar, 1000);
 
+  // Si llega filtrada (?j=), su chip tiene que verse. Se mueve solo la fila: no la página.
+  const activo = chipsJugadora.find((c) => c.getAttribute('aria-pressed') === 'true');
+  if (activo && contenedorChips) contenedorChips.scrollLeft = activo.offsetLeft - contenedorChips.clientWidth / 2 + activo.offsetWidth / 2;
+
   // Cada fila sale de atrás de su propio borde. La máscara dura lo que el revelado, para no cortar
   // el foco del teclado. Los partidos de la Selección llevan además un barrido rojo.
   const interior = (el: Element) => el.querySelector(':scope > [data-partido-interior]');
 
-  import('../lib/movimiento').then(({ conMovimiento, gsap, ScrollTrigger }) => {
+  import('../lib/movimiento').then(({ conMovimiento, gsap, prepararRelleno, rellenar, ScrollTrigger }) => {
     function barrer(fila: HTMLElement) {
       const barrido = document.createElement('span');
       barrido.className = 'barrido';
@@ -307,6 +366,11 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
         ScrollTrigger.refresh();
       }
 
+      const tituloAgenda = document.querySelector<HTMLElement>('[data-agenda-titulo]');
+      if (tituloAgenda) {
+        prepararRelleno(tituloAgenda);
+        rellenar(tituloAgenda, { delay: 0.15 });
+      }
       preparar();
       alFiltrar = preparar;
       return () => {
@@ -317,23 +381,66 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
 </script>
 
 <style>
+  /* Encabezado: las dos fotos en duotono y el título encima, como un cartel. */
   .cabeza {
-    padding-block: 96px 32px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: min(68svh, 620px);
+    overflow: hidden;
     background: var(--tinta);
     color: var(--papel);
   }
 
+  .cabeza__fotos {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .cabeza__foto {
+    min-height: 0;
+  }
+
+  .cabeza__foto:nth-child(2) {
+    --duo: var(--verde);
+  }
+
+  .cabeza__foto :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 62%;
+  }
+
+  .cabeza::after {
+    position: absolute;
+    inset: 40% 0 0;
+    background: linear-gradient(to top, rgb(14 14 16 / 86%), transparent);
+    content: '';
+  }
+
+  .cabeza__texto {
+    position: relative;
+    z-index: 1;
+    padding-block: 96px 24px;
+  }
+
   h1 {
+    --trazo: var(--papel);
+
+    width: fit-content;
     font-family: var(--fuente-display);
-    font-size: clamp(4rem, 18vw, 9rem);
+    font-size: clamp(5rem, 28vw, 21rem);
     font-weight: 900;
-    line-height: 0.9;
+    line-height: 0.85;
     text-transform: uppercase;
   }
 
   .cabeza p {
-    margin-top: 8px;
-    color: rgb(255 255 255 / 82%);
+    margin-top: 10px;
+    font-weight: 600;
   }
 
   /* Sin JavaScript no sirven. Con él ya ocupan su lugar al pintar. */
@@ -351,7 +458,25 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
   .filtros__fila {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+  }
+
+  .filtros__chips {
+    display: flex;
+    flex: 1 1 100%;
     gap: 8px;
+    min-width: 0;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    padding-block: 2px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .filtros__chips::-webkit-scrollbar {
+    display: none;
   }
 
   .chip,
@@ -368,28 +493,110 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     cursor: pointer;
   }
 
-  select {
-    max-width: 44vw;
+  .chip {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
   }
 
-  .chip[aria-pressed='true'],
-  select.activo {
+  .chip--cara {
+    padding-inline: 4px 14px;
+  }
+
+  /* La cara lleva un anillo de su color: el mismo de su tarjeta. */
+  .chip__cara {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    overflow: hidden;
+    background: var(--bloque);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--bloque);
+    color: var(--papel);
+    font-size: 0.75rem;
+  }
+
+  .chip__cara :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .chip[aria-pressed='true'] {
     background: var(--tinta);
     color: var(--papel);
   }
 
-  .cuerpo {
-    padding-block: 24px 64px;
+  .chip--cara[aria-pressed='true'] {
+    background: var(--bloque);
+    border-color: var(--bloque);
   }
 
+  select {
+    max-width: 100%;
+  }
+
+  /* El próximo partido, en el color de su jugadora y con la cuenta como marcador. */
   .destacada {
-    padding: clamp(20px, 4vw, 32px);
-    background: var(--hueso);
-    border-top: 4px solid var(--rojo);
+    padding-block: clamp(28px, 6vw, 56px);
+    background: var(--bloque);
+  }
+
+  .destacada[data-color='rojo'] {
+    --gris: var(--papel);
+  }
+
+  .destacada__rejilla {
+    display: grid;
+    gap: 24px;
+  }
+
+  .destacada__rotulo {
+    margin-bottom: 12px;
   }
 
   .destacada :global(.cuenta) {
-    margin: 0 0 20px;
+    gap: clamp(6px, 2vw, 14px);
+    margin: 0;
+  }
+
+  .destacada :global(.cuenta p) {
+    flex: 1;
+    padding: 10px 6px 8px;
+    background: rgb(0 0 0 / 32%);
+    text-align: center;
+  }
+
+  .destacada :global(.cuenta p > span) {
+    font-size: clamp(3rem, 15vw, 7.5rem);
+    font-weight: 900;
+    line-height: 0.95;
+  }
+
+  .destacada :global(.partido) {
+    background: none;
+  }
+
+  .destacada :global(.partido__foto) {
+    width: clamp(112px, 30vw, 176px);
+    min-height: 176px;
+    background: none;
+  }
+
+  .destacada :global(.partido__info) {
+    padding-block: 0;
+  }
+
+  .destacada :global(.boton) {
+    background: var(--papel);
+    color: var(--tinta);
+  }
+
+  .dias {
+    padding-block: clamp(24px, 5vw, 56px);
   }
 
   .vacio {
@@ -397,12 +604,8 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     color: var(--gris);
   }
 
-  .sin-partidos {
-    margin-top: 56px;
-  }
-
   .sin-partidos ul {
-    margin-top: 16px;
+    margin-top: 24px;
   }
 
   .sin-partidos li {
@@ -422,15 +625,16 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     font-size: 0.9375rem;
   }
 
-  .suscribir {
-    margin-top: 56px;
-    padding: clamp(20px, 4vw, 32px);
-    background: var(--hueso);
+  .suscribir h2 {
+    font-family: var(--fuente-display);
+    font-size: clamp(2.25rem, 8vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
   }
 
-  .suscribir h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
+  .suscribir p {
+    margin-top: 8px;
   }
 
   .suscribir__botones {
@@ -438,15 +642,36 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     flex-wrap: wrap;
     align-items: center;
     gap: 12px 20px;
-    margin-top: 16px;
+    margin-top: 20px;
   }
 
   @media (min-width: 768px) {
-    /* En celular dos renglones fijos taparían demasiada pantalla. */
+    .cabeza__fotos {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: none;
+    }
+
+    /* En celular una barra fija taparía demasiada pantalla. */
     .filtros {
       position: sticky;
       top: 0;
       z-index: 5;
+    }
+
+    .filtros__fila {
+      flex-wrap: nowrap;
+    }
+
+    .filtros__chips {
+      flex: 1;
+      margin-inline: 0;
+      padding-inline: 0;
+    }
+
+    .destacada__rejilla {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      align-items: center;
+      gap: 40px;
     }
 
     .sin-partidos li {
@@ -472,30 +697,79 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
 
   /* Global: el navegador crea estas secciones al reagrupar por día. */
   .agenda-dia {
-    margin-top: 32px;
+    display: grid;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .agenda-dia:first-child {
+    margin-top: 0;
   }
 
   .agenda-dia__titulo {
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--tinta);
+    background: var(--bloque);
+    color: var(--papel);
+  }
+
+  /* Cada día es un bloque grande: en celular una banda, en escritorio una columna fija. */
+  .agenda-dia__fecha {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 14px;
     font-family: var(--fuente-display);
-    font-size: 1.75rem;
+    font-size: clamp(2.25rem, 11vw, 3rem);
     font-weight: 800;
-    line-height: 1.1;
-    text-transform: uppercase;
+    line-height: 1;
   }
 
-  .agenda-dia [data-partido] {
-    padding-block: 20px;
-    border-bottom: 1px solid var(--linea);
+  .agenda-dia__fecha b {
+    font-size: 1.6em;
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
   }
 
-  /* La fecha ya está en el título del día; la cabeza solo se queda si trae etiquetas. */
+  .agenda-dia__partidos {
+    display: grid;
+    gap: 10px;
+  }
+
+  .agenda-dia__partidos [data-partido] {
+    background: var(--papel);
+  }
+
+  /* La fecha ya está en el bloque del día; la cabeza solo se queda si trae etiquetas. */
   .agenda-dia [data-dia] {
     display: none;
   }
 
   .agenda-dia .partido__cabeza:not(:has(.etiqueta:not([hidden]))) {
     display: none;
+  }
+
+  @media (min-width: 768px) {
+    .agenda-dia {
+      grid-template-columns: 176px minmax(0, 1fr);
+      align-items: start;
+      gap: 20px;
+    }
+
+    .agenda-dia__titulo {
+      position: sticky;
+      top: 82px;
+    }
+
+    .agenda-dia__fecha {
+      flex-direction: column;
+      gap: 2px;
+      align-items: flex-start;
+      padding: 14px 16px 16px;
+      font-size: 2.5rem;
+    }
+
+    .agenda-dia__fecha b {
+      font-size: 2.6em;
+      line-height: 0.9;
+    }
   }
 </style>

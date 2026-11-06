@@ -88,6 +88,12 @@ export function cuentaCorta(ms: number, ahora: number) {
 /* ---------- Agenda ---------- */
 
 // Agrupa por día en la zona indicada; la lista debe venir ordenada.
+// El bloque de fecha de la agenda: "SÁB", "07", "NOV".
+export function partesDelDia(ms: number, zona?: string) {
+  const corto = (opciones: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('es-MX', { ...opciones, timeZone: zona }).format(ms).replace('.', '').toUpperCase();
+  return { semana: corto({ weekday: 'short' }), dia: corto({ day: '2-digit' }), mes: corto({ month: 'short' }) };
+}
+
 export function agruparPorDia<T extends ConInicio>(lista: T[], zona?: string) {
   const dias = new Map<string, T[]>();
   for (const p of lista) {
@@ -96,7 +102,7 @@ export function agruparPorDia<T extends ConInicio>(lista: T[], zona?: string) {
     if (grupo) grupo.push(p);
     else dias.set(dia, [p]);
   }
-  return [...dias].map(([dia, partidos]) => ({ dia, titulo: diaLargo(msDe(partidos[0]), zona), partidos }));
+  return [...dias].map(([dia, partidos]) => ({ dia, titulo: diaLargo(msDe(partidos[0]), zona), partes: partesDelDia(msDe(partidos[0]), zona), partidos }));
 }
 
 // Para la tarjeta sin foto.
