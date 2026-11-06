@@ -39,7 +39,7 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     </div>
   </header>
 
-  <div class="filtros" data-filtros hidden>
+  <div class="filtros" data-filtros>
     <div class="marco filtros__fila">
       <button type="button" class="chip" data-filtro="todas">Todas</button>
       <button type="button" class="chip" data-filtro="seleccion">Selección</button>
@@ -244,11 +244,14 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     if (actual && !jugando) escribirCuenta(cuenta, actual.ms, actual.confirmada, ahora);
   }
 
+  let alFiltrar: (() => void) | null = null;
+
   function elegir(nuevo: Filtro) {
     filtro = nuevo;
     guardar(nuevo);
     pintarControles();
     pintar();
+    alFiltrar?.();
   }
 
   for (const chip of chips) {
@@ -257,11 +260,60 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
   selectorJugadora?.addEventListener('change', () => elegir(selectorJugadora.value ? { tipo: 'jugadora', valor: selectorJugadora.value } : TODAS));
   selectorLiga?.addEventListener('change', () => elegir(selectorLiga.value ? { tipo: 'liga', valor: selectorLiga.value } : TODAS));
 
-  const barra = document.querySelector<HTMLElement>('[data-filtros]');
-  if (barra) barra.hidden = false;
   pintarControles();
   pintar();
   setInterval(pintar, 1000);
+
+  // Cada fila sale de atrás de su propio borde. La máscara dura lo que el revelado, para no cortar
+  // el foco del teclado. Los partidos de la Selección llevan además un barrido rojo.
+  const interior = (el: Element) => el.querySelector(':scope > [data-partido-interior]');
+
+  import('../lib/movimiento').then(({ conMovimiento, gsap, ScrollTrigger }) => {
+    function barrer(fila: HTMLElement) {
+      const barrido = document.createElement('span');
+      barrido.className = 'barrido';
+      barrido.setAttribute('aria-hidden', 'true');
+      fila.append(barrido);
+      gsap.timeline({ onComplete: () => barrido.remove() })
+        .fromTo(barrido, { scaleX: 0, transformOrigin: 'left' }, { scaleX: 1 })
+        .set(barrido, { transformOrigin: 'right' })
+        .to(barrido, { scaleX: 0 });
+    }
+
+    function entrar(filas: Element[]) {
+      for (const fila of filas) {
+        fila.classList.add('partido--mascara');
+        if ((fila as HTMLElement).dataset.tipo === 'seleccion') barrer(fila as HTMLElement);
+      }
+      gsap.fromTo(filas.map(interior), { yPercent: 105 }, {
+        yPercent: 0,
+        stagger: 0.06,
+        overwrite: true,
+        onComplete: () => filas.forEach((f) => f.classList.remove('partido--mascara')),
+      });
+    }
+
+    conMovimiento(() => {
+      const visibles = () => partidos.map((p) => p.el).filter((el) => el.isConnected);
+      let lotes: ReturnType<typeof ScrollTrigger.batch> = [];
+
+      function preparar() {
+        lotes.forEach((t) => t.kill());
+        for (const fila of visibles()) {
+          fila.classList.add('partido--mascara');
+          gsap.set(interior(fila), { yPercent: 105 });
+        }
+        lotes = ScrollTrigger.batch(visibles(), { start: 'top 96%', once: true, onEnter: entrar });
+        ScrollTrigger.refresh();
+      }
+
+      preparar();
+      alFiltrar = preparar;
+      return () => {
+        alFiltrar = null;
+      };
+    });
+  });
 </script>
 
 <style>
@@ -284,10 +336,16 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     color: rgb(255 255 255 / 82%);
   }
 
+  /* Sin JavaScript no sirven. Con él ya ocupan su lugar al pintar. */
   .filtros {
+    display: none;
     padding-block: 10px;
     background: var(--papel);
     border-bottom: 1px solid var(--linea);
+  }
+
+  :global(.con-js) .filtros {
+    display: block;
   }
 
   .filtros__fila {
@@ -399,6 +457,19 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
 </style>
 
 <style is:global>
+  .partido--mascara {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .barrido {
+    position: absolute;
+    inset: 0;
+    background: var(--rojo);
+    pointer-events: none;
+    transform: scaleX(0);
+  }
+
   /* Global: el navegador crea estas secciones al reagrupar por día. */
   .agenda-dia {
     margin-top: 32px;

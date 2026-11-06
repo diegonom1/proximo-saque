@@ -30,6 +30,7 @@ const oficial = p.ligaId ? ligas[p.ligaId]?.calendarioOficialUrl : null;
   data-club={p.clubId ?? ''}
   data-jugadoras={quienes.map((j) => j.slug).join(' ')}
 >
+  <div data-partido-interior>
   <p class="partido__cabeza">
     <time class="dato" datetime={p.inicio} data-dia>{diaCorto(msDe(p), ZONA_SITIO)}</time>
     {p.tipo === 'seleccion' && <span class="etiqueta">Selección</span>}
@@ -45,6 +46,7 @@ const oficial = p.ligaId ? ligas[p.ligaId]?.calendarioOficialUrl : null;
       {p.fuente && <a class="enlace" href={p.fuente} target="_blank" rel="noopener">Fuente</a>}
       {!p.fuente && oficial && <a class="enlace" href={oficial} target="_blank" rel="noopener">Verificar en el calendario oficial</a>}
     </div>
+  </div>
   </div>
 </article>
 
