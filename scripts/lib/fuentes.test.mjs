@@ -1,9 +1,28 @@
 import { describe, expect, it, vi } from 'vitest';
 import { crearVerificador, dominio, fuenteAdmisible } from './fuentes.mjs';
-import { esListado, filasDeAtributos } from './fuentes.mjs';
+import { esListado, esVideoSuelto, filasDeAtributos, fuenteAdmisible as admisible } from './fuentes.mjs';
 
 const http = (status, location) => ({ status, headers: { get: () => location ?? null } });
 const REDIRECCION = 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc';
+
+describe('fuentes que nunca valen', () => {
+  it.each([
+    'https://www.threads.com/@sitemelhordovolei/post/DZIP0nhjn3b/mercado',
+    'https://www.threads.net/@cuenta/post/1',
+    'https://www.facebook.com/okformis/posts/1',
+    'https://www.tiktok.com/discover/arleth',
+    'https://www.instagram.com/p/1',
+    'https://www.youtube.com/watch?v=A4LupRHEcS0',
+    'https://youtube.com/shorts/abc',
+    'https://www.youtube.com/live/abc',
+    'https://youtu.be/A4LupRHEcS0',
+  ])('%s', (url) => expect(admisible(url)).toBe(false));
+  it('el canal de YouTube sí', () => {
+    expect(esVideoSuelto('https://www.youtube.com/@legavolleyfemminile')).toBe(false);
+    expect(admisible('https://www.youtube.com/@legavolleyfemminile')).toBe(true);
+  });
+  it('una página que solo se llama parecido sí', () => expect(admisible('https://notyoutube.com/watch?v=1')).toBe(true));
+});
 
 describe('esListado', () => {
   it.each([

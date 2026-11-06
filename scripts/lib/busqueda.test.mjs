@@ -88,6 +88,11 @@ describe('investigar', () => {
     expect(e).not.toHaveProperty('query'); // con query Tavily devuelve fragmentos, no la página
     expect(cuerpos(pedir, '/extract')).toHaveLength(1);
   });
+  it('tampoco le muestra videos sueltos: no los podría citar', async () => {
+    const pedir = api({ resultados: [{ url: 'https://www.youtube.com/watch?v=1', content: 'x' }, { url: 'https://www.threads.com/@a/post/1', content: 'x' }, { url: 'https://a.mx/1', content: 'y' }] });
+    const { resultados } = await buscador(pedir).investigar({ consultas: [{ texto: 'q' }], mejores: 0 });
+    expect(resultados.map((r) => r.url)).toEqual(['https://a.mx/1']);
+  });
   it('nunca le muestra redes sociales a Gemini', async () => {
     const pedir = api({ resultados: [{ url: 'https://www.instagram.com/p/1', content: 'x' }, { url: 'https://a.mx/1', content: 'y' }] });
     const { resultados } = await buscador(pedir).investigar({ consultas: [{ texto: 'q' }], mejores: 0 });

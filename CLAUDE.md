@@ -419,7 +419,7 @@ Detalles técnicos:
 
 - Todo dato nuevo necesita `fuente`; sin fuente se descarta.
 - Fuentes con `BUSQUEDA=tavily`: una URL vale solo si vino en los resultados de esa misma tarea. Otra página del mismo dominio no vale.
-- Nunca valen como fuente las redes sociales (Instagram, LinkedIn, X, Facebook, TikTok) ni la portada de un sitio.
+- Nunca valen como fuente las redes sociales (Instagram, LinkedIn, X, Facebook, TikTok, Threads), los videos sueltos de YouTube (`youtube.com/watch`, shorts, `youtu.be`; un canal sí) ni la portada de un sitio.
 - Perfiles: la página debe mencionar a la jugadora en el título, la URL o el texto que vino en los resultados, y no puede ser un listado (búsquedas, filtros por país, listas de jugadoras; `esListado`).
 - Fuentes con `BUSQUEDA=google`: una URL se acepta si su dominio aparece entre las fuentes de `groundingMetadata` de esa misma respuesta o si responde al abrirla (2xx/3xx; Volleybox contesta 403 a los bots y se acepta si viene en `groundingMetadata`). Los enlaces de redirección de Google en `groundingMetadata` (`vertexaisearch.cloud.google.com/grounding-api-redirect/…`) se resuelven a su URL final antes de guardarlos. Si ninguna fuente del dato pasa, se descarta.
 - Partidos: fecha válida, futura, a menos de 120 días, zona IANA válida, local y visitante presentes. La hora llega como la publica la fuente (`fecha`, `hora`, `zonaHoraria`), junto con `zonaSede`. El código calcula el instante con `hora` + `zonaHoraria` y guarda `inicio` en `zonaSede` (`relojLocalAUtc` e `isoEnZona` del v1). El desfase de `inicio` debe coincidir con `zonaSede`.

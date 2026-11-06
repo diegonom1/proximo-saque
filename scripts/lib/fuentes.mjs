@@ -50,16 +50,23 @@ export function dominio(url) {
   }
 }
 
-export const REDES_SOCIALES = ['instagram.com', 'linkedin.com', 'x.com', 'twitter.com', 'facebook.com', 'tiktok.com'];
+export const REDES_SOCIALES = ['instagram.com', 'linkedin.com', 'x.com', 'twitter.com', 'facebook.com', 'tiktok.com', 'threads.com', 'threads.net'];
 
 export const esDominio = (url, lista) => {
   const propio = dominio(url);
   return Boolean(propio) && lista.some((d) => propio === d || propio.endsWith(`.${d}`));
 };
 
-// Ni las redes sociales ni la portada de un sitio sirven como fuente de un dato.
+// Un video suelto no se puede citar: el dato no se lee en la página. El canal (`/@nombre`) sí vale.
+export function esVideoSuelto(url) {
+  if (!urlValida(url) || !esDominio(url, ['youtube.com', 'youtu.be'])) return false;
+  const { hostname, pathname } = new URL(url);
+  return hostname.endsWith('youtu.be') || /^\/(watch|shorts|live|embed)(\/|$)/.test(pathname);
+}
+
+// Ni las redes sociales, ni los videos sueltos, ni la portada de un sitio sirven como fuente de un dato.
 export function fuenteAdmisible(url) {
-  if (!urlValida(url) || esDominio(url, REDES_SOCIALES)) return false;
+  if (!urlValida(url) || esDominio(url, REDES_SOCIALES) || esVideoSuelto(url)) return false;
   const { pathname, search } = new URL(url);
   return pathname.replace(/\/+$/, '') !== '' || search !== '';
 }
