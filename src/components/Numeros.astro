@@ -1,0 +1,67 @@
+---
+import { activas, clubes, partidos, torneos } from '../lib/datos';
+import { numerosSeleccion } from '../lib/numeros';
+
+const numeros = numerosSeleccion({ activas, clubes, partidos, torneos: torneos.torneos, maximo: torneos.maximo, ahora: Date.now() });
+---
+
+<section class="seccion numeros" aria-labelledby="numeros-titulo">
+  <div class="marco">
+    <h2 id="numeros-titulo" class="titulo-seccion">La Selección en números</h2>
+    <dl>
+      {
+        numeros.map((n) => (
+          <div>
+            <dd><span data-contar={n.valor}>{n.valor}</span></dd>
+            <dt class="dato">{n.rotulo}</dt>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .numeros {
+    background: var(--tinta);
+    color: var(--papel);
+  }
+
+  .numeros :global(.relleno) {
+    --trazo: var(--papel);
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 16px;
+    margin: clamp(32px, 6vw, 64px) 0 0;
+  }
+
+  dl > div {
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+    border-top: 2px solid var(--rojo);
+  }
+
+  dd {
+    margin: 0;
+    font-family: var(--fuente-display);
+    font-size: clamp(4.5rem, 20vw, 9rem);
+    font-variant-numeric: tabular-nums;
+    font-weight: 900;
+    line-height: 0.9;
+  }
+
+  dt {
+    margin-top: 8px;
+    color: rgb(255 255 255 / 75%);
+  }
+
+  @media (min-width: 900px) {
+    dl {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+</style>
