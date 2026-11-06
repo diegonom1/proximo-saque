@@ -464,7 +464,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
   }
 
   /* El botón rojo se perdería sobre el bloque rojo. */
-  :global(body:has(.portada[data-modo='recorte'][data-color='rojo']) .encabezado .agenda) {
+  :global(body:has(.portada[data-modo='recorte'][data-color='rojo']) .encabezado:not(.encabezado--fija) .agenda) {
     background: var(--tinta);
   }
 

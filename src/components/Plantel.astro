@@ -3,7 +3,9 @@ import { activas } from '../lib/datos';
 import TarjetaJugadora from './TarjetaJugadora.astro';
 ---
 
-<section id="plantel" class="seccion seccion--oscura plantilla" aria-labelledby="plantel-titulo" data-plantilla>
+<!-- El ancla va afuera: la sección fijada se recorre con el riel y un enlace caería al final. -->
+<span id="plantel" class="ancla"></span>
+<section class="seccion seccion--oscura plantilla" aria-labelledby="plantel-titulo" data-plantilla>
   <div class="marco">
     <div class="seccion__cabeza">
       <h2 id="plantel-titulo" class="titulo-seccion">Plantilla</h2>
@@ -122,6 +124,11 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
     background: #1a1b1f;
   }
 
+  .ancla {
+    display: block;
+    scroll-margin-top: var(--alto-encabezado);
+  }
+
   /* Celular: carrusel deslizable con snap. */
   .carrusel {
     display: grid;
@@ -169,12 +176,23 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
       flex-direction: column;
       justify-content: center;
       height: 100svh;
-      padding-block: 24px;
+      padding-block: calc(var(--alto-encabezado) + 8px) 24px;
       overflow: hidden;
+    }
+
+    /* El enlace cae justo donde empieza el riel. */
+    .ancla:has(+ .plantilla .carrusel--riel),
+    .ancla:has(+ .pin-spacer .carrusel--riel) {
+      scroll-margin-top: 0;
     }
 
     .plantilla:has(.carrusel--riel) .seccion__cabeza {
       margin-bottom: 16px;
+    }
+
+    /* Tiene que caber entero debajo del encabezado, también en una laptop. */
+    .plantilla:has(.carrusel--riel) :global(.titulo-seccion) {
+      font-size: clamp(3rem, 13svh, 9rem);
     }
 
     .carrusel--riel {
@@ -188,7 +206,7 @@ import TarjetaJugadora from './TarjetaJugadora.astro';
 
     .carrusel--riel > li {
       flex: none;
-      width: min(340px, 44svh);
+      width: min(340px, 42svh);
     }
   }
 </style>

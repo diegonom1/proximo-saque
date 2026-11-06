@@ -2,33 +2,62 @@
 import { ruta } from '../lib/presentacion';
 ---
 
-<header class="encabezado">
+<header class="encabezado" data-encabezado>
   <div class="marco encabezado__fila">
     <a class="marca" href={ruta()}>Próximo Saque</a>
     <nav aria-label="Principal">
       <ul>
-        <li class="opcional"><a href={`${ruta()}#plantel`}>Plantilla</a></li>
-        <li class="opcional"><a href={`${ruta()}#torneos`}>Torneos</a></li>
+        <li><a href={`${ruta()}#plantel`}>Plantilla</a></li>
+        <li><a href={`${ruta()}#torneos`}>Torneos</a></li>
         <li><a class="agenda" href={ruta('agenda')}>Agenda</a></li>
       </ul>
     </nav>
   </div>
 </header>
 
+<script>
+  // Arriba va transparente sobre la foto; al bajar, sobre un fondo propio para leerse en cualquier sección.
+  const encabezado = document.querySelector('[data-encabezado]');
+  const pintar = () => encabezado?.classList.toggle('encabezado--fija', window.scrollY > 24);
+
+  addEventListener('scroll', pintar, { passive: true });
+  pintar();
+</script>
+
 <style>
+  /* Siempre a la mano. Sin JavaScript el fondo se queda puesto. */
   .encabezado {
-    position: absolute;
+    position: fixed;
     inset: 0 0 auto;
     z-index: 10;
     color: var(--papel);
   }
 
+  .encabezado::before {
+    position: absolute;
+    inset: 0;
+    background: var(--tinta);
+    content: '';
+    transition: opacity var(--duracion) var(--curva);
+  }
+
+  :global(.con-js) .encabezado:not(.encabezado--fija)::before {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .encabezado::before {
+      transition: none;
+    }
+  }
+
   .encabezado__fila {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    min-height: 64px;
+    gap: 12px;
+    min-height: var(--alto-encabezado);
   }
 
   .marca {
@@ -67,9 +96,40 @@ import { ruta } from '../lib/presentacion';
     border-radius: 999px;
   }
 
+  /* En celular también caben los tres. */
   @media (max-width: 459px) {
-    .opcional {
-      display: none;
+    .marca {
+      font-size: 1.25rem;
+    }
+
+    ul {
+      gap: 10px;
+    }
+
+    nav a {
+      font-size: 0.8125rem;
+    }
+
+    .agenda {
+      padding-inline: 10px;
+    }
+  }
+
+  @media (max-width: 359px) {
+    .marca {
+      font-size: 1rem;
+    }
+
+    ul {
+      gap: 6px;
+    }
+
+    nav a {
+      font-size: 0.75rem;
+    }
+
+    .agenda {
+      padding-inline: 8px;
     }
   }
 </style>

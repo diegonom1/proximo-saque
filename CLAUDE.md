@@ -329,7 +329,7 @@ Si su club no tiene partidos, mostrar `partidos.estados[clubId]` (temporada sin 
 - Fondos: encabezado, filtros en blanco, el color de la jugadora, hueso, carbón, verde oscuro y el pie negro.
 - El build genera `calendario.ics` (todos) y `calendario/<slug>.ics` (por jugadora) para suscribirse desde Google Calendar y recibir los cambios solos. Un partido sin hora confirmada va como evento de todo el día.
 
-Acceso desde todo el sitio: enlace "Agenda" en la navegación y, en celular, un botón flotante con la cuenta y el texto del próximo partido que lleva a `/agenda`.
+Acceso desde todo el sitio: el encabezado se queda fijo, con Plantilla, Torneos y Agenda también en celular. Es transparente sobre la foto de arriba y con fondo propio al bajar (`--alto-encabezado`). En celular hay además un botón flotante con la cuenta y el texto del próximo partido que lleva a `/agenda`.
 
 ### Torneos `/torneos` (opcional)
 

@@ -35,7 +35,18 @@ function reacomodar() {
   orden = setTimeout(() => {
     ScrollTrigger.sort();
     ScrollTrigger.refresh();
+    irAlAncla();
   }, 60);
+}
+
+// Al llegar de otra página a /#torneos, el navegador salta antes de que exista la altura de la sección
+// fijada y cae en otro lado. Se corrige una vez, y solo en una visita nueva: atrás y recargar conservan su lugar.
+let anclaLista = false;
+function irAlAncla() {
+  if (anclaLista) return;
+  anclaLista = true;
+  const [visita] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+  if (location.hash.length > 1 && visita?.type === 'navigate') document.getElementById(location.hash.slice(1))?.scrollIntoView();
 }
 
 // Con prefers-reduced-motion no se llama nunca. GSAP deshace lo que haya hecho `fn` si cambia la pantalla.

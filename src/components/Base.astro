@@ -44,6 +44,8 @@ const {
         }, 2500);
         // Al volver de un perfil, su foto regresa a su tarjeta. Tiene que quedar antes de pintar.
         addEventListener('pagereveal', function (evento) {
+          // Si el navegador omite la transición, la página carga normal: no es un error.
+          if (evento.viewTransition) evento.viewTransition.ready.catch(function () {});
           var origen = window.navigation && navigation.activation && navigation.activation.from;
           var jugadora = origen && origen.url.match(/jugadoras\/([^/?#]+)/);
           var foto = jugadora && document.querySelector('[data-foto-vt="' + jugadora[1] + '"]');
@@ -96,6 +98,7 @@ const {
     --carbon: #303237;
     --fuerte: var(--tinta); /* lo que resalta dentro de un texto gris */
     --gutter: clamp(16px, 4vw, 48px);
+    --alto-encabezado: 64px;
     --curva: cubic-bezier(0.16, 1, 0.3, 1); /* la misma en src/lib/movimiento.ts y marcador.ts */
     --duracion: 0.7s;
     color-scheme: light;
@@ -197,7 +200,7 @@ const {
 
   .seccion {
     padding-block: clamp(56px, 9vw, 112px);
-    scroll-margin-top: 16px;
+    scroll-margin-top: var(--alto-encabezado);
   }
 
   .seccion--hueso {

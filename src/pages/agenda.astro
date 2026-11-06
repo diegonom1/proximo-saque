@@ -650,7 +650,7 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     /* En celular una barra fija taparía demasiada pantalla. */
     .filtros {
       position: sticky;
-      top: 0;
+      top: var(--alto-encabezado);
       z-index: 5;
     }
 
@@ -752,7 +752,7 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
 
     .agenda-dia__titulo {
       position: sticky;
-      top: 82px;
+      top: calc(var(--alto-encabezado) + 82px);
     }
 
     .agenda-dia__fecha {
