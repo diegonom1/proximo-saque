@@ -27,6 +27,7 @@ import * as plantel from './plantel.mjs';
 import * as rankings from './rankings.mjs';
 import { crearReporte } from './reporte.mjs';
 import * as seleccion from './seleccion.mjs';
+import * as temporadas from './temporadas.mjs';
 import { crearBuscadorTavily } from '../lib/busqueda.mjs';
 import { crearVerificador, textoDePagina } from '../lib/fuentes.mjs';
 import { crearDescargaSimulada, descargarOficial } from '../lib/rankings-oficiales.mjs';
@@ -220,7 +221,7 @@ function validarContraAprobados(datos, aprobados) {
 }
 
 export async function correr({
-  dirDatos, dirFotos, llamar, verificar, buscador = null, leerPagina = null, descargar = null, ahora = Date.now(), maxLlamadas = 20, diasAdelante = 45, seco = false, modo = 'real',
+  dirDatos, dirFotos, llamar, verificar, buscador = null, leerPagina = null, descargar = null, comprobarUrl = null, ahora = Date.now(), maxLlamadas = 20, diasAdelante = 45, seco = false, modo = 'real',
   prEstado = null, dirAprobados = dirDatos, soloVerificar = false, diasVerificar = soloVerificar ? 4 : 7,
 }) {
   const { datos, manual, crudos } = await cargar(dirDatos);
@@ -230,7 +231,7 @@ export async function correr({
   const aprobados = { clubes: new Set(Object.keys(archivosAprobados.clubes)), jugadoras: new Set(archivosAprobados.jugadoras.map((j) => j.slug)) };
   const diagnostico = [];
   const comparacion = [];
-  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, descargar, ahora, hoy, diasAdelante: soloVerificar ? diasVerificar : diasAdelante, diasVerificar, soloVerificar, reporte, aprobados, altas: [], nuevos: {}, torneosDetectados: [] };
+  const ctx = { diagnostico, comparacion, datos, manual, llamar, verificar, buscador, leerPagina, descargar, comprobarUrl, ahora, hoy, diasAdelante: soloVerificar ? diasVerificar : diasAdelante, diasVerificar, soloVerificar, reporte, aprobados, altas: [], nuevos: {}, torneosDetectados: [] };
   if (!soloVerificar) {
     atenderPr(ctx.datos.estado, prEstado, hoy);
     // Con el PR abierto, una `propuesta` todavía no está aprobada.
@@ -244,6 +245,7 @@ export async function correr({
 
   // No usa IA: no gasta presupuesto y corre aunque no haya clave de Gemini.
   if (descargar && !soloVerificar) await rankings.correr(ctx);
+  if (comprobarUrl && !soloVerificar) await temporadas.revisar(ctx);
 
   if (llamar) {
     // Lo que está por jugarse va antes que todo: que no lo deje fuera el presupuesto.
@@ -350,6 +352,7 @@ async function main() {
     // Con Tavily las páginas se leen con extract.
     leerPagina: simulada || buscador ? null : textoDePagina,
     descargar: simulada ? crearDescargaSimulada((nombre) => readFile(join(RAIZ, 'scripts/pruebas/paginas', nombre), 'utf8')) : descargarOficial,
+    comprobarUrl: simulada ? async () => ({ responde: true, detalle: 'simulado' }) : temporadas.comprobarUrl,
     ahora,
     maxLlamadas: Number(process.env.MAX_LLAMADAS || 20),
     diasAdelante: Number(process.env.DIAS_ADELANTE || 45),

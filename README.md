@@ -157,6 +157,8 @@ Los cambios se aplican en la siguiente corrida. Para verlos antes, ve a Actions 
 | Jueves, 06:17 de Tonalá | Solo verifica los partidos de los próximos 4 días. |
 | Cada push a `main` | Publica el sitio en GitHub Pages. |
 
+Cada lunes el resumen avisa si la temporada de una liga ya debería haber terminado o si su calendario oficial dejó de responder. Esos dos datos se corrigen a mano en `data/ligas.json`. Si esa semana hay PR, el aviso también sale en sus dudas.
+
 El PR se aprueba desde GitHub. Cada corrida deja su resumen en Actions y un artefacto `diagnostico` con las respuestas crudas, durante 14 días. Las corridas programadas se encienden con la variable `CORRIDA_PROGRAMADA` en `true`.
 
 Las instrucciones de cada agente están en [agentes/](agentes/README.md).

@@ -106,6 +106,56 @@ describe('rankings', () => {
   });
 });
 
+describe('temporadas de las ligas', () => {
+  const vivo = async () => ({ responde: true, detalle: 'respondió 200' });
+  const liga = (id, cambios) => cambiar('ligas.json', (d) => { Object.assign(d[id], cambios); });
+  const ligaDe = async (slug) => (await leer('clubes.json'))[(await jugadora(slug)).clubId].ligaId;
+  const despues = Date.parse('2027-07-01T12:00:00-06:00');
+
+  it('con la temporada vigente y el calendario vivo no avisa', async () => {
+    const r = await ejecutar({}, { comprobarUrl: vivo });
+    expect(r.resumen).not.toContain('### temporadas');
+    expect(r.cuerpoPr).not.toContain('## Dudas');
+  });
+  it('avisa en el resumen y en el PR si la temporada ya debería haber terminado', async () => {
+    const id = await ligaDe('sofia-maldonado');
+    await liga(id, { temporada: '2026-27' });
+    const r = await correr({ dirDatos: dir, dirFotos: fotos, llamar: null, comprobarUrl: vivo, verificar: crearVerificador({ red: false }), ahora: despues });
+    const { nombre } = (await leer('ligas.json'))[id];
+    expect(r.resumen).toContain(`**Por revisar:** ${nombre}: la temporada 2026-27 ya debería haber terminado (2027-06-30)`);
+    expect(r.cuerpoPr).toContain('## Dudas');
+    expect(r.cuerpoPr).toContain(`${nombre}: la temporada 2026-27`);
+  });
+  it('avisa si el calendario oficial deja de responder', async () => {
+    const id = await ligaDe('sofia-maldonado');
+    await liga(id, { calendarioOficialUrl: 'https://liga.mx/calendario' });
+    const caido = async (url) => (url === 'https://liga.mx/calendario' ? { responde: false, detalle: 'respondió 404' } : { responde: true, detalle: 'respondió 200' });
+    const r = await ejecutar({}, { comprobarUrl: caido });
+    expect(r.resumen).toContain('el calendario oficial respondió 404');
+    expect(r.cuerpoPr).toContain('https://liga.mx/calendario');
+  });
+  it('no cambia ninguna liga: solo avisa', async () => {
+    const antes = await readFile(join(dir, 'ligas.json'), 'utf8');
+    await correr({ dirDatos: dir, dirFotos: fotos, llamar: null, comprobarUrl: async () => ({ responde: false, detalle: 'no se pudo conectar' }), verificar: crearVerificador({ red: false }), ahora: despues });
+    expect(await readFile(join(dir, 'ligas.json'), 'utf8')).toBe(antes);
+  });
+  it('no gasta llamadas y el jueves no corre', async () => {
+    let pedidas = 0;
+    const contar = async () => { pedidas += 1; return { responde: true, detalle: 'ok' }; };
+    const r = await correr({ dirDatos: dir, dirFotos: fotos, llamar: null, comprobarUrl: contar, verificar: crearVerificador({ red: false }), ahora: AHORA });
+    expect(r.llamadas).toBe(0);
+    expect(pedidas).toBeGreaterThan(0);
+    pedidas = 0;
+    await ejecutar({}, { comprobarUrl: contar, soloVerificar: true });
+    expect(pedidas).toBe(0);
+  });
+  it('ignora las ligas sin seleccionadas', async () => {
+    await cambiar('ligas.json', (d) => { d['liga-vacia'] = { ...Object.values(d)[0], nombre: 'Liga Vacía', temporada: '2020-21', calendarioOficialUrl: null }; });
+    const r = await correr({ dirDatos: dir, dirFotos: fotos, llamar: null, comprobarUrl: vivo, verificar: crearVerificador({ red: false }), ahora: AHORA });
+    expect(r.resumen).not.toContain('Liga Vacía');
+  });
+});
+
 describe('torneos con la lista llena', () => {
   const detectado = (nombre) => ({ '04-seleccion-torneos': (clave) => (clave ? undefined : { ...VACIAS['04-seleccion-torneos'], torneosMencionados: [{ nombre, edicion: 2025 }] }) });
   const llena = (d) => {
