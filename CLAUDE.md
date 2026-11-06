@@ -448,7 +448,7 @@ Detalles técnicos:
 
 ### Workflows
 
-Ambos usan Node 24: `actions/setup-node` con `node-version-file: .nvmrc`.
+Ambos usan Node 24 (`actions/setup-node` con `node-version-file: .nvmrc`) y corren en `ubuntu-24.04`, fijo para que un cambio de `ubuntu-latest` no los mueva.
 
 - `actualizar.yml`: `schedule` lunes y jueves a las 06:17 de Tonalá (`17 12 * * 1` y `17 12 * * 4` en UTC) y `workflow_dispatch`, que deja elegir `lunes` o `jueves`. El jueves pone `SOLO_VERIFICAR=true`, parte de `main` y no toca el PR. Las programadas solo corren con la variable `CORRIDA_PROGRAMADA` en `true`; a mano siempre corre. Secretos `GEMINI_API_KEY` y `TAVILY_API_KEY`, variables `GEMINI_MODELOS`, `MAX_LLAMADAS` y `BUSQUEDA`. Después del commit, construye y despliega en el mismo workflow, llamando a `deploy.yml`: un push hecho con `GITHUB_TOKEN` no dispara otros workflows.
 - `deploy.yml`: en push a `main` (por ejemplo al aprobar el PR), `astro build` y despliegue a Pages (`actions/upload-pages-artifact` + `actions/deploy-pages`; en Settings → Pages, fuente *GitHub Actions*). `site` y `base` están en `astro.config.mjs`: si cambia el nombre del repo, hay que cambiar `base`.

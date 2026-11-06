@@ -22,7 +22,7 @@ jobs:
   actualizar:
     # Las programadas quedan apagadas hasta poner la variable CORRIDA_PROGRAMADA en true: la primera se lanza a mano.
     if: github.event_name == 'workflow_dispatch' || vars.CORRIDA_PROGRAMADA == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
       contents: write
