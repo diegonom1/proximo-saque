@@ -135,36 +135,31 @@ export const capa = (el: Element, desde: gsap.TweenVars, hasta: gsap.TweenVars, 
 
 type Tramo = [gsap.TweenVars, gsap.TweenVars];
 
-// Lo mismo en su tarjeta y en su perfil, con el recurso 4. En el perfil cada capa va de su lugar al
-// final del scroll. En la tarjeta el recorte llega a su lugar al pasar: `tarjeta` es de dónde viene.
-export const VARIANTES: Record<string, { recorte: Tramo; apellido: Tramo; numero: Tramo; tarjeta: gsap.TweenVars }> = {
+// Solo en su perfil, con el recurso 4: cada capa va de su lugar al final del scroll.
+export const VARIANTES: Record<string, { recorte: Tramo; apellido: Tramo; numero: Tramo }> = {
   // Se siente en 3D: el apellido se va de lado, el número sube y el recorte se queda atrás.
   profundidad: {
     recorte: [{ yPercent: 0 }, { yPercent: 14 }],
     apellido: [{ xPercent: 0 }, { xPercent: -24 }],
     numero: [{ yPercent: 0 }, { yPercent: -18 }],
-    tarjeta: { yPercent: 12 },
   },
   // El recorte sale por la izquierda y el apellido se resiste.
   izquierda: {
     recorte: [{ xPercent: 0 }, { xPercent: -80 }],
     apellido: [{ xPercent: 0 }, { xPercent: 12 }],
     numero: [{ xPercent: 0 }, { xPercent: -30 }],
-    tarjeta: { xPercent: 22 },
   },
   // El recorte se va a la derecha con un giro leve.
   derecha: {
     recorte: [{ xPercent: 0, rotation: 0 }, { xPercent: 62, rotation: 7 }],
     apellido: [{ xPercent: 0 }, { xPercent: -30 }],
     numero: [{ yPercent: 0 }, { yPercent: -14 }],
-    tarjeta: { xPercent: -22, rotation: -4 },
   },
   // El recorte se acerca mientras el fondo se aleja.
   acerca: {
     recorte: [{ scale: 1 }, { scale: 1.3 }],
     apellido: [{ scale: 1 }, { scale: 0.78 }],
     numero: [{ scale: 1 }, { scale: 0.7 }],
-    tarjeta: { scale: 0.88 },
   },
 };
 

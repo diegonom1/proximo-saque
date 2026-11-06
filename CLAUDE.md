@@ -97,7 +97,7 @@ Cualquier campo puede ser `null`. En pantalla, `null` se muestra como "Por confi
 - `fotos.foco`: `object-position` para recortar bien en cualquier pantalla. Los créditos salen de `credito.txt`.
 - `fotos.tratamiento`: `completa` | `duotono` | `recorte` | `null` (ver "Tratamientos" en Fotos).
 - `fotos.orilla`: `derecha` | `null`. Pega el recorte a esa orilla, en la tarjeta y en el perfil, para ocultar un corte de la foto.
-- `fotos.variante`: `profundidad` | `izquierda` | `derecha` | `acerca` | `null` (ver "Variantes" en Animaciones). Con `null`, `profundidad`.
+- `fotos.variante`: `profundidad` | `izquierda` | `derecha` | `acerca` | `null`. Cómo se mueve en su perfil (ver "Variantes" en Animaciones). Con `null`, `profundidad`.
 - `fotos.color`: `negro` | `rojo` | `verde` | `carbon` | `null`. El bloque de su tarjeta y su perfil. Con `null`, `rojo`. Se elige contra su jersey: nadie rojo sobre rojo ni verde sobre verde.
 - `revisado`: fecha del último cambio que trajo el agente de perfil. La rotación usa `estado-agentes.json`.
 
@@ -376,7 +376,7 @@ Todo sale de cuatro recursos (`src/lib/movimiento.ts`) con la misma curva y dura
 | Agenda | Las filas salen de atrás de su borde, escalonadas. El filtro las repite y los partidos de la Selección llevan un barrido rojo. |
 | Títulos de sección | Gigantes, en contorno, se rellenan con el scroll. |
 
-Variantes: cada jugadora tiene una fija (`fotos.variante`, tabla `VARIANTES`), igual en su tarjeta y en su perfil. En el perfil se mueve con el scroll; en la tarjeta, el recorte llega a su lugar al pasar.
+Variantes: cada jugadora tiene una fija (`fotos.variante`, tabla `VARIANTES`), solo en su perfil, al hacer scroll. En la Plantilla el recorte se queda quieto.
 
 | Variante | Movimiento del recorte |
 |---|---|

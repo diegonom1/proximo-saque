@@ -20,7 +20,7 @@ const club = j.clubId ? clubes[j.clubId]?.nombre : null;
 const texto = apellido(j.nombre);
 ---
 
-<a class="tarjeta" href={ruta(`jugadoras/${j.slug}`)} data-tarjeta data-color={j.fotos.color ?? 'rojo'} data-variante={j.fotos.variante ?? 'profundidad'}>
+<a class="tarjeta" href={ruta(`jugadoras/${j.slug}`)} data-tarjeta data-color={j.fotos.color ?? 'rojo'}>
   <div class="tarjeta__foto" data-orilla={j.fotos.orilla ?? undefined}>
     {
       conRecorte ? (
@@ -38,7 +38,6 @@ const texto = apellido(j.nombre);
             widths={anchosPara(conRecorte, [320, 480, 640])}
             sizes="(min-width: 1024px) 340px, 72vw"
             data-foto-vt={j.slug}
-            data-tarjeta-recorte
           />
           {j.numero !== null && <span class="tarjeta__marcador" data-contar={j.numero} data-contar-manual aria-hidden="true">{j.numero}</span>}
         </>
@@ -117,12 +116,10 @@ const texto = apellido(j.nombre);
     margin-inline: auto;
     object-fit: contain;
     object-position: bottom;
-    transform-origin: 50% 100%;
   }
 
   .tarjeta__foto[data-orilla='derecha'] :global(.tarjeta__recorte) {
     margin-right: 0;
-    transform-origin: 100% 100%;
   }
 
   .tarjeta__marcador {
