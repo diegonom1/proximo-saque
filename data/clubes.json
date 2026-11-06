@@ -155,5 +155,21 @@
     },
     "sitio": null,
     "calendarioUrl": null
+  },
+  "guerreras-puebla": {
+    "nombre": "Guerreras de Puebla",
+    "alias": [
+      "Guerreras"
+    ],
+    "ligaId": "lvp-mx",
+    "pais": "México",
+    "ciudad": "Puebla",
+    "zona": "America/Mexico_City",
+    "volleybox": {
+      "url": null,
+      "widgetId": null
+    },
+    "sitio": null,
+    "calendarioUrl": null
   }
 }
