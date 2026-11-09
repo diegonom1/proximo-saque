@@ -112,5 +112,13 @@
     "calendarioOficialUrl": "https://lvpmx.torneomax.com/matches",
     "plataformas": [],
     "revisado": null
+  },
+  "liga-iberdrola-espana": {
+    "nombre": "Liga Iberdrola",
+    "pais": "España",
+    "temporada": null,
+    "calendarioOficialUrl": null,
+    "plataformas": [],
+    "revisado": null
   }
 }

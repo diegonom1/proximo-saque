@@ -171,5 +171,19 @@
     },
     "sitio": null,
     "calendarioUrl": null
+  },
+  "avarca-de-menorca": {
+    "nombre": "Avarca de Menorca",
+    "alias": [],
+    "ligaId": "liga-iberdrola-espana",
+    "pais": "España",
+    "ciudad": "Ciutadella",
+    "zona": "Europe/Madrid",
+    "volleybox": {
+      "url": "https://women.volleybox.net/grecia-castro-p23459",
+      "widgetId": null
+    },
+    "sitio": null,
+    "calendarioUrl": null
   }
 }
