@@ -66,6 +66,10 @@ describe('estados del partido', () => {
     expect(v.etiqueta).toBe('Selección · En juego');
     expect(v.cuenta.modo).toBe('envivo');
   });
+  it('sin torneo, la que está en juego cambia el texto y lleva su inicio', () => {
+    const v = vista([club], null, Date.parse(club.inicio) + 30 * 6e4);
+    expect(v).toMatchObject({ mientras: 'Mientras, ahora en juego:', cuenta: { modo: 'envivo', ms: Date.parse(club.inicio) } });
+  });
   it('hora sin confirmar: solo días y sin "allá"', () => {
     const v = vista([{ ...seleccion, horaConfirmada: false }], null);
     expect(v).toMatchObject({ alla: null, cuenta: { modo: 'dias', dias: 16 } });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  agruparPorDia, cuentaCorta, cuentaRegresiva, diaLargo, diasHasta, enJuego, fechaGrande, hora, horaDelLugar, iniciales, partesDelDia, relativo, vigentes,
+  agruparPorDia, cuentaCorta, empezoHace, cuentaRegresiva, diaLargo, diasHasta, enJuego, fechaGrande, hora, horaDelLugar, iniciales, partesDelDia, relativo, vigentes,
 } from './tiempo';
 
 const CDMX = 'America/Mexico_City';
@@ -85,5 +85,12 @@ describe('partesDelDia', () => {
   it('respeta la zona', () => {
     expect(partesDelDia(Date.parse('2026-11-08T02:00:00Z'), 'America/Mexico_City').dia).toBe('07');
     expect(partesDelDia(Date.parse('2026-11-08T02:00:00Z'), 'Asia/Shanghai').dia).toBe('08');
+  });
+});
+
+describe('empezoHace', () => {
+  const inicio = Date.parse('2026-11-13T21:00:00-03:00');
+  it.each([[0, 'Acaba de empezar'], [32, 'Empezó hace 32 min'], [65, 'Empezó hace 1 h 05 min'], [149, 'Empezó hace 2 h 29 min']])('%i minutos: %s', (min, texto) => {
+    expect(empezoHace(inicio, inicio + min * 6e4 + 20e3)).toBe(texto);
   });
 });

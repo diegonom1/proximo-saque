@@ -437,6 +437,54 @@ const {
     line-height: 1;
   }
 
+  /* Va en lugar de la cuenta mientras se juega. El punto late solo si el sistema lo permite. */
+  .envivo {
+    margin-top: 20px;
+  }
+
+  .envivo__titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    font-family: var(--fuente-display);
+    font-size: clamp(2.5rem, 10vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .sobre-papel .envivo__titulo {
+    color: var(--rojo);
+  }
+
+  .envivo__punto {
+    flex: none;
+    width: 0.3em;
+    height: 0.3em;
+    background: currentColor;
+    border-radius: 50%;
+  }
+
+  .envivo__desde {
+    margin-top: 8px;
+    font-family: var(--fuente-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .envivo__punto {
+      animation: latido 1.6s ease-in-out infinite;
+    }
+
+    @keyframes latido {
+      50% {
+        opacity: 0.25;
+      }
+    }
+  }
+
   .oculto {
     position: absolute;
     width: 1px;

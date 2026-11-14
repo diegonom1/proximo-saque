@@ -89,7 +89,7 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     <section class="seccion--oscura destacada" aria-label="Próximo partido" data-destacada data-color={colorDestacado} hidden={!primero}>
       <div class="marco destacada__rejilla">
         <div>
-          <p class="dato destacada__rotulo">Próximo partido</p>
+          <p class="dato destacada__rotulo" data-rotulo>Próximo partido</p>
           <Cuenta />
         </div>
         <div data-destacada-partido>{primero && <PartidoAgenda partido={primero} />}</div>
@@ -155,7 +155,7 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
 
 <script>
   import { TODAS, archivoIcs, coincide, coincideSinPartidos, colorDeDia, filtroInicial, type Filtro } from '../lib/agenda';
-  import { escribirCuenta } from '../lib/cuenta';
+  import { escribirCuenta, pintarEnJuego } from '../lib/cuenta';
   import { agruparPorDia, diaCorto, enJuego, hora } from '../lib/tiempo';
   import { DURACION_MS } from '../../scripts/lib/tiempo.mjs';
 
@@ -165,6 +165,7 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
   const destacada = document.querySelector<HTMLElement>('[data-destacada]');
   const lugarDestacado = document.querySelector<HTMLElement>('[data-destacada-partido]');
   const cuenta = destacada?.querySelector<HTMLElement>('[data-cuenta]');
+  const rotulo = destacada?.querySelector<HTMLElement>('[data-rotulo]');
   const contenedorDias = document.querySelector<HTMLElement>('[data-dias]');
   const vacio = document.querySelector<HTMLElement>('[data-vacio]');
   const seccionSin = document.querySelector<HTMLElement>('[data-sin-seccion]');
@@ -291,9 +292,11 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
       if (juego) juego.hidden = !enJuego(p, ahora);
     }
     if (!cuenta) return;
-    const jugando = actual ? enJuego(actual, ahora) : true;
-    cuenta.hidden = jugando;
-    if (actual && !jugando) escribirCuenta(cuenta, actual.ms, actual.confirmada, ahora);
+    const jugando = Boolean(actual && enJuego(actual, ahora));
+    if (rotulo) rotulo.textContent = jugando ? 'Partido en curso' : 'Próximo partido';
+    pintarEnJuego(cuenta, jugando, actual?.ms ?? ahora, ahora);
+    if (!actual) cuenta.hidden = true;
+    else if (!jugando) escribirCuenta(cuenta, actual.ms, actual.confirmada, ahora);
   }
 
   let alFiltrar: (() => void) | null = null;
@@ -584,6 +587,14 @@ const validos = JSON.stringify({ jugadoras: jugadorasFiltro.map((j) => j.slug), 
     font-size: clamp(3rem, 15vw, 7.5rem);
     font-weight: 900;
     line-height: 0.95;
+  }
+
+  .destacada :global(.envivo) {
+    margin: 0;
+  }
+
+  .destacada :global(.envivo__titulo) {
+    font-size: clamp(3rem, 15vw, 7.5rem);
   }
 
   .destacada :global(.partido) {

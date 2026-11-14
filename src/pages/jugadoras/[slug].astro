@@ -273,7 +273,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
 </Base>
 
 <script>
-  import { escribirCuenta } from '../../lib/cuenta';
+  import { escribirCuenta, pintarEnJuego } from '../../lib/cuenta';
   import { diaCorto, enJuego, hora, ymd } from '../../lib/tiempo';
   import { DURACION_MS } from '../../../scripts/lib/tiempo.mjs';
 
@@ -301,7 +301,7 @@ const estiloPortada = [medidas && `--foto-ancho: ${medidas.width}px`, medidas &&
     const juego = el.querySelector<HTMLElement>('[data-en-juego]');
     if (juego) juego.hidden = !jugando;
     if (!cuenta) return;
-    cuenta.hidden = jugando;
+    pintarEnJuego(cuenta, jugando, ms, ahora);
     if (jugando) return;
     escribirCuenta(cuenta, ms, el.dataset.confirmada === 'true', ahora);
   }

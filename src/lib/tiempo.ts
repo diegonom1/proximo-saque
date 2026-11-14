@@ -78,6 +78,14 @@ export function cuentaRegresiva(ms: number, ahora: number) {
 }
 
 // Texto corto del botón flotante: "2d 4h".
+// Lo que se ve en lugar de la cuenta mientras se juega.
+export function empezoHace(ms: number, ahora: number) {
+  const minutos = Math.max(0, Math.floor((ahora - ms) / 6e4));
+  if (minutos === 0) return 'Acaba de empezar';
+  if (minutos < 60) return `Empezó hace ${minutos} min`;
+  return `Empezó hace ${Math.floor(minutos / 60)} h ${String(minutos % 60).padStart(2, '0')} min`;
+}
+
 export function cuentaCorta(ms: number, ahora: number) {
   const c = cuentaRegresiva(ms, ahora);
   if (c.dias > 0) return `${c.dias}d ${c.horas}h`;

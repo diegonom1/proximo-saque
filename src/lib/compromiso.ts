@@ -47,7 +47,7 @@ export function elegirCompromiso(partidos: PartidoCliente[], torneo: TorneoClien
 export type Cuenta =
   | { modo: 'completa'; ms: number }
   | { modo: 'dias'; dias: number }
-  | { modo: 'envivo' }
+  | { modo: 'envivo'; ms: number }
   | { modo: 'ninguna' };
 
 // Texto del partido, separado para poder enlazar cada nombre a su perfil.
@@ -73,7 +73,7 @@ export interface VistaHero {
 const unir = (lista: (string | null | undefined)[], separador = ' · ') => lista.filter(Boolean).join(separador) || null;
 
 function cuentaDe(p: PartidoCliente, ahora: number, zona?: string): Cuenta {
-  if (enJuego(p, ahora)) return { modo: 'envivo' };
+  if (enJuego(p, ahora)) return { modo: 'envivo', ms: msDe(p) };
   return p.horaConfirmada ? { modo: 'completa', ms: msDe(p) } : { modo: 'dias', dias: diasHasta(msDe(p), ahora, zona) };
 }
 
@@ -126,13 +126,14 @@ export function vistaHero(c: Compromiso, ahora: number, zona?: string): VistaHer
   const base = { modo: 'espera', etiqueta: 'Selección Mexicana', fecha: null, titulo: 'Próximo torneo por confirmar' } as const;
   const p = c.partido;
   if (!p) return { ...base, mientras: null, linea: null, detalle: null, alla: null, cuenta: { modo: 'ninguna' } };
+  const cuenta = cuentaDe(p, ahora, zona);
   return {
     ...base,
-    mientras: 'Mientras, la próxima en jugar:',
+    mientras: cuenta.modo === 'envivo' ? 'Mientras, ahora en juego:' : 'Mientras, la próxima en jugar:',
     linea: lineaDe(p, zona),
     detalle: unir([diaCorto(msDe(p), zona), p.competencia]),
     alla: allaDe(p),
-    cuenta: cuentaDe(p, ahora, zona),
+    cuenta,
   };
 }
 

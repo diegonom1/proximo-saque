@@ -82,7 +82,6 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     <p class="hero__detalle" data-h="detalle" hidden={!v.detalle}>{v.detalle}</p>
     <p class="dato hero__alla" data-h="alla" hidden={!v.alla}>{v.alla}</p>
     <Cuenta />
-    <p class="hero__envivo dato" data-envivo hidden>En juego</p>
   </div>
   <Cintillo />
 </section>
@@ -92,12 +91,11 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
 <script>
   import { elegirCompromiso, vistaHero, type LineaHero, type VistaHero } from '../lib/compromiso';
   import { SELECCION, separador } from '../lib/partido';
-  import { escribirCompleta, escribirDias } from '../lib/cuenta';
+  import { escribirCompleta, escribirDias, pintarEnJuego } from '../lib/cuenta';
 
   const hero = document.querySelector<HTMLElement>('.hero');
   const { lista, torneo } = JSON.parse(document.getElementById('datos-hero')?.textContent ?? '{"lista":[],"torneo":null}');
   const cuenta = document.querySelector<HTMLElement>('[data-cuenta]');
-  const envivo = document.querySelector<HTMLElement>('[data-envivo]');
   const linea = document.querySelector<HTMLElement>('[data-linea]');
   let lineaPintada = '';
 
@@ -145,8 +143,10 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     escribirLinea(v.linea);
 
     const c = v.cuenta;
-    if (envivo) envivo.hidden = c.modo !== 'envivo';
-    if (cuenta) cuenta.hidden = c.modo !== 'completa' && c.modo !== 'dias';
+    if (cuenta) {
+      pintarEnJuego(cuenta, c.modo === 'envivo', c.modo === 'envivo' ? c.ms : ahora, ahora);
+      cuenta.hidden = c.modo !== 'completa' && c.modo !== 'dias';
+    }
     if (cuenta && c.modo === 'completa') escribirCompleta(cuenta, c.ms, ahora);
     if (cuenta && c.modo === 'dias') escribirDias(cuenta, c.dias);
   }
@@ -357,14 +357,6 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     color: rgb(255 255 255 / 82%);
   }
 
-  .hero__envivo {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 6px 12px;
-    background: var(--rojo);
-    border-radius: 999px;
-  }
-
   @media (min-width: 768px) {
     .hero[data-foto='panel']:has(.hero__foto) {
       justify-content: flex-end;
@@ -416,7 +408,7 @@ const respaldo = escritorio ? await getImage({ src: escritorio, format: 'jpg', w
     }
 
     .hero[data-foto='panel'] .hero__contenido > :global([data-cuenta]),
-    .hero[data-foto='panel'] .hero__contenido > .hero__envivo {
+    .hero[data-foto='panel'] .hero__contenido > :global([data-envivo]) {
       grid-column: 2;
       grid-row: 1 / span 8;
       align-self: end;
