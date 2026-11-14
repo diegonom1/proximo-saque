@@ -1,0 +1,1216 @@
+|  |  |
+ --- |
+|  | Sportklub Superliga moški |
+
+Sportklub Superliga moški
+|  |  |
+ --- |
+|  | Sportkluba Superliga ženske |
+
+Sportkluba Superliga ženske
+|  |  |
+ --- |
+|  | 1. liga moški |
+
+1. liga moški
+|  |  |
+ --- |
+|  | 1. liga ženske |
+
+1. liga ženske
+|  |  |
+ --- |
+|  | 2. liga ženske |
+
+2. liga ženske
+|  |  |
+ --- |
+|  | 2. liga moški vzhod |
+
+2. liga moški vzhod
+|  |  |
+ --- |
+|  | 2. liga moški zahod |
+
+2. liga moški zahod
+|  |  |
+ --- |
+|  | 3. liga ženske vzhod |
+
+3. liga ženske vzhod
+|  |  |
+ --- |
+|  | 3. liga ženske zahod |
+
+3. liga ženske zahod
+|  |  |
+ --- |
+|  | Pokal SLO moški |
+
+Pokal SLO moški
+|  |  |
+ --- |
+|  | Pokal SLO ženske |
+
+Pokal SLO ženske
+Sportkluba Superliga ženske
+Superliga ženske
+
+Superliga ženske
+|  |  |
+ --- |
+|  | select |
+|  |
+
+|  |
+|  |  |
+ --- |
+|  | AFM Volley |
+|  |  |
+ --- |
+|  | Ankaran |
+|  |  |
+ --- |
+|  | Calcit Volley |
+|  |  |
+ --- |
+|  | Formis |
+|  |  |
+ --- |
+|  | GEN-I Volley |
+|  |  |
+ --- |
+|  | Luka Koper Volley |
+|  |  |
+ --- |
+|  | OD Krim-Zav.Triglav |
+|  |  |
+ --- |
+|  | OTP banka Branik |
+|  |  |
+ --- |
+|  | SIP Šempeter |
+|  |  |
+ --- |
+|  | Visit Braslovče |
+1. krog
+
+24. 10. 2026 - 16:00
+OŠ A.Ukmar, Koper
+24. 10. 2026 - 16:00
+24. 10. 2026 - 16:00
+Ankaran
+
+1
+3
+
+SIP Šempeter
+Jovanovič Dejan  
+Kruljec Tina
+24. 10. 2026 - 16:00
+
+1
+3
+
+Ankaran
+SIP Šempeter
+
+24. 10. 2026 - 18:00
+OŠ M.Štrukelj, N.Gorica
+24. 10. 2026 - 18:00
+24. 10. 2026 - 18:00
+GEN-I Volley
+
+3
+1
+
+Luka Koper Volley
+Hafnar Matjaž  
+Perčič Dejan
+24. 10. 2026 - 18:00
+
+3
+1
+
+GEN-I Volley
+Luka Koper Volley
+
+24. 10. 2026 - 19:00
+VŠD Hoče
+24. 10. 2026 - 19:00
+24. 10. 2026 - 19:00
+Formis
+
+0
+3
+
+Calcit Volley
+Vrenko Jure  
+Strmčnik Ervin
+24. 10. 2026 - 19:00
+
+0
+3
+
+Formis
+Calcit Volley
+
+24. 10. 2026 - 19:00
+SIC Radovljica
+24. 10. 2026 - 19:00
+24. 10. 2026 - 19:00
+AFM Volley
+
+2
+3
+
+OD Krim-Zav.Triglav
+Novak Gregor  
+Tomec Eva
+24. 10. 2026 - 19:00
+
+2
+3
+
+AFM Volley
+OD Krim-Zav.Triglav
+
+25. 10. 2026 - 18:00
+ŠD Tabor, Maribor
+25. 10. 2026 - 18:00
+25. 10. 2026 - 18:00
+OTP banka Branik
+
+3
+0
+
+Visit Braslovče
+Gujtman Domen  
+Todorović Vojislav
+25. 10. 2026 - 18:00
+
+3
+0
+
+OTP banka Branik
+Visit Braslovče
+2. krog
+
+31. 10. 2026 - 17:00
+ŠD Kamnik
+31. 10. 2026 - 17:00
+31. 10. 2026 - 17:00
+Calcit Volley
+
+3
+0
+
+SIP Šempeter
+31. 10. 2026 - 17:00
+
+3
+0
+
+Calcit Volley
+SIP Šempeter
+
+31. 10. 2026 - 18:00
+OŠ M.Štrukelj, N.Gorica
+31. 10. 2026 - 18:00
+31. 10. 2026 - 18:00
+GEN-I Volley
+
+3
+1
+
+Ankaran
+31. 10. 2026 - 18:00
+
+3
+1
+
+GEN-I Volley
+Ankaran
+
+31. 10. 2026 - 19:00
+OŠ Braslovče
+31. 10. 2026 - 19:00
+31. 10. 2026 - 19:00
+Visit Braslovče
+
+0
+3
+
+Luka Koper Volley
+31. 10. 2026 - 19:00
+
+0
+3
+
+Visit Braslovče
+Luka Koper Volley
+
+31. 10. 2026 - 19:00
+VŠD Hoče
+31. 10. 2026 - 19:00
+31. 10. 2026 - 19:00
+Formis
+
+3
+2
+
+AFM Volley
+31. 10. 2026 - 19:00
+
+3
+2
+
+Formis
+AFM Volley
+11. 11. 2026 - 19:30
+OŠ V.Vodnik, Ljubljana
+11. 11. 2026 - 19:30
+11. 11. 2026 - 19:30
+OD Krim-Zav.Triglav
+
+OTP banka Branik
+11. 11. 2026 - 19:30
+
+OD Krim-Zav.Triglav
+OTP banka Branik
+3. krog
+
+7. 11. 2026 - 17:00
+OŠ Koper
+7. 11. 2026 - 17:00
+7. 11. 2026 - 17:00
+Luka Koper Volley
+
+3
+1
+
+OD Krim-Zav.Triglav
+7. 11. 2026 - 17:00
+
+3
+1
+
+Luka Koper Volley
+OD Krim-Zav.Triglav
+
+7. 11. 2026 - 18:00
+Draš center, Maribor
+7. 11. 2026 - 18:00
+7. 11. 2026 - 18:00
+OTP banka Branik
+
+3
+0
+
+Formis
+7. 11. 2026 - 18:00
+
+3
+0
+
+OTP banka Branik
+Formis
+
+7. 11. 2026 - 18:00
+ŠD OŠ Šempeter
+7. 11. 2026 - 18:00
+7. 11. 2026 - 18:00
+SIP Šempeter
+
+0
+3
+
+GEN-I Volley
+7. 11. 2026 - 18:00
+
+0
+3
+
+SIP Šempeter
+GEN-I Volley
+
+7. 11. 2026 - 19:00
+SIC Radovljica
+7. 11. 2026 - 19:00
+7. 11. 2026 - 19:00
+AFM Volley
+
+3
+0
+
+Calcit Volley
+7. 11. 2026 - 19:00
+
+3
+0
+
+AFM Volley
+Calcit Volley
+
+7. 11. 2026 - 19:00
+OŠ A.Ukmar, Koper
+7. 11. 2026 - 19:00
+7. 11. 2026 - 19:00
+Ankaran
+
+3
+1
+
+Visit Braslovče
+7. 11. 2026 - 19:00
+
+3
+1
+
+Ankaran
+Visit Braslovče
+4. krog
+14. 11. 2026 - 17:00
+ŠD Kamnik
+14. 11. 2026 - 17:00
+14. 11. 2026 - 17:00
+Calcit Volley
+
+GEN-I Volley
+14. 11. 2026 - 17:00
+
+Calcit Volley
+GEN-I Volley
+
+14. 11. 2026 - 17:00
+SIC Radovljica
+14. 11. 2026 - 17:00
+14. 11. 2026 - 17:00
+AFM Volley
+
+OTP banka Branik
+14. 11. 2026 - 17:00
+
+AFM Volley
+OTP banka Branik
+14. 11. 2026 - 19:00
+OŠ Braslovče
+14. 11. 2026 - 19:00
+14. 11. 2026 - 19:00
+Visit Braslovče
+
+SIP Šempeter
+14. 11. 2026 - 19:00
+
+Visit Braslovče
+SIP Šempeter
+14. 11. 2026 - 19:00
+OŠ V.Vodnik, Ljubljana
+14. 11. 2026 - 19:00
+14. 11. 2026 - 19:00
+OD Krim-Zav.Triglav
+
+Ankaran
+14. 11. 2026 - 19:00
+
+OD Krim-Zav.Triglav
+Ankaran
+14. 11. 2026 - 19:00
+VŠD Hoče
+14. 11. 2026 - 19:00
+14. 11. 2026 - 19:00
+Formis
+
+Luka Koper Volley
+14. 11. 2026 - 19:00
+
+Formis
+Luka Koper Volley
+5. krog
+
+21. 11. 2026 - 17:00
+ŠD Tabor, Maribor
+21. 11. 2026 - 17:00
+21. 11. 2026 - 17:00
+OTP banka Branik
+
+Calcit Volley
+21. 11. 2026 - 17:00
+
+OTP banka Branik
+Calcit Volley
+21. 11. 2026 - 17:00
+OŠ Koper
+21. 11. 2026 - 17:00
+21. 11. 2026 - 17:00
+Luka Koper Volley
+
+AFM Volley
+21. 11. 2026 - 17:00
+
+Luka Koper Volley
+AFM Volley
+21. 11. 2026 - 17:00
+ŠD OŠ Šempeter
+21. 11. 2026 - 17:00
+21. 11. 2026 - 17:00
+SIP Šempeter
+
+OD Krim-Zav.Triglav
+21. 11. 2026 - 17:00
+
+SIP Šempeter
+OD Krim-Zav.Triglav
+21. 11. 2026 - 18:00
+ŠD Balon, N.Gorica
+21. 11. 2026 - 18:00
+21. 11. 2026 - 18:00
+GEN-I Volley
+
+Visit Braslovče
+21. 11. 2026 - 18:00
+
+GEN-I Volley
+Visit Braslovče
+21. 11. 2026 - 19:00
+VŠD Hoče
+21. 11. 2026 - 19:00
+21. 11. 2026 - 19:00
+Formis
+
+Ankaran
+21. 11. 2026 - 19:00
+
+Formis
+Ankaran
+6. krog
+28. 11. 2026 - 17:00
+ŠD Kamnik
+28. 11. 2026 - 17:00
+28. 11. 2026 - 17:00
+Calcit Volley
+
+Visit Braslovče
+28. 11. 2026 - 17:00
+
+Calcit Volley
+Visit Braslovče
+28. 11. 2026 - 18:00
+Draš center, Maribor
+28. 11. 2026 - 18:00
+28. 11. 2026 - 18:00
+OTP banka Branik
+
+Luka Koper Volley
+28. 11. 2026 - 18:00
+
+OTP banka Branik
+Luka Koper Volley
+28. 11. 2026 - 19:00
+OŠ V.Vodnik, Ljubljana
+28. 11. 2026 - 19:00
+28. 11. 2026 - 19:00
+OD Krim-Zav.Triglav
+
+GEN-I Volley
+28. 11. 2026 - 19:00
+
+OD Krim-Zav.Triglav
+GEN-I Volley
+28. 11. 2026 - 19:00
+VŠD Hoče
+28. 11. 2026 - 19:00
+28. 11. 2026 - 19:00
+Formis
+
+SIP Šempeter
+28. 11. 2026 - 19:00
+
+Formis
+SIP Šempeter
+28. 11. 2026 - 19:00
+SIC Radovljica
+28. 11. 2026 - 19:00
+28. 11. 2026 - 19:00
+AFM Volley
+
+Ankaran
+28. 11. 2026 - 19:00
+
+AFM Volley
+Ankaran
+7. krog
+5. 12. 2026 - 17:00
+OŠ Koper
+5. 12. 2026 - 17:00
+5. 12. 2026 - 17:00
+Luka Koper Volley
+
+Calcit Volley
+5. 12. 2026 - 17:00
+
+Luka Koper Volley
+Calcit Volley
+5. 12. 2026 - 17:00
+ŠD OŠ Šempeter
+5. 12. 2026 - 17:00
+5. 12. 2026 - 17:00
+SIP Šempeter
+
+AFM Volley
+5. 12. 2026 - 17:00
+
+SIP Šempeter
+AFM Volley
+5. 12. 2026 - 18:00
+OŠ M.Štrukelj, N.Gorica
+5. 12. 2026 - 18:00
+5. 12. 2026 - 18:00
+GEN-I Volley
+
+Formis
+5. 12. 2026 - 18:00
+
+GEN-I Volley
+Formis
+5. 12. 2026 - 19:00
+OŠ A.Ukmar, Koper
+5. 12. 2026 - 19:00
+5. 12. 2026 - 19:00
+Ankaran
+
+OTP banka Branik
+5. 12. 2026 - 19:00
+
+Ankaran
+OTP banka Branik
+5. 12. 2026 - 19:00
+OŠ Braslovče
+5. 12. 2026 - 19:00
+5. 12. 2026 - 19:00
+Visit Braslovče
+
+OD Krim-Zav.Triglav
+5. 12. 2026 - 19:00
+
+Visit Braslovče
+OD Krim-Zav.Triglav
+8. krog
+8. 12. 2026 - 20:00
+VŠD Hoče
+8. 12. 2026 - 20:00
+8. 12. 2026 - 20:00
+Formis
+
+Visit Braslovče
+8. 12. 2026 - 20:00
+
+Formis
+Visit Braslovče
+9. 12. 2026 - 17:00
+ŠD Kamnik
+9. 12. 2026 - 17:00
+9. 12. 2026 - 17:00
+Calcit Volley
+
+OD Krim-Zav.Triglav
+9. 12. 2026 - 17:00
+
+Calcit Volley
+OD Krim-Zav.Triglav
+9. 12. 2026 - 18:00
+ŠD Tabor, Maribor
+9. 12. 2026 - 18:00
+9. 12. 2026 - 18:00
+OTP banka Branik
+
+SIP Šempeter
+9. 12. 2026 - 18:00
+
+OTP banka Branik
+SIP Šempeter
+9. 12. 2026 - 19:00
+SIC Radovljica
+9. 12. 2026 - 19:00
+9. 12. 2026 - 19:00
+AFM Volley
+
+GEN-I Volley
+9. 12. 2026 - 19:00
+
+AFM Volley
+GEN-I Volley
+9. 12. 2026 - 20:00
+OŠ Koper
+9. 12. 2026 - 20:00
+9. 12. 2026 - 20:00
+Luka Koper Volley
+
+Ankaran
+9. 12. 2026 - 20:00
+
+Luka Koper Volley
+Ankaran
+9. krog
+12. 12. 2026 - 17:00
+ŠD OŠ Šempeter
+12. 12. 2026 - 17:00
+12. 12. 2026 - 17:00
+SIP Šempeter
+
+Luka Koper Volley
+12. 12. 2026 - 17:00
+
+SIP Šempeter
+Luka Koper Volley
+12. 12. 2026 - 18:00
+OŠ M.Štrukelj, N.Gorica
+12. 12. 2026 - 18:00
+12. 12. 2026 - 18:00
+GEN-I Volley
+
+OTP banka Branik
+12. 12. 2026 - 18:00
+
+GEN-I Volley
+OTP banka Branik
+12. 12. 2026 - 18:00
+OŠ Braslovče
+12. 12. 2026 - 18:00
+12. 12. 2026 - 18:00
+Visit Braslovče
+
+AFM Volley
+12. 12. 2026 - 18:00
+
+Visit Braslovče
+AFM Volley
+12. 12. 2026 - 19:00
+OŠ A.Ukmar, Koper
+12. 12. 2026 - 19:00
+12. 12. 2026 - 19:00
+Ankaran
+
+Calcit Volley
+12. 12. 2026 - 19:00
+
+Ankaran
+Calcit Volley
+12. 12. 2026 - 19:00
+OŠ V.Vodnik, Ljubljana
+12. 12. 2026 - 19:00
+12. 12. 2026 - 19:00
+OD Krim-Zav.Triglav
+
+Formis
+12. 12. 2026 - 19:00
+
+OD Krim-Zav.Triglav
+Formis
+10. krog
+19. 12. 2026 - 17:00
+ŠD Kamnik
+19. 12. 2026 - 17:00
+19. 12. 2026 - 17:00
+Calcit Volley
+
+Formis
+19. 12. 2026 - 17:00
+
+Calcit Volley
+Formis
+19. 12. 2026 - 17:00
+OŠ Koper
+19. 12. 2026 - 17:00
+19. 12. 2026 - 17:00
+Luka Koper Volley
+
+GEN-I Volley
+19. 12. 2026 - 17:00
+
+Luka Koper Volley
+GEN-I Volley
+19. 12. 2026 - 19:00
+OŠ V.Vodnik, Ljubljana
+19. 12. 2026 - 19:00
+19. 12. 2026 - 19:00
+OD Krim-Zav.Triglav
+
+AFM Volley
+19. 12. 2026 - 19:00
+
+OD Krim-Zav.Triglav
+AFM Volley
+19. 12. 2026 - 19:00
+OŠ Braslovče
+19. 12. 2026 - 19:00
+19. 12. 2026 - 19:00
+Visit Braslovče
+
+OTP banka Branik
+19. 12. 2026 - 19:00
+
+Visit Braslovče
+OTP banka Branik
+19. 12. 2026 - 19:00
+ŠD OŠ Šempeter
+19. 12. 2026 - 19:00
+19. 12. 2026 - 19:00
+SIP Šempeter
+
+Ankaran
+19. 12. 2026 - 19:00
+
+SIP Šempeter
+Ankaran
+11. krog
+9. 01. 2027 - 17:00
+ŠD OŠ Šempeter
+9. 01. 2027 - 17:00
+9. 01. 2027 - 17:00
+SIP Šempeter
+
+Calcit Volley
+9. 01. 2027 - 17:00
+
+SIP Šempeter
+Calcit Volley
+9. 01. 2027 - 17:00
+OŠ Koper
+9. 01. 2027 - 17:00
+9. 01. 2027 - 17:00
+Luka Koper Volley
+
+Visit Braslovče
+9. 01. 2027 - 17:00
+
+Luka Koper Volley
+Visit Braslovče
+9. 01. 2027 - 18:00
+ŠD Tabor, Maribor
+9. 01. 2027 - 18:00
+9. 01. 2027 - 18:00
+OTP banka Branik
+
+OD Krim-Zav.Triglav
+9. 01. 2027 - 18:00
+
+OTP banka Branik
+OD Krim-Zav.Triglav
+9. 01. 2027 - 19:00
+OŠ A.Ukmar, Koper
+9. 01. 2027 - 19:00
+9. 01. 2027 - 19:00
+Ankaran
+
+GEN-I Volley
+9. 01. 2027 - 19:00
+
+Ankaran
+GEN-I Volley
+9. 01. 2027 - 19:00
+SIC Radovljica
+9. 01. 2027 - 19:00
+9. 01. 2027 - 19:00
+AFM Volley
+
+Formis
+9. 01. 2027 - 19:00
+
+AFM Volley
+Formis
+12. krog
+16. 01. 2027 - 17:00
+ŠD Kamnik
+16. 01. 2027 - 17:00
+16. 01. 2027 - 17:00
+Calcit Volley
+
+AFM Volley
+16. 01. 2027 - 17:00
+
+Calcit Volley
+AFM Volley
+16. 01. 2027 - 17:00
+OŠ M.Štrukelj, N.Gorica
+16. 01. 2027 - 17:00
+16. 01. 2027 - 17:00
+GEN-I Volley
+
+SIP Šempeter
+16. 01. 2027 - 17:00
+
+GEN-I Volley
+SIP Šempeter
+16. 01. 2027 - 19:00
+VŠD Hoče
+16. 01. 2027 - 19:00
+16. 01. 2027 - 19:00
+Formis
+
+OTP banka Branik
+16. 01. 2027 - 19:00
+
+Formis
+OTP banka Branik
+16. 01. 2027 - 19:00
+OŠ V.Vodnik, Ljubljana
+16. 01. 2027 - 19:00
+16. 01. 2027 - 19:00
+OD Krim-Zav.Triglav
+
+Luka Koper Volley
+16. 01. 2027 - 19:00
+
+OD Krim-Zav.Triglav
+Luka Koper Volley
+16. 01. 2027 - 19:00
+OŠ Braslovče
+16. 01. 2027 - 19:00
+16. 01. 2027 - 19:00
+Visit Braslovče
+
+Ankaran
+16. 01. 2027 - 19:00
+
+Visit Braslovče
+Ankaran
+13. krog
+30. 01. 2027 - 17:00
+OŠ Koper
+30. 01. 2027 - 17:00
+30. 01. 2027 - 17:00
+Luka Koper Volley
+
+Formis
+30. 01. 2027 - 17:00
+
+Luka Koper Volley
+Formis
+30. 01. 2027 - 18:00
+OŠ M.Štrukelj, N.Gorica
+30. 01. 2027 - 18:00
+30. 01. 2027 - 18:00
+GEN-I Volley
+
+Calcit Volley
+30. 01. 2027 - 18:00
+
+GEN-I Volley
+Calcit Volley
+30. 01. 2027 - 18:00
+ŠD Tabor, Maribor
+30. 01. 2027 - 18:00
+30. 01. 2027 - 18:00
+OTP banka Branik
+
+AFM Volley
+30. 01. 2027 - 18:00
+
+OTP banka Branik
+AFM Volley
+30. 01. 2027 - 19:00
+ŠD OŠ Šempeter
+30. 01. 2027 - 19:00
+30. 01. 2027 - 19:00
+SIP Šempeter
+
+Visit Braslovče
+30. 01. 2027 - 19:00
+
+SIP Šempeter
+Visit Braslovče
+30. 01. 2027 - 19:00
+OŠ A.Ukmar, Koper
+30. 01. 2027 - 19:00
+30. 01. 2027 - 19:00
+Ankaran
+
+OD Krim-Zav.Triglav
+30. 01. 2027 - 19:00
+
+Ankaran
+OD Krim-Zav.Triglav
+14. krog
+13. 02. 2027 - 17:00
+ŠD Kamnik
+13. 02. 2027 - 17:00
+13. 02. 2027 - 17:00
+Calcit Volley
+
+OTP banka Branik
+13. 02. 2027 - 17:00
+
+Calcit Volley
+OTP banka Branik
+13. 02. 2027 - 19:00
+SIC Radovljica
+13. 02. 2027 - 19:00
+13. 02. 2027 - 19:00
+AFM Volley
+
+Luka Koper Volley
+13. 02. 2027 - 19:00
+
+AFM Volley
+Luka Koper Volley
+13. 02. 2027 - 19:00
+OŠ A.Ukmar, Koper
+13. 02. 2027 - 19:00
+13. 02. 2027 - 19:00
+Ankaran
+
+Formis
+13. 02. 2027 - 19:00
+
+Ankaran
+Formis
+13. 02. 2027 - 19:00
+OŠ V.Vodnik, Ljubljana
+13. 02. 2027 - 19:00
+13. 02. 2027 - 19:00
+OD Krim-Zav.Triglav
+
+SIP Šempeter
+13. 02. 2027 - 19:00
+
+OD Krim-Zav.Triglav
+SIP Šempeter
+13. 02. 2027 - 19:00
+OŠ Braslovče
+13. 02. 2027 - 19:00
+13. 02. 2027 - 19:00
+Visit Braslovče
+
+GEN-I Volley
+13. 02. 2027 - 19:00
+
+Visit Braslovče
+GEN-I Volley
+15. krog
+20. 02. 2027 - 17:00
+ŠD OŠ Šempeter
+20. 02. 2027 - 17:00
+20. 02. 2027 - 17:00
+SIP Šempeter
+
+Formis
+20. 02. 2027 - 17:00
+
+SIP Šempeter
+Formis
+20. 02. 2027 - 17:00
+OŠ Koper
+20. 02. 2027 - 17:00
+20. 02. 2027 - 17:00
+Luka Koper Volley
+
+OTP banka Branik
+20. 02. 2027 - 17:00
+
+Luka Koper Volley
+OTP banka Branik
+20. 02. 2027 - 18:00
+OŠ M.Štrukelj, N.Gorica
+20. 02. 2027 - 18:00
+20. 02. 2027 - 18:00
+GEN-I Volley
+
+OD Krim-Zav.Triglav
+20. 02. 2027 - 18:00
+
+GEN-I Volley
+OD Krim-Zav.Triglav
+20. 02. 2027 - 19:00
+OŠ Braslovče
+20. 02. 2027 - 19:00
+20. 02. 2027 - 19:00
+Visit Braslovče
+
+Calcit Volley
+20. 02. 2027 - 19:00
+
+Visit Braslovče
+Calcit Volley
+20. 02. 2027 - 19:00
+OŠ A.Ukmar, Koper
+20. 02. 2027 - 19:00
+20. 02. 2027 - 19:00
+Ankaran
+
+AFM Volley
+20. 02. 2027 - 19:00
+
+Ankaran
+AFM Volley
+16. krog
+27. 02. 2027 - 17:00
+ŠD Kamnik
+27. 02. 2027 - 17:00
+27. 02. 2027 - 17:00
+Calcit Volley
+
+Luka Koper Volley
+27. 02. 2027 - 17:00
+
+Calcit Volley
+Luka Koper Volley
+27. 02. 2027 - 17:00
+ŠD Tabor, Maribor
+27. 02. 2027 - 17:00
+27. 02. 2027 - 17:00
+OTP banka Branik
+
+Ankaran
+27. 02. 2027 - 17:00
+
+OTP banka Branik
+Ankaran
+27. 02. 2027 - 19:00
+SIC Radovljica
+27. 02. 2027 - 19:00
+27. 02. 2027 - 19:00
+AFM Volley
+
+SIP Šempeter
+27. 02. 2027 - 19:00
+
+AFM Volley
+SIP Šempeter
+27. 02. 2027 - 19:00
+VŠD Hoče
+27. 02. 2027 - 19:00
+27. 02. 2027 - 19:00
+Formis
+
+GEN-I Volley
+27. 02. 2027 - 19:00
+
+Formis
+GEN-I Volley
+27. 02. 2027 - 19:00
+OŠ V.Vodnik, Ljubljana
+27. 02. 2027 - 19:00
+27. 02. 2027 - 19:00
+OD Krim-Zav.Triglav
+
+Visit Braslovče
+27. 02. 2027 - 19:00
+
+OD Krim-Zav.Triglav
+Visit Braslovče
+17. krog
+6. 03. 2027 - 17:00
+ŠD OŠ Šempeter
+6. 03. 2027 - 17:00
+6. 03. 2027 - 17:00
+SIP Šempeter
+
+OTP banka Branik
+6. 03. 2027 - 17:00
+
+SIP Šempeter
+OTP banka Branik
+6. 03. 2027 - 19:00
+OŠ V.Vodnik, Ljubljana
+6. 03. 2027 - 19:00
+6. 03. 2027 - 19:00
+OD Krim-Zav.Triglav
+
+Calcit Volley
+6. 03. 2027 - 19:00
+
+OD Krim-Zav.Triglav
+Calcit Volley
+6. 03. 2027 - 19:00
+OŠ Braslovče
+6. 03. 2027 - 19:00
+6. 03. 2027 - 19:00
+Visit Braslovče
+
+Formis
+6. 03. 2027 - 19:00
+
+Visit Braslovče
+Formis
+6. 03. 2027 - 19:00
+OŠ A.Ukmar, Koper
+6. 03. 2027 - 19:00
+6. 03. 2027 - 19:00
+Ankaran
+
+Luka Koper Volley
+6. 03. 2027 - 19:00
+
+Ankaran
+Luka Koper Volley
+7. 03. 2027 - 18:00
+OŠ M.Štrukelj, N.Gorica
+7. 03. 2027 - 18:00
+7. 03. 2027 - 18:00
+GEN-I Volley
+
+AFM Volley
+7. 03. 2027 - 18:00
+
+GEN-I Volley
+AFM Volley
+18. krog
+13. 03. 2027 - 17:00
+ŠD Kamnik
+13. 03. 2027 - 17:00
+13. 03. 2027 - 17:00
+Calcit Volley
+
+Ankaran
+13. 03. 2027 - 17:00
+
+Calcit Volley
+Ankaran
+13. 03. 2027 - 17:00
+OŠ Koper
+13. 03. 2027 - 17:00
+13. 03. 2027 - 17:00
+Luka Koper Volley
+
+SIP Šempeter
+13. 03. 2027 - 17:00
+
+Luka Koper Volley
+SIP Šempeter
+13. 03. 2027 - 17:00
+ŠD Tabor, Maribor
+13. 03. 2027 - 17:00
+13. 03. 2027 - 17:00
+OTP banka Branik
+
+GEN-I Volley
+13. 03. 2027 - 17:00
+
+OTP banka Branik
+GEN-I Volley
+13. 03. 2027 - 19:00
+SIC Radovljica
+13. 03. 2027 - 19:00
+13. 03. 2027 - 19:00
+AFM Volley
+
+Visit Braslovče
+13. 03. 2027 - 19:00
+
+AFM Volley
+Visit Braslovče
+13. 03. 2027 - 19:00
+VŠD Hoče
+13. 03. 2027 - 19:00
+13. 03. 2027 - 19:00
+Formis
+
+OD Krim-Zav.Triglav
+13. 03. 2027 - 19:00
+
+Formis
+OD Krim-Zav.Triglav
+
+Data Project Sport Software
+Data Project Sport Software

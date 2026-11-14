@@ -19,6 +19,11 @@ describe('convertir', () => {
       competencia: 'Superliga Feminina · Rodada 4', origen: 'ia',
     });
   });
+  it('del lado del club, un nombre en chino se muestra con el nombre del club; el rival se queda', () => {
+    const beijing = { id: 'beijing', zona: 'Asia/Shanghai', ligaId: 'superliga-cn', nombre: 'Beijing Arctic Ocean', alias: ['北京北冰洋', 'Beijing'] };
+    const p = convertir({ fecha: '2026-11-17', hora: '19:00', zonaHoraria: 'Asia/Shanghai', local: '浙江西塘姚庄', visitante: '北京北冰洋', fuente: 'https://tiyu.baidu.com/al/match' }, beijing, 'ia', AHORA);
+    expect(p).toMatchObject({ local: '浙江西塘姚庄', visitante: 'Beijing Arctic Ocean', nuestro: 'visita' });
+  });
   it('sin hora marca horaConfirmada en false', () => {
     expect(conv({ hora: null })).toMatchObject({ horaConfirmada: false, inicio: '2026-11-07T12:00:00-03:00' });
   });

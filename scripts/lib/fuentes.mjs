@@ -19,6 +19,17 @@ export function filasDeAtributos(html) {
   return [...new Set(filas.filter((f) => /\d/.test(f)))];
 }
 
+// Otros mandan el calendario en un bloque de datos y lo arman con JavaScript, así que el extractor solo ve
+// las horas. Baidu Deportes lo hace así: `"startTime":"2026-11-14 15:00:00"` y, en el mismo partido,
+// `"oriKey":"女排联赛#2026-11-14#北京北冰洋vs河南双汇"`. Cada partido sale como una fila con fecha, hora y los dos equipos.
+export function filasDeDatos(html) {
+  const filas = [...html.matchAll(/"startTime":"(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})(?::\d{2})?"[^{}]{0,800}?"oriKey":"[^"#]*#\1#([^"#]+?)\s*vs\s*([^"#]+)"/g)]
+    .map(([, fecha, hora, local, visitante]) => `${fecha} ${hora} ${local.trim()} vs ${visitante.trim()}`);
+  return [...new Set(filas)];
+}
+
+const filasOcultas = (html) => [...filasDeAtributos(html), ...filasDeDatos(html)];
+
 export async function textoDePagina(url, pedir = globalThis.fetch) {
   const r = await pedir(url, {
     headers: { 'user-agent': AGENTE_HTTP, 'accept-language': 'es,en;q=0.8' },
@@ -27,8 +38,10 @@ export async function textoDePagina(url, pedir = globalThis.fetch) {
   if (!r.ok) throw new Error(`respondió ${r.status}`);
   const html = await r.text();
   const limpio = limpiarHtml(html);
-  if (limpio.length < 400) throw new Error('la página casi no trae texto (seguramente se arma con JavaScript)');
-  return [...filasDeAtributos(html), limpio].join('\n').slice(0, 60000);
+  const filas = filasOcultas(html);
+  // Una página armada con JavaScript sirve si trae las filas en sus datos.
+  if (limpio.length < 400 && filas.length === 0) throw new Error('la página casi no trae texto (seguramente se arma con JavaScript)');
+  return [...filas, limpio].join('\n').slice(0, 60000);
 }
 
 // Lo mismo, solo las filas: lo que el extractor de Tavily no ve. Si la página no abre, no hay filas.
@@ -36,7 +49,7 @@ export async function filasDePagina(url, pedir = globalThis.fetch) {
   try {
     const r = await pedir(url, { headers: { 'user-agent': AGENTE_HTTP, 'accept-language': 'es,en;q=0.8' }, signal: AbortSignal.timeout(30000) });
     if (!r.ok || !/html/i.test(r.headers?.get('content-type') ?? '')) return [];
-    return filasDeAtributos(await r.text());
+    return filasOcultas(await r.text());
   } catch {
     return [];
   }

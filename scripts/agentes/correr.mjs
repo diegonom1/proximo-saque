@@ -36,7 +36,7 @@ import { conMs, fusionar } from '../lib/fusion.mjs';
 import { crearClienteGemini, crearClienteSimulado } from '../lib/gemini.mjs';
 import { idTorneo, mismoTorneo, nombreCanonico } from '../lib/torneos.mjs';
 import { DURACION_MS, ZONA_SITIO, fechaEnZona, isoEnZona } from '../lib/tiempo.mjs';
-import { convertir, convertirSeleccion, esquemaEstadoAgentes, esquemaManual, esquemaPartido, validarDatos } from '../lib/validar.mjs';
+import { convertir, convertirSeleccion, esquemaEstadoAgentes, esquemaManual, esquemaPartido, validarDatos, yaSeJugo } from '../lib/validar.mjs';
 
 const RAIZ = fileURLToPath(new URL('../../', import.meta.url));
 const MODELOS_DEFECTO = 'gemini-3.1-flash-lite'; // el único con cuota gratis; las tareas están pensadas para él
@@ -138,7 +138,13 @@ function reconstruirPartidos(ctx, manual) {
   const manuales = manual.partidos.flatMap((m) => {
     const club = datos.clubes[m.clubId];
     const convertido = m.tipo === 'seleccion' ? convertirSeleccion(m, m.torneoId ?? null, 'manual', ahora) : club && convertir(m, { id: m.clubId, ...club }, 'manual', ahora);
-    if (!convertido) reporte.descarto('manual.json', JSON.stringify(m).slice(0, 80), 'no se pudo leer');
+    if (!convertido) {
+      // Uno que ya se jugó no es un error: solo sobra en manual.json.
+      const entidad = m.tipo === 'seleccion' ? null : club && { id: m.clubId, ...club };
+      const jugado = m.tipo === 'seleccion' ? convertirSeleccion({ ...m, eliminar: true }, null, 'manual', ahora) : entidad && convertir({ ...m, eliminar: true }, entidad, 'manual', ahora);
+      if (yaSeJugo(jugado, ahora)) reporte.yaJugado('manual.json', `${m.local ?? ''} vs ${m.visitante ?? ''} (${m.fecha ?? m.inicio}): ya se puede quitar de manual.json`);
+      else reporte.descarto('manual.json', JSON.stringify(m).slice(0, 80), 'no se pudo leer');
+    }
     return convertido ? [convertido] : [];
   });
 
@@ -253,6 +259,9 @@ export async function correr({
     const hastaVerificar = sumarDias(hoy, diasVerificar);
     if (seleccion.juegaPronto(ctx.datos, ahora, hastaVerificar)) await ejecutar(seleccion.AGENTE);
     for (const club of partidos.clubesPorVerificar(ctx.datos, aprobados.clubes, ahora, hastaVerificar)) await ejecutar(partidos.AGENTE, club);
+  }
+  if (llamar && soloVerificar) {
+    for (const club of partidos.clubesSinPartidos(ctx.datos, aprobados.clubes, ahora)) await ejecutar(partidos.AGENTE, club);
   }
   if (llamar && !soloVerificar) {
     // Lo que no cupo la semana pasada va primero.

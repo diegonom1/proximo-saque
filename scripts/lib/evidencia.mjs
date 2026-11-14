@@ -46,6 +46,8 @@ export function fechasEn(texto) {
   for (const [, m, d] of texto.matchAll(/(\d{1,2})月(\d{1,2})[日号]/g)) agregar(m, d);
   for (const [, d, m] of texto.matchAll(DIA_MES)) agregar(MES_DE.get(m), d);
   for (const [, m, d] of texto.matchAll(MES_DIA)) agregar(MES_DE.get(m), d);
+  // "14. 11. 2026" (Eslovenia y Europa central) siempre es día y mes; el año evita confundirlo con un marcador.
+  for (const [, d, m] of texto.matchAll(/(?<![\d:.,/])(\d{1,2})\.\s+(\d{1,2})\.\s*\d{4}(?!\d)/g)) agregar(m, d);
   // 07/11 y 07.11 pueden ser día/mes o mes/día. "20.00" no es fecha: no hay mes 00.
   for (const [, a, b] of texto.matchAll(/(?<![\d:.,/])(\d{1,2})[/.](\d{1,2})(?:[/.]\d{2,4})?(?![\d:])/g)) {
     agregar(b, a);

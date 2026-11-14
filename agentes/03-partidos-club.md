@@ -68,6 +68,7 @@ Las ligas mueven horarios por la televisión. Si dos fuentes no coinciden en la 
 - La `hora` sale de la fila de ese partido, nunca de una frase sobre toda la jornada ("6 matchs à partir de 14:00", "desde las 18:00") ni de la fila de al lado. Si tu partido no trae hora propia, `hora: null`. El programa comprueba que la hora aparezca junto al rival.
 - Revisa la lista de arriba abajo y reporta **todos** los partidos del club entre `desde` y `hasta`, de local y de visita.
 - `zonaHoraria`: la zona de la hora que publica la fuente. `zonaSede`: la zona del lugar donde se juega; cuida los partidos de visita en otra zona (copas continentales, otro país).
+- `local` y `visitante`: escríbelos como aparecen en la fuente, sin traducirlos ni cambiarlos de alfabeto (北京北冰洋 y 河南双汇, no Beijing y Henan). El programa busca esos nombres en la página para comprobar el partido; uno traducido no se encuentra y el partido se descarta.
 - `fase`: jornada, ronda o etapa tal como la nombra la fuente.
 - `motivo`: si no encontraste ningún partido, explica en una frase qué revisaste.
 

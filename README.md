@@ -171,7 +171,7 @@ Los cambios se aplican en la siguiente corrida. Para verlos antes, ve a Actions 
 | Cuándo | Qué corre |
 |---|---|
 | Lunes, 06:17 de Tonalá | Todos los agentes. Partidos, rankings y Selección se guardan directo; plantilla, perfiles, clubes, ligas y torneos llegan en el PR "Revisión semanal de datos". |
-| Jueves, 06:17 de Tonalá | Solo verifica los partidos de los próximos 4 días. |
+| Jueves, 06:17 de Tonalá | Verifica los partidos de los próximos 4 días y vuelve a buscar los clubes que no tienen ningún partido guardado. |
 | Cada push a `main` | Publica el sitio en GitHub Pages. |
 
 Cada lunes el código revisa si la temporada de una liga ya debería haber terminado o si su calendario oficial dejó de responder. Si encuentra algo, lo avisa en el resumen, en las dudas del PR y en un issue llamado "Revisar temporadas de las ligas". Si ya hay uno abierto, le actualiza la lista en lugar de crear otro. Esos dos datos se corrigen a mano en `data/ligas.json`; al terminar, cierra el issue.

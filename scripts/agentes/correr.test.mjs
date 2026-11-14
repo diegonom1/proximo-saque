@@ -490,6 +490,12 @@ describe('partidos de club', () => {
     await ejecutar(sesi([{ ...base, fecha: '2026-11-07', hora: '19:00', visitante: 'E.C. Pinheiros' }]));
     expect((await de('sesi-bauru')).find((x) => x.id === 'club-sesi-bauru-2026-11-07')).toMatchObject({ origen: 'manual', inicio: '2026-11-07T18:00:00-03:00' });
   });
+  it('un partido de manual.json que ya se jugó no sale como error', async () => {
+    await cambiar('manual.json', (m) => { m.partidos.push({ clubId: 'sesi-bauru', fecha: '2026-11-01', hora: '18:00', zonaHoraria: 'America/Sao_Paulo', local: 'Sesi Vôlei Bauru', visitante: 'E.C. Pinheiros' }); });
+    const r = await ejecutar({});
+    expect(r.resumen).not.toContain('no se pudo leer');
+    expect(r.resumen).toContain('Ya jugado: Sesi Vôlei Bauru vs E.C. Pinheiros (2026-11-01): ya se puede quitar de manual.json');
+  });
   it('manual.json puede eliminar un partido', async () => {
     await cambiar('manual.json', (m) => { m.partidos.push({ clubId: 'sesi-bauru', fecha: '2026-11-07', eliminar: true }); });
     await ejecutar();
@@ -1117,26 +1123,50 @@ describe('verificación de partidos próximos', () => {
 
   describe('corrida del jueves', () => {
     const agentes = (llamar) => [...new Set(llamar.llamadas.map((l) => l.agente))];
+    // Los demás clubes con un partido fuera de la ventana: así solo cuenta el que se prueba.
+    const otrosConPartido = () => cambiar('partidos.json', (d) => {
+      for (const club of ['lovb-miami', 'beijing', 'mackenzie', 'usmp', 'nancy', 'uyba']) {
+        d.partidos.push(partido({ id: `club-${club}-${enDias(30)}`, clubId: club, ligaId: null, inicio: `${enDias(30)}T12:00:00-06:00`, zonaSede: null, local: 'Local', visitante: 'Visita' }));
+      }
+    });
 
     it('solo corre el club que juega en los próximos 4 días', async () => {
       await conPartido(3);
+      await otrosConPartido();
       const { llamar } = await corre({ soloVerificar: true }, {}, buscador(fila(3)));
       expect(agentes(llamar)).toEqual(['03-partidos-club']);
       expect(llamar.llamadas.map((l) => l.clave)).toEqual(['sesi-bauru']);
     });
+    it('también busca los clubes que no tienen ningún partido por jugar', async () => {
+      await conPartido(3);
+      const { llamar } = await corre({ soloVerificar: true }, {}, buscador(fila(3)));
+      expect(llamar.llamadas.map((l) => l.clave).sort()).toEqual(['beijing', 'lovb-miami', 'mackenzie', 'nancy', 'sesi-bauru', 'usmp', 'uyba']);
+    });
+    it('un club que no tiene nada encuentra sus partidos de la ventana', async () => {
+      await conPartido(3);
+      await otrosConPartido();
+      await cambiar('partidos.json', (d) => { d.partidos = d.partidos.filter((p) => p.clubId !== 'beijing'); });
+      const respuesta = { '03-partidos-club': (c) => (c === 'beijing' ? { clubId: c, partidos: [{ fecha: enDias(2), hora: '15:00', zonaHoraria: 'Asia/Shanghai', local: '北京北冰洋', visitante: '河南双汇', fuente: URL_CAL }] } : undefined) };
+      const b = buscador(`${fila(3)}\n${enDias(2)} 15:00 北京北冰洋 vs 河南双汇`);
+      await corre({ soloVerificar: true }, respuesta, b);
+      expect((await guardados()).find((p) => p.clubId === 'beijing' && p.inicio.startsWith(enDias(2)))).toMatchObject({ local: 'Beijing Arctic Ocean', visitante: '河南双汇', inicio: `${enDias(2)}T15:00:00+08:00` });
+    });
     it('sin partidos en la ventana no gasta ninguna llamada', async () => {
       await conPartido(6);
+      await otrosConPartido();
       const { llamar, r } = await corre({ soloVerificar: true });
       expect(llamar.llamadas).toEqual([]);
       expect(r.cambiados.every((a) => ['partidos.json', 'estado-agentes.json'].includes(a))).toBe(true);
     });
     it('busca solo hasta el último día de la ventana', async () => {
       await conPartido(3);
+      await otrosConPartido();
       const { llamar } = await corre({ soloVerificar: true }, {}, buscador(fila(3)));
       expect(JSON.parse(llamar.llamadas[0].mensaje)).toMatchObject({ desde: hoy(), hasta: enDias(4) });
     });
     it('aplica un cambio de hora de una fuente confiable', async () => {
       await conPartido(3);
+      await otrosConPartido();
       const respuesta = { '03-partidos-club': (c) => ({ clubId: c, partidos: [{ fecha: enDias(3), hora: '19:30', zonaHoraria: 'America/Sao_Paulo', zonaSede: 'America/Sao_Paulo', local: 'Sesi Vôlei Bauru', visitante: 'Praia Clube', nuestro: 'local', fuente: URL_CAL }] }) };
       await corre({ soloVerificar: true }, respuesta, buscador(fila(3, '19:30')));
       expect((await guardados()).find((p) => p.clubId === 'sesi-bauru').inicio).toContain('T19:30');
@@ -1154,12 +1184,14 @@ describe('verificación de partidos próximos', () => {
       const propuestas = [{ clave: 'x', seccion: 'Perfiles', texto: 'y', fuente: null, fecha: hoy() }];
       await cambiar('estado-agentes.json', (e) => { e.pendientes = pendientes; e.propuestas = propuestas; });
       await conPartido(3);
+      await otrosConPartido();
       const { llamar } = await corre({ soloVerificar: true, prEstado: 'CLOSED' }, {}, buscador(fila(3)));
       expect(agentes(llamar)).toEqual(['03-partidos-club']);
       expect(await leer('estado-agentes.json')).toMatchObject({ pendientes, propuestas, rechazos: [] });
     });
     it('no cambia lo que va por PR', async () => {
       await conPartido(3);
+      await otrosConPartido();
       const { r } = await corre({ soloVerificar: true }, {}, buscador(fila(3)));
       expect(r.cambiados.filter((a) => ['jugadoras.json', 'clubes.json', 'ligas.json', 'torneos.json'].includes(a))).toEqual([]);
     });

@@ -274,6 +274,10 @@ const fechaReal = (s) => {
 // El instante sale de hora + zonaHoraria; `inicio` se guarda en zonaSede. Sin zonaSede: en partidos de
 // local vale la zona del club y, si no, queda null y se usa zonaHoraria (el sitio omite "allá serán las…").
 // `club` lleva su `id`. `ahora` se puede fijar para probar.
+// Gemini copia los equipos como los escribe la fuente, porque así se comprueban. Del lado del club,
+// un nombre en otro alfabeto (北京北冰洋) se muestra con el nombre del club; el rival se queda como viene.
+const OTRO_ALFABETO = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/;
+
 export function convertir(p, club, origen, ahora = Date.now()) {
   if (!p || typeof p !== 'object') return null;
   if (p.zonaHoraria != null && !zonaValida(p.zonaHoraria)) return null;
@@ -321,8 +325,8 @@ export function convertir(p, club, origen, ahora = Date.now()) {
     inicio,
     zonaSede,
     horaConfirmada: confirmada,
-    local,
-    visitante,
+    local: nuestro === 'local' && OTRO_ALFABETO.test(local) ? club.nombre : local,
+    visitante: nuestro === 'visita' && OTRO_ALFABETO.test(visitante) ? club.nombre : visitante,
     nuestro,
     competencia: competencia || null,
     sede: limpio(p.sede, 80) || null,

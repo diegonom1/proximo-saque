@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { crearVerificador, dominio, fuenteAdmisible } from './fuentes.mjs';
-import { esListado, esVideoSuelto, filasDeAtributos, fuenteAdmisible as admisible } from './fuentes.mjs';
+import { readFileSync } from 'node:fs';
+import { esListado, esVideoSuelto, filasDeAtributos, filasDeDatos, fuenteAdmisible as admisible, textoDePagina } from './fuentes.mjs';
 
 const http = (status, location) => ({ status, headers: { get: () => location ?? null } });
 const REDIRECCION = 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc';
@@ -54,6 +55,22 @@ describe('filasDeAtributos', () => {
   });
   it('ignora etiquetas sin números y repetidas', () => {
     expect(filasDeAtributos('<a aria-label="Ir al inicio del sitio"><a title="Jornada 9 del torneo"><a title="Jornada 9 del torneo">')).toEqual(['Jornada 9 del torneo']);
+  });
+});
+
+describe('filasDeDatos', () => {
+  // Copia real de tiyu.baidu.com (calendario de la liga china): los partidos van en un bloque de datos.
+  const BAIDU = readFileSync(new URL('../pruebas/paginas/baidu-cvl.html', import.meta.url), 'utf8');
+  it('saca cada partido con fecha, hora y los dos equipos', () => {
+    const filas = filasDeDatos(BAIDU);
+    expect(filas).toContain('2026-11-14 15:00 北京北冰洋 vs 河南双汇');
+    expect(filas).toContain('2026-11-17 19:00 浙江西塘姚庄 vs 北京北冰洋');
+    expect(filas).toHaveLength(14);
+  });
+  it('una página sin ese bloque no da filas', () => expect(filasDeDatos('<p>"startTime":"2026-11-14 15:00:00"</p>')).toEqual([]));
+  it('textoDePagina las pone antes del texto visible', async () => {
+    const pedir = async () => ({ ok: true, text: async () => BAIDU });
+    expect((await textoDePagina('https://tiyu.baidu.com/al/match', pedir)).split('\n')[0]).toMatch(/^2026-11-1\d \d\d:\d\d .+ vs .+$/);
   });
 });
 

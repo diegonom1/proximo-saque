@@ -5,6 +5,8 @@ import { evidenciaParticipacion, evidenciaPartido, fechasDeEquipo, fechasEn, nor
 // Copia real de spikelive.fr/ligue/laf/calendrier: filas de aria-label + texto, y solo el texto de Tavily.
 const pagina = (nombre) => readFileSync(new URL(`../pruebas/paginas/${nombre}`, import.meta.url), 'utf8');
 const SPIKELIVE = pagina('spikelive-laf.txt');
+// Copia real del calendario oficial de Eslovenia (ozs-web.dataproject.com) como lo entrega Tavily.
+const OZS = pagina('ozs-superliga-tavily.txt');
 const TAVILY = pagina('spikelive-laf-tavily.txt');
 const NANCY = ['Vandœuvre Nancy Volley-Ball', 'Vandœuvre Nancy', 'VNVB'];
 const ver = (texto, fecha, hora, rival, propio = NANCY) => evidenciaPartido(texto, { fecha, hora, rival, propio });
@@ -79,12 +81,22 @@ describe('fechasEn', () => {
   it.each([
     ['samedi 21 novembre', '11-21'], ['1er décembre', '12-01'], ['7 de novembro', '11-07'], ['8 novembre 2026', '11-08'],
     ['nov 7', '11-07'], ['december 17th', '12-17'], ['2026-11-07', '11-07'], ['11月7日', '11-07'], ['07/11', '11-07'],
+    ['14. 11. 2026 - 19:00', '11-14'], ['5. 12. 2026', '12-05'],
   ])('%s', (texto, esperado) => expect([...fechasEn(normalizar(texto))]).toContain(esperado));
   it('las horas y los marcadores no son fechas', () => {
     expect(fechasEn('20.00')).toEqual(new Set());
     expect(fechasEn('25-20 3-1')).toEqual(new Set());
     expect(fechasEn('20:30')).toEqual(new Set());
   });
+});
+
+describe('el calendario oficial de Eslovenia: "14. 11. 2026", sede y un equipo por línea', () => {
+  const FORMIS = ['OK Formis', 'Formis', 'Formis Rogoza Hoče'];
+  it.each([
+    ['2026-11-14', '19:00', 'Luka Koper Volley'], ['2026-11-21', '19:00', 'Ankaran'], ['2026-12-12', '19:00', 'OD Krim-Zav.Triglav'], ['2026-12-19', '17:00', 'Calcit Volley'],
+  ])('%s %s contra %s es completa', (fecha, hora, rival) => expect(ver(OZS, fecha, hora, rival, FORMIS)).toBe('completa'));
+  it('un rival de otra fecha no cuenta', () => expect(ver(OZS, '2026-11-14', '19:00', 'Ankaran', FORMIS)).toBe('nada'));
+  it('la hora de otro partido de la jornada no cuenta', () => expect(ver(OZS, '2026-11-14', '17:00', 'Luka Koper Volley', FORMIS)).toBe('sinHora'));
 });
 
 describe('palabrasDe', () => {

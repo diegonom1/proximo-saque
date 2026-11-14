@@ -32,6 +32,11 @@ export const proximos = (lista, ahora, hasta) => lista.map(conMs).filter((p) => 
 export const clubesPorVerificar = (datos, aprobados, ahora, hasta) => clubesPorRevisar(datos, aprobados)
   .filter((id) => proximos(datos.partidos.partidos.filter((p) => p.clubId === id), ahora, hasta).length > 0);
 
+// Clubes sin ningún partido por jugarse guardado. El jueves también se buscan: hay calendarios que solo
+// muestran la semana en curso (Baidu, para la liga china) y un club que el lunes no tenía nada pudo publicar después.
+export const clubesSinPartidos = (datos, aprobados, ahora) => clubesPorRevisar(datos, aprobados)
+  .filter((id) => proximos(datos.partidos.partidos.filter((p) => p.clubId === id), ahora, '9999-12-31').length === 0);
+
 // Compara un partido encontrado con los que ya hay: 'nuevo', 'coincide' o 'cambia'.
 export function clasificar(nuevo, previos, zona) {
   const dia = (p) => fechaEnZona(p.ms, zona);
