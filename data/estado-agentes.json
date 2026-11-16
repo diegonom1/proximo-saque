@@ -1,17 +1,17 @@
 {
-  "ultimaCorrida": "2026-11-13T21:26:00-06:00",
+  "ultimaCorrida": "2026-11-16T16:02:00-06:00",
   "revisado": {
-    "rankings": "2026-11-09",
+    "rankings": "2026-11-16",
     "perfil:uxue-guereca": "2026-11-09",
     "perfil:samantha-bricio": "2026-11-09",
     "perfil:sofia-maldonado": "2026-11-09",
     "perfil:grecia-castro": "2026-11-09",
     "dondever:proximo-torneo": "2026-11-05",
     "dondever:serie-a1-it": "2026-11-05",
-    "perfil:argentina-ung": "2026-11-06",
-    "perfil:marian-ovalle": "2026-11-06",
-    "perfil:arleth-marquez": "2026-11-06",
-    "perfil:jocelyn-urias": "2026-11-06",
+    "perfil:argentina-ung": "2026-11-16",
+    "perfil:marian-ovalle": "2026-11-16",
+    "perfil:arleth-marquez": "2026-11-16",
+    "perfil:jocelyn-urias": "2026-11-16",
     "dondever:superliga-br": "2026-11-05",
     "dondever:superliga-cn": "2026-11-05",
     "perfil:joseline-landeros": "2026-11-06",
@@ -26,79 +26,37 @@
   "pendientes": [],
   "propuestas": [
     {
-      "clave": "perfil:uxue-guereca:club:new mexico univ|2020-23",
+      "clave": "perfil:argentina-ung:destacado:medalla de plata mexico summer successes 2026",
       "seccion": "Perfiles",
-      "texto": "Uxue Guereca: club New Mexico Univ. (2020-23)",
-      "fuente": "https://women.volleybox.net/uxue-guereca-p13878",
-      "fecha": "2026-11-09"
+      "texto": "Argentina Ung: sale \"MVP y mejor acomodadora del Final Four NORCECA 2022\" (2022) y entra \"Medalla de Plata, Mexico, Summer Successes (2026)\" (2026)",
+      "fuente": "https://www.lovb.com/news/summer-successes-fuel-2026-27-lovb-preseason",
+      "fecha": "2026-11-16"
     },
     {
-      "clave": "perfil:uxue-guereca:destacado:mejor atacante best outside hitter de la tauron liga",
+      "clave": "perfil:marian-ovalle:club:university of texas el paso|2024-25",
       "seccion": "Perfiles",
-      "texto": "Uxue Guereca: sale \"Debut con la Selección Mexicana mayor\" (2021) y entra \"Mejor Atacante (Best Outside Hitter) de la Tauron Liga\" (2026)",
-      "fuente": "https://sports.yahoo.com/articles/lovb-miami-now-roster-first-170322750.html",
-      "fecha": "2026-11-09"
+      "texto": "Marian Ovalle: club University of Texas, El Paso (2024-25)",
+      "fuente": "https://women.volleybox.net/texas-at-el-paso-univ-t5282",
+      "fecha": "2026-11-16"
     },
     {
-      "clave": "perfil:samantha-bricio:club:dinamo ak bars|2020-21",
+      "clave": "perfil:arleth-marquez:destacado:participacion en los juegos centroamericanos y del caribe santo domingo 2026",
       "seccion": "Perfiles",
-      "texto": "Samantha Bricio: club Dinamo-Ak Bars (2020-21)",
-      "fuente": "https://women.volleybox.net/samantha-bricio-p5050",
-      "fecha": "2026-11-09"
+      "texto": "Arleth Márquez: Participación en los Juegos Centroamericanos y del Caribe Santo Domingo 2026",
+      "fuente": "https://norceca.net/2026%20Competition%20&%20Activities/CACGRD-2026/Final%20Report%20-%20CACG%202026/Volleyball%20Final%20Report%20-%20CACG%202026%20(1).pdf",
+      "fecha": "2026-11-16"
     },
     {
-      "clave": "perfil:sofia-maldonado:club:cso voluntari 2005|2024-25",
+      "clave": "perfil:jocelyn-urias:destacado:mejor central de la liga mexicana",
       "seccion": "Perfiles",
-      "texto": "Sofía Maldonado: club CSO Voluntari 2005 (2024-25)",
-      "fuente": "https://women.volleybox.net/pt/sofia-maldonado-p25224",
-      "fecha": "2026-11-09"
-    },
-    {
-      "clave": "perfil:sofia-maldonado:club:arizona wildcats|2023",
-      "seccion": "Perfiles",
-      "texto": "Sofía Maldonado: club Arizona Wildcats (2023)",
-      "fuente": "https://www.melhordovolei.com.br/2026/06/01/sesi-volei-bauru-anuncia-sofia-maldonado-atacante-destaque-em-liga-dos-eua",
-      "fecha": "2026-11-09"
-    },
-    {
-      "clave": "perfil:sofia-maldonado:club:castelo da maia gc|2022-23",
-      "seccion": "Perfiles",
-      "texto": "Sofía Maldonado: club Castêlo da Maia GC (2022-23)",
-      "fuente": "https://women.volleybox.net/pt/sofia-maldonado-p25224",
-      "fecha": "2026-11-09"
-    },
-    {
-      "clave": "club:grecia-castro:avarca de menorca",
-      "seccion": "Cambios de club",
-      "texto": "Grecia Castro: sin club → Avarca de Menorca",
-      "fuente": "https://deportesmenorca.com/2024/05/10/grecia-castro-nueva-incorporacion-para-el-avarca-menorca",
-      "fecha": "2026-11-09"
-    },
-    {
-      "clave": "perfil:grecia-castro:club:vitoria sc|2023-24",
-      "seccion": "Perfiles",
-      "texto": "Grecia Castro: club Vitória SC (2023-24)",
-      "fuente": "https://deportesmenorca.com/2024/05/10/grecia-castro-nueva-incorporacion-para-el-avarca-menorca",
-      "fecha": "2026-11-09"
-    },
-    {
-      "clave": "perfil:grecia-castro:club:tijuca tenis clube|2022-23",
-      "seccion": "Perfiles",
-      "texto": "Grecia Castro: club Tijuca Tênis Clube (2022-23)",
-      "fuente": "https://women.volleybox.net/grecia-castro-p23459",
-      "fecha": "2026-11-09"
-    },
-    {
-      "clave": "perfil:grecia-castro:destacado:medallista de bronce en juegos panamericanos santiago 2023",
-      "seccion": "Perfiles",
-      "texto": "Grecia Castro: Medallista de bronce en Juegos Panamericanos Santiago 2023",
-      "fuente": "https://deportesmenorca.com/2024/05/10/grecia-castro-nueva-incorporacion-para-el-avarca-menorca",
-      "fecha": "2026-11-09"
+      "texto": "Jocelyn Urías: sale \"Segunda mejor bloqueadora del Final Four NORCECA 2022\" (2022) y entra \"Mejor central de la liga mexicana\" (2026)",
+      "fuente": "https://revistamarta.com/2026/06/17/batavo-mackenzie-anuncia-elenco-para-a-temporada-2026-27-com-novidades",
+      "fecha": "2026-11-16"
     }
   ],
   "rechazos": [],
   "tavily": {
     "mes": "2026-11",
-    "creditos": 376
+    "creditos": 429
   }
 }
