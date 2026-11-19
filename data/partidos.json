@@ -1,46 +1,6 @@
 {
-  "actualizado": "2026-11-16T16:02:00-06:00",
+  "actualizado": "2026-11-19T14:30:00-06:00",
   "partidos": [
-    {
-      "id": "club-beijing-2026-11-17",
-      "tipo": "club",
-      "clubId": "beijing",
-      "torneoId": null,
-      "ligaId": "superliga-cn",
-      "inicio": "2026-11-17T19:00:00+08:00",
-      "zonaSede": "Asia/Shanghai",
-      "horaConfirmada": true,
-      "local": "浙江西塘姚庄",
-      "visitante": "Beijing Arctic Ocean",
-      "nuestro": "visita",
-      "competencia": "Superliga china (CVL) · Fase regular",
-      "sede": "Jiashan",
-      "convocadas": null,
-      "transmision": [],
-      "fuente": "https://tiyu.baidu.com/al/match?match=%E5%A5%B3%E6%8E%92%E8%81%94%E8%B5%9B&tab=%E8%B5%9B%E7%A8%8B",
-      "confianza": "alta",
-      "origen": "ia"
-    },
-    {
-      "id": "club-sesi-bauru-2026-11-17",
-      "tipo": "club",
-      "clubId": "sesi-bauru",
-      "torneoId": null,
-      "ligaId": "superliga-br",
-      "inicio": "2026-11-17T21:00:00-03:00",
-      "zonaSede": "America/Sao_Paulo",
-      "horaConfirmada": true,
-      "local": "Sesi Vôlei Bauru",
-      "visitante": "Sesc RJ Flamengo",
-      "nuestro": "local",
-      "competencia": "Superliga Feminina · Rodada 6",
-      "sede": "Bauru",
-      "convocadas": null,
-      "transmision": [],
-      "fuente": "https://cbv.com.br/volei-de-quadra/superliga-a-feminina",
-      "confianza": "alta",
-      "origen": "ia"
-    },
     {
       "id": "club-mackenzie-2026-11-19",
       "tipo": "club",
@@ -73,8 +33,8 @@
       "local": "Beijing Arctic Ocean",
       "visitante": "上海光明优倍",
       "nuestro": "local",
-      "competencia": "Superliga china (CVL) · Fase regular",
-      "sede": null,
+      "competencia": "Superliga china (CVL) · 常规赛",
+      "sede": "北京越野光彩体育馆",
       "convocadas": null,
       "transmision": [],
       "fuente": "https://tiyu.baidu.com/al/match?match=%E5%A5%B3%E6%8E%92%E8%81%94%E8%B5%9B&tab=%E8%B5%9B%E7%A8%8B",
@@ -93,7 +53,7 @@
       "local": "Formis",
       "visitante": "Ankaran",
       "nuestro": "local",
-      "competencia": "Sportklub Superliga · 5. krog",
+      "competencia": "Superliga ženske · 5. krog",
       "sede": "VŠD Hoče",
       "convocadas": null,
       "transmision": [],
@@ -113,7 +73,7 @@
       "local": "Avarca de Menorca",
       "visitante": "Aguere Ciudad de La Laguna",
       "nuestro": "local",
-      "competencia": "Liga Iberdrola · Jornada 11",
+      "competencia": "Liga Iberdrola · Jornada 8",
       "sede": "Ciutadella",
       "convocadas": null,
       "transmision": [],
@@ -130,7 +90,7 @@
       "inicio": "2026-11-21T20:00:00+01:00",
       "zonaSede": "Europe/Paris",
       "horaConfirmada": true,
-      "local": "Vandœuvre Nancy",
+      "local": "Vandœuvre Nancy Volley-Ball",
       "visitante": "Béziers",
       "nuestro": "local",
       "competencia": "Ligue A Féminine · 9e journée",
@@ -154,7 +114,7 @@
       "visitante": "Il Bisonte Firenze",
       "nuestro": "local",
       "competencia": "LVF A1 Fineco · 10a Giornata - Andata",
-      "sede": "E-Work Biella Forum - Biella",
+      "sede": "E-Work Biella Forum, Biella",
       "convocadas": null,
       "transmision": [],
       "fuente": "https://www.legavolleyfemminile.it/club/uyba-busto-arsizio/710946/calendario",
@@ -171,7 +131,7 @@
       "zonaSede": "America/Sao_Paulo",
       "horaConfirmada": true,
       "local": "Gerdau Minas",
-      "visitante": "Sesi Volei Bauru",
+      "visitante": "Sesi Vôlei Bauru",
       "nuestro": "visita",
       "competencia": "Superliga Feminina · Rodada 7",
       "sede": "Arena Minas, Belo Horizonte",
@@ -604,9 +564,9 @@
   ],
   "estados": {
     "lovb-miami": {
-      "texto": "La temporada 2026-27 de LOVB Pro está programada, pero los resultados de búsqueda no proporcionan fechas ni horas específicas para los partidos dentro del rango solicitado (2026-11-16 al 2026-12-31).",
-      "fuente": "https://www.lovb.com/schedule/2026-27",
-      "revisado": "2026-11-16"
+      "texto": "La temporada inaugural de LOVB Miami comienza el 6 de enero de 2027.",
+      "fuente": "https://www.lovb.com/news/2026-lovb-pro-schedule-announced",
+      "revisado": "2026-11-19"
     },
     "usmp": {
       "texto": "La temporada 2026-2027 de la Liga Peruana de Vóley Betsson inició el 17 de octubre de 2026.",
@@ -629,9 +589,9 @@
       "revisado": "2026-11-16"
     },
     "guerreras-puebla": {
-      "texto": "La temporada femenil de la Liga de Voleibol Profesional de México (LVP MX) 2026 concluyó en abril, tras la disputa de la final ganada por Coronelas de Durango.",
-      "fuente": "https://www.playbook.la/articulo/la-liga-de-voleibol-profesional-de-mexico-suma-su-rama-varonil",
-      "revisado": "2026-11-16"
+      "texto": "La temporada regular de la Liga de Voleibol Profesional de México (LVP MX) 2026 terminó el 16 de noviembre de 2026 y el club ya se encuentra en periodo de pretemporada para la campaña 2027.",
+      "fuente": "https://www.lajornadadeoriente.com.mx/puebla/termina-temporada-regular-para-guerreras-de-puebla-con-derrota",
+      "revisado": "2026-11-19"
     },
     "avarca-de-menorca": {
       "texto": "Temporada 2026/27 en curso según los calendarios de jornada publicados.",
