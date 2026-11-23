@@ -185,5 +185,19 @@
     },
     "sitio": null,
     "calendarioUrl": null
+  },
+  "tijuca-tenis-clube": {
+    "nombre": "Tijuca Tênis Clube",
+    "alias": [],
+    "ligaId": "superliga-b-brasil",
+    "pais": "Brasil",
+    "ciudad": "Río de Janeiro",
+    "zona": "America/Sao_Paulo",
+    "volleybox": {
+      "url": "https://women.volleybox.net/joseline-landeros-p13898",
+      "widgetId": null
+    },
+    "sitio": null,
+    "calendarioUrl": null
   }
 }
