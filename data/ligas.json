@@ -120,5 +120,13 @@
     "calendarioOficialUrl": null,
     "plataformas": [],
     "revisado": null
+  },
+  "superliga-b-brasil": {
+    "nombre": "Superliga B",
+    "pais": "Brasil",
+    "temporada": null,
+    "calendarioOficialUrl": null,
+    "plataformas": [],
+    "revisado": null
   }
 }

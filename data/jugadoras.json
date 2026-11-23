@@ -532,9 +532,9 @@
     ],
     "destacados": [
       {
-        "texto": "MVP y mejor acomodadora del Final Four NORCECA 2022",
-        "anio": 2022,
-        "fuente": "https://norceca.info/argentina-ung-named-mvp-at-norceca-womens-final-four/"
+        "texto": "Medalla de Plata, Mexico, Summer Successes (2026)",
+        "anio": 2026,
+        "fuente": "https://www.lovb.com/news/summer-successes-fuel-2026-27-lovb-preseason"
       },
       {
         "texto": "Mejor acomodadora del Final Four NORCECA 2025",
@@ -583,7 +583,7 @@
       "estaturaCm": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/173462",
       "origen": "https://www.elimparcial.com/deporte/2026/07/26/de-hermosillo-a-miami-argentina-ung-jugara-con-la-nueva-franquicia-de-la-liga-profesional-de-voleibol-de-estados-unidos/"
     },
-    "revisado": "2026-11-06"
+    "revisado": "2026-11-16"
   },
   {
     "slug": "marian-ovalle",
@@ -625,6 +625,12 @@
         "pais": "Estados Unidos",
         "temporada": "2021",
         "fuente": "https://nmmiathletics.com/sports/wvball/2021-22/releases/20211201jf6ft4"
+      },
+      {
+        "club": "University of Texas, El Paso",
+        "pais": "USA",
+        "temporada": "2024-25",
+        "fuente": "https://women.volleybox.net/texas-at-el-paso-univ-t5282"
       }
     ],
     "redes": [
@@ -667,7 +673,7 @@
       "clubId": "https://diario.mx/deportes/2026/aug/31/voleibolista-juarense-acuerda-con-el-ok-formis-para-la-temporada-2026-2027-1136031.html",
       "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/168962"
     },
-    "revisado": "2026-11-06"
+    "revisado": "2026-11-16"
   },
   {
     "slug": "arleth-marquez",
@@ -720,6 +726,11 @@
         "texto": "Participación con la Selección Mexicana mayor en NORCECA Championships 2026",
         "anio": 2026,
         "fuente": "https://women.volleybox.net/usa-mexico-c379134"
+      },
+      {
+        "texto": "Participación en los Juegos Centroamericanos y del Caribe Santo Domingo 2026",
+        "anio": 2026,
+        "fuente": "https://norceca.net/2026%20Competition%20&%20Activities/CACGRD-2026/Final%20Report%20-%20CACG%202026/Volleyball%20Final%20Report%20-%20CACG%202026%20(1).pdf"
       }
     ],
     "fotos": {
@@ -743,7 +754,7 @@
       "clubId": "https://women.volleybox.net/es/arleth-marquez-p100594",
       "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/191994"
     },
-    "revisado": "2026-11-06"
+    "revisado": "2026-11-16"
   },
   {
     "slug": "jocelyn-urias",
@@ -840,9 +851,9 @@
         "fuente": "https://www.clarosports.com/otros-deportes/la-capitana-de-mexico-da-el-salto-a-brasil-jocelyn-urias-firma-con-batavo-mackenzie/"
       },
       {
-        "texto": "Segunda mejor bloqueadora del Final Four NORCECA 2022",
-        "anio": 2022,
-        "fuente": "https://norceca.info/argentina-ung-named-mvp-at-norceca-womens-final-four/"
+        "texto": "Mejor central de la liga mexicana",
+        "anio": 2026,
+        "fuente": "https://revistamarta.com/2026/06/17/batavo-mackenzie-anuncia-elenco-para-a-temporada-2026-27-com-novidades"
       },
       {
         "texto": "Juegos Centroamericanos y del Caribe Santo Domingo 2026",
@@ -872,7 +883,7 @@
       "estaturaCm": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/136134",
       "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/136134"
     },
-    "revisado": "2026-11-06"
+    "revisado": "2026-11-16"
   },
   {
     "slug": "joseline-landeros",
@@ -888,8 +899,8 @@
       "estado": "Nuevo León",
       "pais": "México"
     },
-    "estaturaCm": 169,
-    "clubId": null,
+    "estaturaCm": 170,
+    "clubId": "tijuca-tenis-clube",
     "historialClubes": [
       {
         "club": "Turán VC",
@@ -914,6 +925,18 @@
         "pais": "México",
         "temporada": null,
         "fuente": "https://inde.com.mx/index.php/noticias/ver/208"
+      },
+      {
+        "club": "Tijuca Tênis Clube",
+        "pais": "Brasil",
+        "temporada": "2026-27",
+        "fuente": "https://women.volleybox.net/joseline-landeros-p13898"
+      },
+      {
+        "club": "Absheron",
+        "pais": "Azerbaiyán",
+        "temporada": "2025-26",
+        "fuente": "https://women.volleybox.net/es/transfers/2025-26/ALL/377"
       }
     ],
     "redes": [],
@@ -966,10 +989,11 @@
       "nombreCompleto": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158795",
       "fechaNacimiento": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158795",
-      "estaturaCm": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/158795",
-      "origen": "https://www.elhorizonte.mx/deportes/regia-joseline-landeros-es-campeona-en-voleibol-azerbaiyan/4532445935"
+      "estaturaCm": "https://women.volleybox.net/joseline-landeros-p13898",
+      "origen": "https://www.elhorizonte.mx/deportes/regia-joseline-landeros-es-campeona-en-voleibol-azerbaiyan/4532445935",
+      "clubId": "https://women.volleybox.net/joseline-landeros-p13898"
     },
-    "revisado": "2026-11-06"
+    "revisado": "2026-11-23"
   },
   {
     "slug": "aitana-tanguma",
@@ -980,7 +1004,11 @@
     "numero": 13,
     "capitana": false,
     "fechaNacimiento": "2008-03-10",
-    "origen": null,
+    "origen": {
+      "ciudad": "Monterrey",
+      "estado": "Nuevo León",
+      "pais": "México"
+    },
     "estaturaCm": 183,
     "clubId": null,
     "historialClubes": [],
@@ -1009,9 +1037,10 @@
       "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/207585",
       "fechaNacimiento": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/207585",
       "estaturaCm": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/207585",
-      "nombreCompleto": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/207585"
+      "nombreCompleto": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/207585",
+      "origen": "https://women.volleybox.net/es/aitana-rettke-tanguma-p184416"
     },
-    "revisado": "2026-11-06"
+    "revisado": "2026-11-23"
   },
   {
     "slug": "paola-rivera",
@@ -1027,7 +1056,7 @@
       "estado": "Chihuahua",
       "pais": "México"
     },
-    "estaturaCm": 174,
+    "estaturaCm": 177,
     "clubId": "usmp",
     "historialClubes": [
       {
@@ -1072,9 +1101,9 @@
         "fuente": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/2025/players/152372"
       },
       {
-        "texto": "Bronce en los Juegos Panamericanos Santiago 2023",
-        "anio": 2023,
-        "fuente": "https://norceca.info/wp-content/uploads/2023/09/Bulletin-No-4-Womens-Pan-American-Games-Santiago-2023.pdf"
+        "texto": "Mejor servicio de la LNSV temporada 2025/2026",
+        "anio": 2026,
+        "fuente": "https://rpp.pe/voley/mas-voley/liga-peruana-de-voley-paola-rivera-renovo-por-una-temporada-con-san-martin-noticia-1696725"
       },
       {
         "texto": "Juegos Centroamericanos y del Caribe Santo Domingo 2026",
@@ -1098,12 +1127,12 @@
       "posicion": "https://norceca.info/wp-content/uploads/2026/02/BOLETIN-2-2026-NORCECA-Womens-Final-Four.pdf",
       "perfil": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/152372",
       "fechaNacimiento": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/152372",
-      "estaturaCm": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/152372",
+      "estaturaCm": "https://women.volleybox.net/es/karen-rivera-p39756/awards",
       "nombreCompleto": "https://en.volleyballworld.com/volleyball/competitions/women-world-championship/players/152372",
       "origen": "https://www.tiempo.com.mx/local/juarense-conquista-plata-en-el-norceca-final-six-2026/",
       "clubId": "https://libero.pe/deportes/voley/2026/09/23/fichajes-liga-peruana-de-voley-202627-llegadas-bajas-renovaciones-de-clubes-319263"
     },
-    "revisado": "2026-11-06"
+    "revisado": "2026-11-23"
   },
   {
     "slug": "paulett-munoz",
