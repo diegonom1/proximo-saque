@@ -1,7 +1,7 @@
 {
-  "ultimaCorrida": "2026-11-19T14:30:00-06:00",
+  "ultimaCorrida": "2026-11-23T17:53:00-06:00",
   "revisado": {
-    "rankings": "2026-11-16",
+    "rankings": "2026-11-23",
     "perfil:uxue-guereca": "2026-11-09",
     "perfil:samantha-bricio": "2026-11-09",
     "perfil:sofia-maldonado": "2026-11-09",
@@ -14,10 +14,10 @@
     "perfil:jocelyn-urias": "2026-11-16",
     "dondever:superliga-br": "2026-11-05",
     "dondever:superliga-cn": "2026-11-05",
-    "perfil:joseline-landeros": "2026-11-06",
-    "perfil:aitana-tanguma": "2026-11-06",
-    "perfil:paola-rivera": "2026-11-06",
-    "perfil:paulett-munoz": "2026-11-06",
+    "perfil:joseline-landeros": "2026-11-23",
+    "perfil:aitana-tanguma": "2026-11-23",
+    "perfil:paola-rivera": "2026-11-23",
+    "perfil:paulett-munoz": "2026-11-23",
     "perfil:aime-topete": "2026-11-06",
     "perfil:karina-flores": "2026-11-06",
     "perfil:melanie-parra": "2026-11-06",
@@ -52,11 +52,60 @@
       "texto": "Jocelyn Urías: sale \"Segunda mejor bloqueadora del Final Four NORCECA 2022\" (2022) y entra \"Mejor central de la liga mexicana\" (2026)",
       "fuente": "https://revistamarta.com/2026/06/17/batavo-mackenzie-anuncia-elenco-para-a-temporada-2026-27-com-novidades",
       "fecha": "2026-11-16"
+    },
+    {
+      "clave": "perfil:joseline-landeros:estaturaCm:170",
+      "seccion": "Perfiles",
+      "texto": "Joseline Landeros: estaturaCm 170",
+      "fuente": "https://women.volleybox.net/joseline-landeros-p13898",
+      "fecha": "2026-11-23"
+    },
+    {
+      "clave": "club:joseline-landeros:tijuca tenis clube",
+      "seccion": "Cambios de club",
+      "texto": "Joseline Landeros: sin club → Tijuca Tênis Clube",
+      "fuente": "https://women.volleybox.net/joseline-landeros-p13898",
+      "fecha": "2026-11-23"
+    },
+    {
+      "clave": "perfil:joseline-landeros:club:tijuca tenis clube|2026-27",
+      "seccion": "Perfiles",
+      "texto": "Joseline Landeros: club Tijuca Tênis Clube (2026-27)",
+      "fuente": "https://women.volleybox.net/joseline-landeros-p13898",
+      "fecha": "2026-11-23"
+    },
+    {
+      "clave": "perfil:joseline-landeros:club:absheron|2025-26",
+      "seccion": "Perfiles",
+      "texto": "Joseline Landeros: club Absheron (2025-26)",
+      "fuente": "https://women.volleybox.net/es/transfers/2025-26/ALL/377",
+      "fecha": "2026-11-23"
+    },
+    {
+      "clave": "perfil:aitana-tanguma:origen:{\"ciudad\":\"Monterrey\",\"estado\":\"Nuevo León\",\"pais\":\"México\"}",
+      "seccion": "Perfiles",
+      "texto": "Aitana Tanguma: origen {\"ciudad\":\"Monterrey\",\"estado\":\"Nuevo León\",\"pais\":\"México\"}",
+      "fuente": "https://women.volleybox.net/es/aitana-rettke-tanguma-p184416",
+      "fecha": "2026-11-23"
+    },
+    {
+      "clave": "perfil:paola-rivera:estaturaCm:177",
+      "seccion": "Perfiles",
+      "texto": "Paola Rivera: estaturaCm 177",
+      "fuente": "https://women.volleybox.net/es/karen-rivera-p39756/awards",
+      "fecha": "2026-11-23"
+    },
+    {
+      "clave": "perfil:paola-rivera:destacado:mejor servicio de la lnsv temporada 2025 2026",
+      "seccion": "Perfiles",
+      "texto": "Paola Rivera: sale \"Bronce en los Juegos Panamericanos Santiago 2023\" (2023) y entra \"Mejor servicio de la LNSV temporada 2025/2026\" (2026)",
+      "fuente": "https://rpp.pe/voley/mas-voley/liga-peruana-de-voley-paola-rivera-renovo-por-una-temporada-con-san-martin-noticia-1696725",
+      "fecha": "2026-11-23"
     }
   ],
   "rechazos": [],
   "tavily": {
     "mes": "2026-11",
-    "creditos": 460
+    "creditos": 513
   }
 }
