@@ -1,46 +1,6 @@
 {
-  "actualizado": "2026-11-23T17:53:00-06:00",
+  "actualizado": "2026-11-26T15:27:00-06:00",
   "partidos": [
-    {
-      "id": "club-sesi-bauru-2026-11-23",
-      "tipo": "club",
-      "clubId": "sesi-bauru",
-      "torneoId": null,
-      "ligaId": "superliga-br",
-      "inicio": "2026-11-23T18:30:00-03:00",
-      "zonaSede": "America/Sao_Paulo",
-      "horaConfirmada": true,
-      "local": "GERDAU MINAS",
-      "visitante": "SESI VOLEI BAURU",
-      "nuestro": "visita",
-      "competencia": "Superliga Feminina · Rodada 7",
-      "sede": "Belo Horizonte",
-      "convocadas": null,
-      "transmision": [],
-      "fuente": "https://cbv.com.br/volei-de-quadra/superliga-a-feminina",
-      "confianza": "alta",
-      "origen": "ia"
-    },
-    {
-      "id": "club-beijing-2026-11-25",
-      "tipo": "club",
-      "clubId": "beijing",
-      "torneoId": null,
-      "ligaId": "superliga-cn",
-      "inicio": "2026-11-25T19:00:00+08:00",
-      "zonaSede": "Asia/Shanghai",
-      "horaConfirmada": true,
-      "local": "江苏中天钢铁",
-      "visitante": "Beijing Arctic Ocean",
-      "nuestro": "visita",
-      "competencia": "Superliga china (CVL) · Regular",
-      "sede": null,
-      "convocadas": null,
-      "transmision": [],
-      "fuente": "https://tiyu.baidu.com/al/match?match=%E5%A5%B3%E6%8E%92%E8%81%94%E8%B5%9B&tab=%E8%B5%9B%E7%A8%8B",
-      "confianza": "alta",
-      "origen": "ia"
-    },
     {
       "id": "club-beijing-2026-11-28",
       "tipo": "club",
@@ -53,8 +13,8 @@
       "local": "Beijing Arctic Ocean",
       "visitante": "山东日照钢铁",
       "nuestro": "local",
-      "competencia": "Superliga china (CVL) · Regular",
-      "sede": "Pekín",
+      "competencia": "中国女子排球超级联赛 · 常规赛",
+      "sede": "北京",
       "convocadas": null,
       "transmision": [],
       "fuente": "https://tiyu.baidu.com/al/match?match=%E5%A5%B3%E6%8E%92%E8%81%94%E8%B5%9B&tab=%E8%B5%9B%E7%A8%8B",
@@ -77,7 +37,7 @@
       "sede": "Le Cannet",
       "convocadas": null,
       "transmision": [],
-      "fuente": "https://spikelive.fr/equipe/vandoeuvre-nancy",
+      "fuente": "https://spikelive.fr/ligue/laf/calendrier",
       "confianza": "alta",
       "origen": "ia"
     },
@@ -111,13 +71,13 @@
       "zonaSede": "Europe/Rome",
       "horaConfirmada": true,
       "local": "Banca Valsabbina Millenium Brescia",
-      "visitante": "Laica Cioccolato UYBA Busto Arsizio",
+      "visitante": "Laica Uyba Busto Arsizio",
       "nuestro": "visita",
       "competencia": "Serie A1 femminile · 11a Giornata - Andata",
-      "sede": "Montichiari",
+      "sede": "Palasport Jimmy George - Montichiari",
       "convocadas": null,
       "transmision": [],
-      "fuente": "https://www.legavolleyfemminile.it/club/uyba-busto-arsizio/710946/calendario",
+      "fuente": "https://www.legavolleyfemminile.it/calendario",
       "confianza": "alta",
       "origen": "ia"
     },
@@ -514,9 +474,9 @@
       "revisado": "2026-11-23"
     },
     "beijing": {
-      "texto": "Temporada 2026-2027 iniciada el 7 de noviembre de 2026.",
-      "fuente": "https://www.sohu.com/a/1098561125_123753",
-      "revisado": "2026-11-09"
+      "texto": "Temporada 2026-2027 en curso; inició el 7 de noviembre de 2026 y finalizará el 25 de marzo de 2027.",
+      "fuente": "https://baike.baidu.com/item/2026-27%E8%B5%9B%E5%AD%A3%E4%B8%AD%E5%9B%BD%E5%A5%B3%E5%AD%90%E6%8E%92%E7%90%83%E8%B6%85%E7%BA%A7%E8%81%94%E8%B5%9B/69746055",
+      "revisado": "2026-11-26"
     },
     "sesi-bauru": {
       "texto": "Temporada 2026/2027 iniciada en octubre; primer turno del 17 de octubre al 22 de diciembre.",
@@ -529,9 +489,9 @@
       "revisado": "2026-11-23"
     },
     "guerreras-puebla": {
-      "texto": "La temporada actual de la Liga de Voleibol Profesional de México (LVP Mx) 2026/27 comienza el 14 de enero de 2027.",
-      "fuente": "https://women.volleybox.net/es/women-lvpmx-2026-27-o44893",
-      "revisado": "2026-11-23"
+      "texto": "La temporada 2026 de la Liga de Voleibol Profesional de México (LVP MX) ha concluido. El club se encuentra actualmente en periodo de pretemporada para la campaña 2027.",
+      "fuente": "https://tribunanoticias.mx/regla-torres-confirmada-con-guerreras-de-puebla",
+      "revisado": "2026-11-26"
     },
     "avarca-de-menorca": {
       "texto": "La temporada 2026/27 de la Superliga Femenina está en curso y Avarca de Menorca participa en ella.",
